@@ -34,7 +34,7 @@
 
 <div class="container">
     
-    <!-- 🔐 شاشة قفل الاشتراك -->
+    <!-- 🔐 شاشة قفل الاشتراك (لصاحب المحل فقط) -->
     <div id="activationSection">
         <div class="lock-icon">🔐</div>
         <h3>نظام توليد الباركود الذكي</h3>
@@ -70,7 +70,8 @@
             <div class="buttons-stack">
                 <button type="submit" id="saveBtn" class="btn btn-save">حفظ بيانات الزبون</button>
                 <button type="button" id="editBtn" class="btn btn-edit" style="display: none;">تعديل المعلومات</button>
-                <button type="button" id="generateQrBtn" class="btn btn-qr" disabled>إنشاء باركود QR للزبون</button>
+                <button type="button" id="customerSaveBtn" class="btn btn-save" style="display: none;">حفظ التعديلات الجديدة</button>
+                <button type="button" id="generateQrBtn" class="btn btn-qr" style="display: none;" disabled>إنشاء باركود QR للزبون</button>
             </div>
         </form>
 
@@ -88,7 +89,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-    // قائمة الأكواد النشطة (تعدلها شهرياً من هنا)
     const validKeys = ["VIP-MONTH-2026", "SHOP-FREE-TEST"];
 
     const activationSection = document.getElementById('activationSection');
@@ -101,6 +101,7 @@
     const inputs = form.querySelectorAll('input');
     const saveBtn = document.getElementById('saveBtn');
     const editBtn = document.getElementById('editBtn');
+    const customerSaveBtn = document.getElementById('customerSaveBtn');
     const generateQrBtn = document.getElementById('generateQrBtn');
     const qrSection = document.getElementById('qrSection');
     const qrcodeDiv = document.getElementById('qrcode');
@@ -108,30 +109,49 @@
     const whatsappBtn = document.getElementById('whatsappBtn');
 
     let generatedUrl = "";
+    let isCustomerMode = false; // متغير لتحديد هل المستخدم الحالي زبون أم صاحب محل
 
-    // فحص الحالة فور فتح الصفحة
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
 
-        // أولاً: إذا كان الرابط يحتوي على بيانات زبون يتخطى القفل فوراً ويعرض البيانات
+        // إذا كان الرابط يحتوي على بيانات زبون (واجهة الزبون)
         if (emailParam) {
+            isCustomerMode = true;
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
             appTitle.innerText = "📋 بيانات الحساب الخاصة بك";
             appTitle.style.color = '#333333';
-            
-            document.getElementById('email').value = atob(emailParam);
-            document.getElementById('password').value = atob(urlParams.get('p'));
-            document.getElementById('phone').value = atob(urlParams.get('ph'));
-            document.getElementById('birthdate').value = urlParams.get('d');
 
-            inputs.forEach(input => input.disabled = true);
-            saveBtn.style.display = 'none';
+            // إخفاء زر توليد الكود وزر حفظ المحل نهائياً عن أعين الزبون
             generateQrBtn.style.display = 'none';
+            saveBtn.style.display = 'none';
+
+            // فحص هل توجد بيانات معدلة ومحفوظة مسبقاً في هاتف الزبون؟
+            const localData = localStorage.getItem('customer_modified_data');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                document.getElementById('email').value = parsed.email;
+                document.getElementById('password').value = parsed.password;
+                document.getElementById('phone').value = parsed.phone;
+                document.getElementById('birthdate').value = parsed.date;
+            } else {
+                // إذا كانت أول مرة يفتح الكود، نقرأ من الرابط المشفر
+                document.getElementById('email').value = atob(emailParam);
+                document.getElementById('password').value = atob(urlParams.get('p'));
+                document.getElementById('phone').value = atob(urlParams.get('ph'));
+                document.getElementById('birthdate').value = urlParams.get('d');
+            }
+
+            // قفل المدخلات وإظهار زر التعديل فقط للزبون
+            inputs.forEach(input => input.disabled = true);
+            editBtn.style.display = 'block';
+            customerSaveBtn.style.display = 'none';
         } 
-        // ثانياً: إذا كان الرابط عادي (صاحب المحل)، نفحص الذاكرة المحلية
+        // واجهة صاحب المحل
         else {
+            isCustomerMode = false;
+            generateQrBtn.style.display = 'block'; // تظهر فقط لصاحب المحل
             const savedKey = localStorage.getItem('shop_active_key');
             
             if (savedKey && validKeys.includes(savedKey)) {
@@ -144,23 +164,24 @@
         }
     });
 
-    // تفعيل الحساب يدوياً وحفظ الكود في ذاكرة الهاتف
+    // تفعيل الحساب لصاحب المحل
     activateBtn.addEventListener('click', () => {
         const userKey = activationKeyInput.value.trim();
-        
         if (validKeys.includes(userKey)) {
             localStorage.setItem('shop_active_key', userKey);
-            alert("تم التفعيل بنجاح! لن تحتاج لإدخال الكود مجدداً هذا الشهر.");
+            alert("تم التفعيل بنجاح!");
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
         } else {
-            alert("❌ كود التفعيل غير صحيح أو منتهي الصلاحية!");
+            alert("❌ كود التفعيل غير صحيح!");
         }
     });
 
-    // عند حفظ البيانات وتوليد الرابط للزبون
+    // معالجة نموذج الحفظ (لصاحب المحل)
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        if (isCustomerMode) return; // منع تشغيل هذا الجزء للزبون
+
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
@@ -178,18 +199,42 @@
         generateQrBtn.disabled = false;
     });
 
-    // توليد الـ QR
+    // حفظ التعديلات الخاصة بالزبون فقط في هاتفه
+    customerSaveBtn.addEventListener('click', function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const phone = document.getElementById('phone').value;
+        const birthdate = document.getElementById('birthdate').value;
+
+        const customerData = { email, password, phone, date: birthdate };
+        localStorage.setItem('customer_modified_data', JSON.stringify(customerData));
+
+        alert("✅ تم حفظ تعديلاتك بنجاح داخل حسابك!");
+        inputs.forEach(input => input.disabled = true);
+        customerSaveBtn.style.display = 'none';
+        editBtn.style.display = 'block';
+    });
+
+    // زر التعديل (ذكي: يتعرف إن كان المستخدم زبون أم صاحب محل)
+    editBtn.addEventListener('click', function() {
+        inputs.forEach(input => input.disabled = false);
+        editBtn.style.display = 'none';
+        
+        if (isCustomerMode) {
+            customerSaveBtn.style.display = 'block'; // يظهر للزبون زر حفظ التعديلات فقط
+        } else {
+            saveBtn.style.display = 'block'; // يظهر لصاحب المحل زر الحفظ الأساسي لتوليد الـ QR
+            generateQrBtn.disabled = true;
+            qrSection.style.display = 'none';
+        }
+    });
+
+    // توليد الـ QR (خاص بصاحب المحل فقط)
     generateQrBtn.addEventListener('click', function() {
         if (!generatedUrl) return;
         qrcodeDiv.innerHTML = ""; 
-        
-        new QRCode(qrcodeDiv, {
-            text: generatedUrl,
-            width: 180,
-            height: 180
-        });
-
-        whatsappBtn.href = `https://api.whatsapp.com/send?text=مرحباً، هذا هو كود حساباتك الآمن: ${encodeURIComponent(generatedUrl)}`;
+        new QRCode(qrcodeDiv, { text: generatedUrl, width: 180, height: 180 });
+        whatsappBtn.href = `https://api.whatsapp.com/send?text=مرحباً، هذا هو كود حسابك الآمن والمباشر: ${encodeURIComponent(generatedUrl)}`;
         qrSection.style.display = 'block';
     });
 
@@ -204,15 +249,6 @@
             downloadLink.click();
             document.body.removeChild(downloadLink);
         }
-    });
-
-    // التعديل
-    editBtn.addEventListener('click', function() {
-        inputs.forEach(input => input.disabled = false);
-        editBtn.style.display = 'none';
-        saveBtn.style.display = 'block';
-        generateQrBtn.disabled = true; 
-        qrSection.style.display = 'none'; 
     });
 </script>
 </body>
