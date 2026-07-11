@@ -114,12 +114,13 @@
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
 
-        // أولاً: إذا كان الرابط يحتوي على بيانات زبون (?e=...) يتخطى القفل فوراً ويعرض البيانات
+        // أولاً: إذا كان الرابط يحتوي على بيانات زبون يتخطى القفل فوراً ويعرض البيانات
         if (emailParam) {
+            activationSection.style.style.display = 'none';
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
             appTitle.innerText = "📋 بيانات الحساب الخاصة بك";
-            appTitle.style.color = #333;
+            appTitle.style.color = '#333333';
             
             document.getElementById('email').value = atob(emailParam);
             document.getElementById('password').value = atob(urlParams.get('p'));
@@ -130,16 +131,14 @@
             saveBtn.style.display = 'none';
             generateQrBtn.style.display = 'none';
         } 
-        // ثانياً: إذا كان الرابط عادي (صاحب المحل)، نفحص هل الكود محفوظ مسبقاً في الهاتف؟
+        // ثانياً: إذا كان الرابط عادي (صاحب المحل)، نفحص الذاكرة المحلية
         else {
             const savedKey = localStorage.getItem('shop_active_key');
             
             if (savedKey && validKeys.includes(savedKey)) {
-                // الكود محفوظ وصحيح، افتح الموقع فوراً
                 activationSection.style.display = 'none';
                 mainAppSection.style.display = 'block';
             } else {
-                // الكود غير موجود أو انتهت صلاحيته، اطلب التفعيل
                 activationSection.style.display = 'block';
                 mainAppSection.style.display = 'none';
             }
@@ -151,7 +150,7 @@
         const userKey = activationKeyInput.value.trim();
         
         if (validKeys.includes(userKey)) {
-            localStorage.setItem('shop_active_key', userKey); // حفظ الكود في الهاتف
+            localStorage.setItem('shop_active_key', userKey);
             alert("تم التفعيل بنجاح! لن تحتاج لإدخال الكود مجدداً هذا الشهر.");
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
