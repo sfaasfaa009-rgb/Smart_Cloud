@@ -13,7 +13,7 @@
         }
 
         body {
-            background-color: #0c0d0e;
+            background-color: #080808;
             color: #ffffff;
             display: flex;
             justify-content: center;
@@ -23,35 +23,33 @@
         }
 
         .container {
-            background-color: #161719;
+            background-color: #121315;
             width: 100%;
-            max-width: 400px;
-            border-radius: 20px;
-            padding: 30px 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 380px;
+            border-radius: 25px;
+            padding: 35px 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
         }
 
-        /* قسم الشعارات العلوي مرتب من اليسار إلى اليمين */
+        /* قسم الشعارات العلوي - مرتب من اليسار إلى اليمين */
         .logos-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 35px;
-            direction: ltr; /* لضمان الترتيب من اليسار لليمن */
+            direction: ltr; 
             padding: 0 10px;
         }
 
         .logos-container img {
-            height: 40px;
+            height: 38px;
+            width: auto;
             object-fit: contain;
         }
 
-        /* شعار آبل يحتاج تحديد عرض مناسب وتنسيق دائري خفيف مثل الصورة */
+        /* شعار آبل البسيط بدون إضافات مشوهة */
         .apple-logo {
-            width: 40px;
-            border: 1px solid #555;
-            border-radius: 50%;
-            padding: 4px;
+            height: 35px !important;
         }
 
         .form-group {
@@ -62,32 +60,33 @@
         .form-group label {
             display: block;
             font-size: 15px;
-            margin-bottom: 8px;
-            color: #e0e0e0;
+            margin-bottom: 10px;
+            color: #ffffff;
             font-weight: 500;
         }
 
+        /* حقول الإدخال مع إرجاع التوهج والظل الأصفر المحيط */
         .form-group input, .form-group select {
             width: 100%;
-            padding: 14px;
-            background-color: #212327;
-            border: 1px solid #31353d;
-            border-radius: 10px;
+            padding: 15px;
+            background-color: #1e1f22;
+            border: 1px solid #2d2f34;
+            border-radius: 12px;
             color: #ffffff;
             font-size: 14px;
             text-align: right;
             outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            /* توهج خفيف حول الحقول كما يظهر بالصورة */
-            box-shadow: 0 0 4px rgba(255, 193, 7, 0.1);
+            /* التوهج الأصفر الثابت المحيط بالمستطيلات كما في الصورة الأولى */
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.25);
+            transition: box-shadow 0.3s, border-color 0.3s;
         }
 
         .form-group input:focus {
-            border-color: #ffa000;
-            box-shadow: 0 0 8px rgba(255, 160, 0, 0.3);
+            border-color: #ffb300;
+            box-shadow: 0 0 12px rgba(255, 179, 0, 0.5);
         }
 
-        /* لجعل حقول النص بالإنجليزية تظهر بشكل صحيح مثل الإيميل والهاتف والرمز */
+        /* تنسيق الحقول الإنجليزية */
         .form-group input[type="email"],
         .form-group input[type="password"],
         .form-group input[type="tel"] {
@@ -96,61 +95,55 @@
         }
 
         .form-group input::placeholder {
-            color: #666e7a;
+            color: #4f535c;
         }
 
-        /* الأزرار */
+        /* الأزرار مع التوهج الأصفر المحيط بها أيضاً */
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             margin-bottom: 15px;
-            transition: opacity 0.2s;
-        }
-
-        .btn:active {
-            opacity: 0.8;
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.2);
         }
 
         .btn-submit {
-            background-color: #1e7e34;
+            background-color: #1b722c;
             color: #ffffff;
-            box-shadow: 0 0 5px rgba(30, 126, 52, 0.2);
         }
 
         .btn-qr {
-            background-color: #5a6268;
+            background-color: #555b61;
             color: #ffffff;
-            margin-bottom: 10px;
-            box-shadow: 0 0 5px rgba(90, 98, 104, 0.2);
+            margin-bottom: 0;
         }
 
-        /* تم مسح قسم التذييل بالكامل لتبقى الأسفل فارغة تماماً */
+        /* أسفل الصفحة فارغ تماماً ونظيف */
         .footer-spacer {
-            margin-top: 15px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- قسم الشعارات مرتبة من اليسار لليمين -->
+        <!-- قسم الشعارات بالروابط البديلة المستقرة والترتيب الصحيح -->
         <div class="logos-container">
             <!-- 1. Google Play -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Google_Play_2022_icon.svg" alt="Google Play">
+            <img src="https://jsbin-user-assets.s3.amazonaws.com/rlemon/google-play.png" alt="Google Play" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Google_Play_2022_icon.svg/512px-Google_Play_2022_icon.svg.png'">
             
             <!-- 2. App Store (Apple) -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="App Store" class="apple-logo" style="filter: invert(0.8);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/512px-Apple_logo_black.svg.png" alt="App Store" class="apple-logo" style="filter: invert(0.75);">
             
             <!-- 3. Outlook -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/512px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" alt="Outlook">
             
             <!-- 4. Steam -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Steam_icon_logo.svg/512px-Steam_icon_logo.svg.png" alt="Steam">
         </div>
 
         <!-- الإستمارة -->
@@ -174,16 +167,14 @@
                 <label>(Birthdate) تاريخ الميلاد</label>
                 <select required>
                     <option value="" disabled selected hidden></option>
-                    <!-- يمكنك إضافة خيارات السنوات أو الأيام هنا لاحقاً بالـ JS أو يدوياً -->
                     <option value="1">اختر التاريخ...</option>
                 </select>
             </div>
 
             <button type="submit" class="btn btn-submit">حفظ بيانات الزبون</button>
-            <button type="button" class="btn btn-qr">إنشاء باركود QR للزبون</button>
+            <button type="button" class="btn btn-qr">للزبون QR إنشاء باركود</button>
         </form>
 
-        <!-- مساحة سفلية فارغة تماماً بدون نصوص أو أزرار إضافية -->
         <div class="footer-spacer"></div>
     </div>
 
