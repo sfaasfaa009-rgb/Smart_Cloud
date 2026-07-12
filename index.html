@@ -96,6 +96,7 @@
 
         /* تنسيق اتجاه الحقول للغات الأجنبية والأرقام */
         .input-field[type="email"],
+        .input-field[type="text"],
         .input-field[type="tel"] {
             text-align: left;
             direction: ltr;
@@ -139,10 +140,10 @@
             background-color: #4b5563;
         }
 
-        /* حاوية الـ QR Code لتظهر بشكل متناسق في المنتصف */
+        /* حاوية الـ QR Code البيضاء */
         #qrcode-container {
             margin-top: 25px;
-            display: flex;
+            display: none; /* مخفي افتراضياً حتى يتم التوليد */
             justify-content: center;
             align-items: center;
             background: #ffffff;
@@ -152,7 +153,6 @@
             margin-left: auto;
             margin-right: auto;
             box-shadow: 0 0 15px rgba(212, 163, 89, 0.3);
-            display: none; /* مخفي افتراضياً حتى يتم التوليد */
         }
     </style>
 </head>
@@ -175,26 +175,30 @@
             </div>
         </div>
 
-        <!-- النموذج -->
+        <!-- النموذج مع منع التحديث تلقائياً -->
         <form id="customerForm" onsubmit="event.preventDefault();">
             
             <div class="form-group">
                 <label>البريد الإلكتروني (Email)</label>
+                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="email" id="customerEmail" class="input-field" required>
             </div>
 
             <div class="form-group">
                 <label>كلمة المرور (Password)</label>
+                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="text" id="customerPassword" class="input-field" placeholder="أدخل كلمة المرور" required>
             </div>
 
             <div class="form-group">
                 <label>رقم الهاتف (Phone Number)</label>
+                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="tel" id="customerPhone" class="input-field" placeholder="+964..." required>
             </div>
 
             <div class="form-group">
                 <label>تاريخ الميلاد (Birthdate)</label>
+                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="date" id="customerDate" class="input-field" required>
             </div>
 
@@ -210,7 +214,7 @@
     </div>
 
     <script>
-        // دالة حفظ البيانات محلياً في المتصفح لكي لا تضيع عند إعادة فتح الصفحة
+        // دالة حفظ البيانات في ذاكرة المتصفح
         function saveData() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -224,9 +228,12 @@
 
             const data = { email, password, phone, date };
             localStorage.setItem('savedCustomerData', JSON.stringify(data));
+            
+            // تنبيه بسيط ومخفي داخل الكونسول للتأكيد دون تخريب التصميم
+            console.log("تم حفظ البيانات بنجاح في المتصفح!");
         }
 
-        // دالة إنشاء الباركود الفعلي بناءً على البيانات المدخلة
+        // دالة إنشاء الباركود وقراءته عبر الهاتف
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -238,16 +245,16 @@
                 return;
             }
 
-            // تجهيز النص الذي سيحتويه الباركود
+            // النص الفعلي الذي ستصوره الكاميرا وتقرأه
             const qrText = `Email: ${email}\nPassword: ${password}\nPhone: ${phone}\nBirthdate: ${date}`;
 
-            // مسح أي باركود قديم تم توليده سابقاً
+            // مسح أي باركود قديم
             document.getElementById("qrcode").innerHTML = "";
             
             // إظهار الحاوية البيضاء للباركود
             document.getElementById("qrcode-container").style.display = "flex";
 
-            // توليد الـ QR Code الجديد
+            // توليد الـ QR Code الجديد بالبيانات الفعلية لتقرأه الكاميرا
             new QRCode(document.getElementById("qrcode"), {
                 text: qrText,
                 width: 170,
@@ -258,7 +265,7 @@
             });
         }
 
-        // استرجاع البيانات تلقائياً إذا كانت محفوظة مسبقاً عند فتح الصفحة
+        // استرجاع البيانات تلقائياً وتعبئتها في الحقول عند فتح الصفحة
         window.onload = function() {
             const savedData = localStorage.getItem('savedCustomerData');
             if(savedData) {
