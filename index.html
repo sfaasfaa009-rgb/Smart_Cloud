@@ -68,6 +68,12 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
 
+        .field input:disabled {
+            background: #edf2f7;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
         button {
             width: 100%;
             padding: 16px;
@@ -136,6 +142,7 @@
             flex-wrap: wrap;
             gap: 10px;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
         .record-item:hover {
@@ -191,6 +198,110 @@
             padding: 20px;
         }
 
+        /* ======== نافذة عرض المعلومات ======== */
+        .info-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .info-popup.active {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            animation: popIn 0.4s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .popup-content h2 {
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 25px;
+            font-size: 24px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .popup-field {
+            margin-bottom: 18px;
+        }
+
+        .popup-field label {
+            display: block;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .popup-field .value {
+            background: #f7fafc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .popup-field .value.email-value {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+
+        .popup-field .value.password-value {
+            border-color: #f093fb;
+            background: #faf5ff;
+        }
+
+        .popup-field .value.phone-value {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .popup-field .value.birthdate-value {
+            border-color: #ed8936;
+            background: #fffaf0;
+        }
+
+        .popup-close-btn {
+            background: #fc8181;
+            margin-top: 15px;
+        }
+
+        .popup-close-btn:hover {
+            background: #e53e3e;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -204,6 +315,9 @@
             }
             .record-item .delete-btn {
                 width: 100%;
+            }
+            .popup-content {
+                padding: 25px;
             }
         }
     </style>
@@ -241,8 +355,32 @@
 
         <hr>
 
-        <h3>📋 المعلومات المحفوظة</h3>
+        <h3>📋 المعلومات المحفوظة (اضغط على السجل لعرضه)</h3>
         <div id="recordsList"></div>
+    </div>
+
+    <!-- ======== نافذة عرض المعلومات ======== -->
+    <div class="info-popup" id="infoPopup">
+        <div class="popup-content">
+            <h2>📇 معلومات السجل</h2>
+            <div class="popup-field">
+                <label>📧 البريد الإلكتروني</label>
+                <div class="value email-value" id="popupEmail">-</div>
+            </div>
+            <div class="popup-field">
+                <label>🔑 كلمة المرور</label>
+                <div class="value password-value" id="popupPassword">-</div>
+            </div>
+            <div class="popup-field">
+                <label>📞 رقم الهاتف</label>
+                <div class="value phone-value" id="popupPhone">-</div>
+            </div>
+            <div class="popup-field">
+                <label>🎂 تاريخ الميلاد</label>
+                <div class="value birthdate-value" id="popupBirthdate">-</div>
+            </div>
+            <button class="popup-close-btn" onclick="closePopup()">✖ إغلاق</button>
+        </div>
     </div>
 
     <!-- مكتبة QR Code من CDN -->
@@ -258,6 +396,7 @@
         const qrContainer = document.getElementById('qrCodeContainer');
         const generateQrBtn = document.getElementById('generateQrBtn');
         const recordsList = document.getElementById('recordsList');
+        const infoPopup = document.getElementById('infoPopup');
 
         let currentQrCode = null;
         let records = JSON.parse(localStorage.getItem('records')) || [];
@@ -269,14 +408,39 @@
                 return;
             }
             recordsList.innerHTML = records.map((rec, index) => `
-                <div class="record-item">
+                <div class="record-item" onclick="showRecord(${index})">
                     <span class="data">
                         📧 ${rec.email} | 🔑 ${rec.password} | 📞 ${rec.phone} | 🎂 ${rec.birthdate}
                     </span>
-                    <button class="delete-btn" onclick="deleteRecord(${index})">✖ حذف</button>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteRecord(${index})">✖ حذف</button>
                 </div>
             `).join('');
         }
+
+        // ======== عرض السجل في نافذة منبثقة ========
+        function showRecord(index) {
+            const rec = records[index];
+            if (!rec) return;
+            
+            document.getElementById('popupEmail').textContent = rec.email;
+            document.getElementById('popupPassword').textContent = rec.password;
+            document.getElementById('popupPhone').textContent = rec.phone;
+            document.getElementById('popupBirthdate').textContent = rec.birthdate;
+            
+            infoPopup.classList.add('active');
+        }
+
+        // ======== إغلاق النافذة ========
+        function closePopup() {
+            infoPopup.classList.remove('active');
+        }
+
+        // ======== إغلاق النافذة بالضغط خارجها ========
+        infoPopup.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePopup();
+            }
+        });
 
         // ======== حفظ سجل جديد ========
         form.addEventListener('submit', function(e) {
