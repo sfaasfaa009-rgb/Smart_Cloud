@@ -38,8 +38,26 @@
 
         .lock-title {
             font-size: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #d4a359;
+        }
+
+        .device-code-box {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 25px;
+            background: #1a1c26;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+            border: 1px dashed #2d3142;
+        }
+
+        .device-code-box span {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 2px;
         }
 
         /* حاوية المحتوى الرئيسي للموقع (مخفية افتراضياً) */
@@ -176,16 +194,17 @@
 </head>
 <body>
 
-    <!-- شاشة القفل لحماية الموقع من السرقة وضمان الاشتراك الشهري -->
+    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي (كود الجهاز + 2026) -->
     <div id="lock-screen">
-        <div class="lock-title">الموقع مقفل، يرجى إدخال الرمز السري للدخول</div>
+        <div class="lock-title">الموقع مقفل، يرجى تفعيل الجهاز</div>
+        <div class="device-code-box">كود جهازك الحالي: <span id="displayDeviceCode">0000</span></div>
         <div class="form-group">
-            <input type="text" id="sitePassword" class="input-field" placeholder="أدخل رمز الحماية السري هنا" style="text-align: center;">
+            <input type="text" id="sitePassword" class="input-field" placeholder="أدخل رمز التفعيل هنا" style="text-align: center;">
         </div>
         <button type="button" class="btn btn-submit" onclick="checkAccessCode()" style="margin-top: 10px;">فتح الموقع</button>
     </div>
 
-    <!-- حاوية الموقع الرئيسية (تظهر بعد إدخال الرمز الصحيح) -->
+    <!-- حاوية الموقع الرئيسية (تظهر بعد إدخال المجموع الصحيح) -->
     <div class="container" id="main-content">
         <!-- قسم الشعارات -->
         <div class="brands-header">
@@ -229,7 +248,7 @@
             <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
             <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
 
-            <!-- مكان ظهور الباركود -->
+            <!-- مكان ظهور الباركود الفعلي -->
             <div id="qrcode-container">
                 <div id="qrcode"></div>
             </div>
@@ -238,24 +257,51 @@
     </div>
 
     <script>
-        // دالة التحقق من الرمز السري لفتح الموقع (نظرية الرمز 2026)
-        function checkAccessCode() {
-            const enteredCode = document.getElementById('sitePassword').value;
-            const secretCode = "2026"; // الرمز السري الخاص بك
+        let generatedDeviceCode = "";
 
-            if (enteredCode === secretCode) {
-                // إخفاء شاشة القفل وإظهار المحتوى الرئيسي
+        // دالة يتم تشغيلها فور تحميل الصفحة لإنشاء كود عشوائي فريد وثابت للجهاز
+        window.onload = function() {
+            // التحقق مما إذا كان الموقع قد تم تفعيله مسبقاً على هذا الجهاز لكي لا يسأله في كل تحديث
+            const isActivated = localStorage.getItem('siteActivated');
+            if (isActivated === 'true') {
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                loadSavedData();
+                return;
+            }
+
+            // إذا لم يكن مفعلاً، نتحقق من وجود كود جهاز محفوظ أو نولد واحداً جديداً من 4 أرقام
+            let deviceCode = localStorage.getItem('deviceCode');
+            if (!deviceCode) {
+                deviceCode = Math.floor(1000 + Math.random() * 9000).toString(); // يولد رقم عشوائي بين 1000 و 9999
+                localStorage.setItem('deviceCode', deviceCode);
+            }
+            generatedDeviceCode = deviceCode;
+            document.getElementById('displayDeviceCode').innerText = generatedDeviceCode;
+        }
+
+        // دالة التحقق من الرمز السري المعتمدة على نظرية الجمع (كود الجهاز + 2026)
+        function checkAccessCode() {
+            const enteredCode = document.getElementById('sitePassword').value.trim();
+            
+            // حساب المجموع الصحيح المطلوب
+            const correctSum = Number(generatedDeviceCode) + 2026;
+
+            if (Number(enteredCode) === correctSum) {
+                // حفظ حالة التفعيل حتى لا يغلق الموقع عند تحديث الصفحة
+                localStorage.setItem('siteActivated', 'true');
+                
+                // الانتقال للموقع الرئيسي
                 document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 
-                // تحميل البيانات تلقائياً بعد الفتح إن وجدت
                 loadSavedData();
             } else {
-                alert("الرمز السري غير صحيح! يرجى إدخال الرمز الصحيح لفتح الموقع.");
+                alert("الرمز السري غير صحيح! تأكد من جمع كود جهازك مع الرقم 2026.");
             }
         }
 
-        // دالة حفظ البيانات محلياً في ذاكرة المتصفح
+        // دالة حفظ البيانات محلياً في ذاكرة المتصفح لمنع اختفائها
         function saveData() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -284,7 +330,7 @@
             }
         }
 
-        // دالة إنشاء الباركود الفعلي لتقرأه الكاميرا
+        // دالة إنشاء الباركود الفعلي لتقرأه الكاميرا بدقة
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -296,14 +342,11 @@
                 return;
             }
 
-            // النص الذي ستقرأه كاميرا الهاتف بدقة عند التصوير
             const qrText = `Email: ${email}\nPassword: ${password}\nPhone: ${phone}\nBirthdate: ${date}`;
 
-            // تنظيف الحاوية السابقة
             document.getElementById("qrcode").innerHTML = "";
             document.getElementById("qrcode-container").style.display = "flex";
 
-            // توليد الرمز الجديد
             new QRCode(document.getElementById("qrcode"), {
                 text: qrText,
                 width: 170,
