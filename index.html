@@ -37,7 +37,6 @@
             font-size: 28px;
         }
 
-        /* ======== الصفحة الرئيسية ======== */
         .main-page {
             display: block;
         }
@@ -161,7 +160,6 @@
             font-weight: 600;
         }
 
-        /* ======== صفحة عرض المعلومات ======== */
         .info-page {
             display: none;
         }
@@ -322,7 +320,6 @@
 
 <div class="container">
 
-    <!-- ======== الصفحة الرئيسية ======== -->
     <div class="main-page" id="mainPage">
         <h1>📝 مدونة المعلومات</h1>
         
@@ -357,7 +354,6 @@
         </div>
     </div>
 
-    <!-- ======== صفحة عرض المعلومات ======== -->
     <div class="info-page" id="infoPage">
         <div class="info-card">
             <div class="card-title">📇 معلومات السجل</div>
@@ -405,7 +401,6 @@ const generateBtn = document.getElementById('generateQrBtn');
 const saveBtn = document.getElementById('saveBtn');
 const successMsg = document.getElementById('successMsg');
 
-// عناصر صفحة العرض
 const mainPage = document.getElementById('mainPage');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
@@ -482,7 +477,6 @@ form.addEventListener('submit', function(e) {
     saveBtn.textContent = '✅ تم الحفظ!';
     setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
     
-    // تنظيف الحقول
     email.value = '';
     password.value = '';
     phone.value = '';
@@ -552,7 +546,7 @@ function disableEditMode() {
 editBtn.addEventListener('click', enableEditMode);
 cancelEditBtn.addEventListener('click', disableEditMode);
 
-// ======== حفظ التعديلات ========
+// ======== حفظ التعديلات (المُصلح) ========
 saveEditBtn.addEventListener('click', function() {
     const newData = {
         email: viewEmail.textContent.trim(),
@@ -566,6 +560,7 @@ saveEditBtn.addEventListener('click', function() {
         return;
     }
     
+    // البحث عن السجل القديم وتحديثه
     let found = false;
     for (let i = 0; i < records.length; i++) {
         if (records[i].email === currentData.email && 
@@ -601,7 +596,7 @@ function goBack() {
     disableEditMode();
 }
 
-// ======== قراءة البيانات من الرابط ========
+// ======== قراءة البيانات ========
 function loadDataFromURL() {
     const params = new URLSearchParams(window.location.search);
     const dataParam = params.get('data');
