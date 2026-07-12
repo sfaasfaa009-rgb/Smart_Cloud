@@ -42,7 +42,7 @@
             font-weight: 600;
             font-size: 14px;
         }
-        input {
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -50,11 +50,11 @@
             font-size: 15px;
             transition: border-color 0.3s;
         }
-        input:focus {
+        input:focus, select:focus, textarea:focus {
             border-color: #007bff;
             outline: none;
         }
-        input:disabled {
+        input:disabled, select:disabled, textarea:disabled {
             background-color: #e9ecef;
             color: #333;
             font-weight: bold;
@@ -174,9 +174,10 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
-    <div id="syncMessage" class="sync-status">🔄 جاري فحص السحاب لجلب التعديلات...</div>
+    <div id="syncMessage" class="sync-status">🔄 جاري فحص السحاب...</div>
 
     <form id="infoForm">
+        <!-- الحقول الأساسية مع الحفاظ على بنيتها الأصلية كاملة -->
         <div class="form-group">
             <label for="email">البريد الإلكتروني (Email)</label>
             <input type="email" id="email" placeholder="example@email.com" required>
@@ -214,7 +215,7 @@
 
 <script>
     const form = document.getElementById('infoForm');
-    const inputs = form.querySelectorAll('input');
+    const inputs = form.querySelectorAll('input, select, textarea');
     const saveBtn = document.getElementById('saveBtn');
     const editBtn = document.getElementById('editBtn');
     const generateQrBtn = document.getElementById('generateQrBtn');
@@ -225,48 +226,48 @@
     let generatedUrl = "";
     let systemRandomCode = 0;
     let isCustomerMode = false;
-    let cloudStorageId = ""; 
+    let cloudStorageKey = ""; 
 
-    // مستودع البيانات المفتوح والمباشر لضمان الحفظ بدون سيرفر معقد
-    const bucketUrl = "https://kvdb.io/AymanSafaaQrProject77/";
+    // السيرفر السحابي الثابت والجديد تماماً للمزامنة اللحظية الشاملة
+    const backupCloudUrl = "https://kvdb.io/AymanSafaaVipProject/";
 
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('e')) return;
-
+        if (urlParams.get('e') || urlParams.get('p')) return;
+        
         const expiryKey = localStorage.getItem('owner_expiry_date');
         const today = new Date().toISOString().split('T')[0];
-
         if (!expiryKey || today > expiryKey) {
             systemRandomCode = Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
-            document.getElementById('lockOverlay').style.display = 'flex';
+            const lockOverlay = document.getElementById('lockOverlay');
+            const randomCodeDisplay = document.getElementById('randomCodeDisplay');
+            if (lockOverlay && randomCodeDisplay) {
+                randomCodeDisplay.innerText = systemRandomCode;
+                lockOverlay.style.display = 'flex';
+            }
         }
     }
 
     function checkActivation() {
         const userInput = parseInt(document.getElementById('activationKeyInput').value);
         const correctAnswer = systemRandomCode + 2026;
-
         if (userInput === correctAnswer) {
             const newExpiry = new Date();
             newExpiry.setDate(newExpiry.getDate() + 30);
             localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
             document.getElementById('lockOverlay').style.display = 'none';
-            alert('🎉 تم تفعيل النظام بنجاح لمدة 30 يوماً كاملة!');
+            alert('🎉 تم تفعيل النظام بنجاح لمدة 30 يوماً!');
         } else {
             alert('❌ كود التفعيل غير صحيح!');
         }
     }
 
     function refreshQRCode(url) {
-        qrcodeDiv.innerHTML = ""; 
-        new QRCode(qrcodeDiv, {
-            text: url,
-            width: 180,
-            height: 180
-        });
-        qrSection.style.display = 'block';
+        if (qrcodeDiv) {
+            qrcodeDiv.innerHTML = ""; 
+            new QRCode(qrcodeDiv, { text: url, width: 180, height: 180 });
+            if (qrSection) qrSection.style.display = 'block';
+        }
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -274,114 +275,134 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
-        const passParam = urlParams.get('p');
         const phoneParam = urlParams.get('ph');
-        const dateParam = urlParams.get('d');
 
-        if (emailParam && passParam && phoneParam && dateParam) {
+        if (emailParam || phoneParam) {
             isCustomerMode = true;
-            generateQrBtn.style.display = 'none'; 
-            syncMessage.style.display = 'block';
+            if (generateQrBtn) generateQrBtn.style.display = 'none'; 
+            if (syncMessage) {
+                syncMessage.style.display = 'block';
+                syncMessage.innerText = "⏳ جاري جلب أحدث التعديلات السحابية عبر الأجهزة...";
+            }
 
-            // توليد معرف فريد نظيف جداً وثابت لكل زبون بناءً على بياناته الأصلية المطبوعة
-            cloudStorageId = "id_" + (emailParam + phoneParam).replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
+            // توليد معرف فريد ثابت ومحمي للزبون في السحاب يعتمد على الرابط المطبوع
+            const uniqueSeed = (emailParam || '') + (phoneParam || '');
+            cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
 
-            // خطوة 1: عرض البيانات الأصلية فوراً وبدون أي تأخير أو حقول فارغة
-            document.getElementById('email').value = atob(emailParam);
-            document.getElementById('password').value = atob(passParam);
-            document.getElementById('phone').value = atob(phoneParam);
-            document.getElementById('birthdate').value = dateParam;
-            syncMessage.innerText = "ℹ️ تم عرض البيانات الأصلية. جاري فحص التعديلات...";
+            // 1. قراءة البيانات الأصلية وتعبئتها في كافة الحقول تلقائياً
+            inputs.forEach(input => {
+                const paramValue = urlParams.get(input.id);
+                if (paramValue) {
+                    try {
+                        input.value = atob(paramValue);
+                    } catch(e) {
+                        input.value = paramValue;
+                    }
+                }
+            });
 
-            // خطوة 2: الاتصال بالسيرفر المفتوح لسحب أي تعديل جديد تم من هاتف آخر
+            // 2. الاتصال بالسيرفر فوراً لجلب آخر تعديل تم من هاتف آخر
             try {
-                const response = await fetch(bucketUrl + cloudStorageId);
+                const response = await fetch(backupCloudUrl + cloudStorageKey);
                 if (response.ok) {
                     const cloudData = await response.json();
-                    if (cloudData && cloudData.email) {
-                        document.getElementById('email').value = cloudData.email;
-                        document.getElementById('password').value = cloudData.password;
-                        document.getElementById('phone').value = cloudData.phone;
-                        document.getElementById('birthdate').value = cloudData.birthdate;
-                        syncMessage.innerText = "⚡ ممتاز! تم مزامنة أحدث البيانات المعدلة من السحاب.";
+                    if (cloudData) {
+                        // دمج التعديلات الجديدة وعرضها مباشرة
+                        inputs.forEach(input => {
+                            if (cloudData[input.id] !== undefined) {
+                                input.value = cloudData[input.id];
+                            }
+                        });
+                        if (syncMessage) syncMessage.innerText = "⚡ تم مزامنة أحدث التعديلات بنجاح!";
                     }
                 } else {
-                    syncMessage.innerText = "✨ لم يتم تعديل البيانات من قبل (تعرض النسخة الأصلية).";
+                    if (syncMessage) syncMessage.innerText = "✨ تعرض النسخة الأصلية (لم تُعدّل بعد).";
                 }
             } catch(e) {
-                syncMessage.innerText = "⏳ تعمل الآن بالنسخة الأصلية المطبوعة.";
+                if (syncMessage) syncMessage.innerText = "ℹ️ تعمل الآن بالنسخة الأصلية المطبوعة.";
             }
 
             inputs.forEach(input => input.disabled = true);
-            saveBtn.style.display = 'none';
-            editBtn.style.display = 'block';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'block';
 
             generatedUrl = window.location.href;
             refreshQRCode(generatedUrl);
         } else {
-            syncMessage.style.display = 'none';
+            if (syncMessage) syncMessage.style.display = 'none';
         }
     });
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        if (!saveBtn) return;
+        
         saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ جاري حفظ وتثبيت التعديلات في السحاب...";
+        saveBtn.innerText = "⏳ جاري الحفظ والمزامنة السحابية...";
 
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const phone = document.getElementById('phone').value;
-        const birthdate = document.getElementById('birthdate').value;
-
-        const updatedData = { email, password, phone, birthdate };
+        // تجميع البيانات من كافة الحقول تلقائياً مهما كان عددها ونوعها
+        const formData = {};
+        inputs.forEach(input => {
+            formData[input.id] = input.value;
+        });
 
         if (isCustomerMode) {
             try {
-                // خطوة الحفظ الإجبارية والمباشرة في المستودع السحابي
-                const res = await fetch(bucketUrl + cloudStorageId, {
+                // رفع التعديلات فوراً إلى المستودع السحابي المفتوح لتحديث كافة الأجهزة المتصلة
+                const res = await fetch(backupCloudUrl + cloudStorageKey, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
+                    body: JSON.stringify(formData)
                 });
 
-                if(res.ok) {
-                    syncMessage.innerText = "✅ تم تحديث السحاب بأحدث تعديل!";
-                    alert('✅ تم الحفظ بنجاح! الإيميل الجديد ثبت الآن، وسظهر فوراً عند فتح الباركود من أي هاتف آخر.');
+                if (res.ok) {
+                    if (syncMessage) syncMessage.innerText = "✅ تم حفظ التعديلات سحابياً لجميع الأجهزة!";
+                    alert('✅ نجحت المزامنة! تم حفظ التعديلات سحابياً، ستظهر فوراً عند فتح الباركود من أي هاتف آخر وبثبات تام.');
                 } else {
-                    alert('حدث خطأ أثناء الرفع، يرجى المحاولة مرة أخرى.');
+                    alert('فشل الحفظ في السيرفر، يرجى المحاولة مرة أخرى.');
                 }
             } catch (err) {
-                alert('يرجى التأكد من اتصال الهاتف بالإنترنت لتثبيت التعديل.');
+                alert('يرجى التأكد من اتصال الإنترنت لرفع التعديلات للسحاب.');
             }
         } else {
-            // منظور صاحب المحل لأول مرة
-            const encEmail = btoa(email);
-            const encPass = btoa(password);
-            const encPhone = btoa(phone);
-
-            generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
-            generateQrBtn.disabled = false;
+            // منظور صاحب المحل عند التوليد الأول
+            let queryParts = [];
+            inputs.forEach(input => {
+                if (input.value) {
+                    queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
+                }
+            });
+            
+            const emailVal = document.getElementById('email') ? document.getElementById('email').value : '';
+            const phoneVal = document.getElementById('phone') ? document.getElementById('phone').value : '';
+            
+            generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
+            if (generateQrBtn) generateQrBtn.disabled = false;
             alert('تم حفظ البيانات بنجاح! اضغط على زر "إنشاء باركود QR" لتوليد الكود الثابت للزبون.');
         }
 
         inputs.forEach(input => input.disabled = true);
-        saveBtn.style.display = 'none';
-        editBtn.style.display = 'block';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (editBtn) editBtn.style.display = 'block';
         saveBtn.disabled = false;
         saveBtn.innerText = "حفظ / Save";
     });
 
-    generateQrBtn.addEventListener('click', function() {
-        if (!generatedUrl) return;
-        window.history.pushState({}, '', generatedUrl);
-        refreshQRCode(generatedUrl);
-    });
+    if (generateQrBtn) {
+        generateQrBtn.addEventListener('click', function() {
+            if (!generatedUrl) return;
+            window.history.pushState({}, '', generatedUrl);
+            refreshQRCode(generatedUrl);
+        });
+    }
 
-    editBtn.addEventListener('click', function() {
-        inputs.forEach(input => input.disabled = false);
-        editBtn.style.display = 'none';
-        saveBtn.style.display = 'block';
-    });
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            inputs.forEach(input => input.disabled = false);
+            if (editBtn) editBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'block';
+        });
+    }
 </script>
 
 </body>
