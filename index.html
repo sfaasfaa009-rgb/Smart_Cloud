@@ -108,6 +108,22 @@
             box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
         }
 
+        .btn-green {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .btn-green:hover {
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+
+        .btn-orange:hover {
+            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
+        }
+
         #qrSection {
             margin: 25px 0;
             padding: 20px;
@@ -192,7 +208,7 @@
             font-weight: 600;
         }
 
-        /* ======== صفحة عرض المعلومات (عند مسح QR) ======== */
+        /* ======== صفحة عرض المعلومات ======== */
         .info-page {
             display: none;
         }
@@ -240,6 +256,7 @@
             font-weight: 500;
             word-break: break-all;
             background: #f7fafc;
+            transition: 0.3s;
         }
 
         .info-card .info-field .value-box.email-box {
@@ -266,13 +283,56 @@
             color: #c05621;
         }
 
+        /* الحقول القابلة للتعديل */
+        .info-card .info-field .value-box.editable {
+            background: white;
+            border-color: #667eea;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            cursor: text;
+        }
+
+        .info-card .info-field .value-box.editable:focus {
+            outline: none;
+            border-color: #48bb78;
+            box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.3);
+        }
+
+        .info-card .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .info-card .action-buttons button {
+            flex: 1;
+            min-width: 120px;
+        }
+
         .info-card .back-btn {
-            margin-top: 20px;
+            margin-top: 10px;
             background: #718096;
         }
 
         .info-card .back-btn:hover {
             background: #4a5568;
+        }
+
+        .edit-mode-badge {
+            text-align: center;
+            background: #fefcbf;
+            color: #975a16;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border: 2px solid #f6c23e;
+            display: none;
+        }
+
+        .edit-mode-badge.active {
+            display: block;
         }
 
         @media (max-width: 600px) {
@@ -281,6 +341,12 @@
             }
             .info-card {
                 padding: 20px;
+            }
+            .info-card .action-buttons {
+                flex-direction: column;
+            }
+            .info-card .action-buttons button {
+                min-width: auto;
             }
         }
     </style>
@@ -328,26 +394,36 @@
         <div id="recordsList"></div>
     </div>
 
-    <!-- ======== صفحة عرض المعلومات (تظهر عند مسح QR) ======== -->
+    <!-- ======== صفحة عرض المعلومات ======== -->
     <div class="info-page" id="infoPage">
         <div class="info-card">
             <div class="card-title">📇 معلومات السجل</div>
+            
+            <div class="edit-mode-badge" id="editBadge">✏️ وضع التعديل نشط</div>
+
             <div class="info-field">
                 <label>📧 البريد الإلكتروني</label>
-                <div class="value-box email-box" id="viewEmail">-</div>
+                <div class="value-box email-box" id="viewEmail" contenteditable="false">-</div>
             </div>
             <div class="info-field">
                 <label>🔑 كلمة المرور</label>
-                <div class="value-box password-box" id="viewPassword">-</div>
+                <div class="value-box password-box" id="viewPassword" contenteditable="false">-</div>
             </div>
             <div class="info-field">
                 <label>📞 رقم الهاتف</label>
-                <div class="value-box phone-box" id="viewPhone">-</div>
+                <div class="value-box phone-box" id="viewPhone" contenteditable="false">-</div>
             </div>
             <div class="info-field">
                 <label>🎂 تاريخ الميلاد</label>
-                <div class="value-box birthdate-box" id="viewBirthdate">-</div>
+                <div class="value-box birthdate-box" id="viewBirthdate" contenteditable="false">-</div>
             </div>
+
+            <div class="action-buttons">
+                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات</button>
+                <button class="btn-green" id="saveEditBtn" style="display:none;">💾 حفظ التعديلات</button>
+                <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
+            </div>
+
             <button class="back-btn" onclick="goBack()">🔙 العودة للصفحة الرئيسية</button>
         </div>
     </div>
@@ -372,8 +448,14 @@ const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
 const viewPhone = document.getElementById('viewPhone');
 const viewBirthdate = document.getElementById('viewBirthdate');
+const editBtn = document.getElementById('editBtn');
+const saveEditBtn = document.getElementById('saveEditBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const editBadge = document.getElementById('editBadge');
 
 let records = JSON.parse(localStorage.getItem('records')) || [];
+let currentData = null;
+let isEditMode = false;
 
 // ======== إنشاء رابط للمشاركة ========
 function createShareableLink(data) {
@@ -472,52 +554,131 @@ function deleteRecord(index) {
     }
 }
 
+// ======== تفعيل وضع التعديل ========
+function enableEditMode() {
+    isEditMode = true;
+    editBadge.classList.add('active');
+    
+    // جعل الحقول قابلة للتعديل
+    viewEmail.contentEditable = 'true';
+    viewPassword.contentEditable = 'true';
+    viewPhone.contentEditable = 'true';
+    viewBirthdate.contentEditable = 'true';
+    
+    // إضافة كلاس التعديل
+    viewEmail.classList.add('editable');
+    viewPassword.classList.add('editable');
+    viewPhone.classList.add('editable');
+    viewBirthdate.classList.add('editable');
+    
+    // تبديل الأزرار
+    editBtn.style.display = 'none';
+    saveEditBtn.style.display = 'block';
+    cancelEditBtn.style.display = 'block';
+}
+
+// ======== إلغاء التعديل ========
+function disableEditMode() {
+    isEditMode = false;
+    editBadge.classList.remove('active');
+    
+    // إعادة الحقول للقراءة فقط
+    viewEmail.contentEditable = 'false';
+    viewPassword.contentEditable = 'false';
+    viewPhone.contentEditable = 'false';
+    viewBirthdate.contentEditable = 'false';
+    
+    // إزالة كلاس التعديل
+    viewEmail.classList.remove('editable');
+    viewPassword.classList.remove('editable');
+    viewPhone.classList.remove('editable');
+    viewBirthdate.classList.remove('editable');
+    
+    // إعادة عرض البيانات الأصلية
+    if (currentData) {
+        viewEmail.textContent = currentData.email;
+        viewPassword.textContent = currentData.password;
+        viewPhone.textContent = currentData.phone;
+        viewBirthdate.textContent = currentData.birthdate;
+    }
+    
+    // تبديل الأزرار
+    editBtn.style.display = 'block';
+    saveEditBtn.style.display = 'none';
+    cancelEditBtn.style.display = 'none';
+}
+
+// ======== زر تعديل ========
+editBtn.addEventListener('click', enableEditMode);
+
+// ======== زر إلغاء ========
+cancelEditBtn.addEventListener('click', disableEditMode);
+
+// ======== زر حفظ التعديلات ========
+saveEditBtn.addEventListener('click', function() {
+    // جمع البيانات الجديدة
+    const newData = {
+        email: viewEmail.textContent.trim(),
+        password: viewPassword.textContent.trim(),
+        phone: viewPhone.textContent.trim(),
+        birthdate: viewBirthdate.textContent.trim()
+    };
+    
+    // التحقق من الحقول
+    if (!newData.email || !newData.password || !newData.phone || !newData.birthdate) {
+        alert('⚠️ جميع الحقول مطلوبة');
+        return;
+    }
+    
+    // تحديث البيانات الحالية
+    currentData = newData;
+    
+    // تحديث الرابط في شريط العنوان
+    const newUrl = createShareableLink(newData);
+    window.history.pushState({}, '', newUrl);
+    
+    // تحديث QR Code في الصفحة الرئيسية
+    generateQR(newData);
+    
+    // تحديث السجلات المخزنة
+    // البحث عن السجل القديم وتحديثه
+    const oldData = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get('data')));
+    if (oldData) {
+        // البحث في السجلات
+        for (let i = 0; i < records.length; i++) {
+            if (records[i].email === oldData.email && 
+                records[i].password === oldData.password &&
+                records[i].phone === oldData.phone &&
+                records[i].birthdate === oldData.birthdate) {
+                records[i] = newData;
+                break;
+            }
+        }
+        localStorage.setItem('records', JSON.stringify(records));
+        showRecords();
+    }
+    
+    // إلغاء وضع التعديل
+    disableEditMode();
+    
+    // إظهار رسالة نجاح
+    saveEditBtn.textContent = '✅ تم الحفظ!';
+    setTimeout(() => {
+        saveEditBtn.textContent = '💾 حفظ التعديلات';
+    }, 2000);
+    
+    alert('✅ تم تحديث المعلومات بنجاح!');
+});
+
 // ======== العودة للصفحة الرئيسية ========
 function goBack() {
     infoPage.classList.remove('active');
     mainPage.style.display = 'block';
     window.history.pushState({}, '', window.location.pathname);
+    // إعادة تعيين وضع التعديل
+    disableEditMode();
 }
 
 // ======== قراءة البيانات من الرابط ========
 function loadDataFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const dataParam = params.get('data');
-    
-    if (dataParam) {
-        try {
-            const data = JSON.parse(decodeURIComponent(dataParam));
-            
-            // إخفاء الصفحة الرئيسية وإظهار صفحة المعلومات
-            mainPage.style.display = 'none';
-            infoPage.classList.add('active');
-            
-            // عرض البيانات
-            viewEmail.textContent = data.email;
-            viewPassword.textContent = data.password;
-            viewPhone.textContent = data.phone;
-            viewBirthdate.textContent = data.birthdate;
-            
-            return true;
-        } catch(e) {
-            console.error('خطأ في قراءة البيانات:', e);
-        }
-    }
-    return false;
-}
-
-// ======== بدء التطبيق ========
-const isInfoView = loadDataFromURL();
-
-if (!isInfoView) {
-    showRecords();
-    if (records.length > 0) {
-        generateQR(records[0]);
-    }
-}
-
-console.log('✅ التطبيق يعمل بنجاح!');
-</script>
-
-</body>
-</html>
+    const 
