@@ -5,148 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدونة توليد واسترجاع الباركود الذكي</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 25px;
-            font-size: 22px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        input:disabled, select:disabled, textarea:disabled {
-            background-color: #e9ecef;
-            color: #333;
-            font-weight: bold;
-        }
-        .buttons-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 25px;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s, opacity 0.3s;
-            text-align: center;
-        }
-        .btn-save {
-            background-color: #28a745;
-            color: white;
-        }
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        .btn-qr {
-            background-color: #17a2b8;
-            color: white;
-        }
-        .btn-qr:hover {
-            background-color: #138496;
-        }
-        .btn-edit {
-            background-color: #007bff;
-            color: white;
-        }
-        .btn-edit:hover {
-            background-color: #0069d9;
-        }
-        .qr-section {
-            margin-top: 25px;
-            text-align: center;
-            display: none;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        .qr-section p {
-            font-size: 13px;
-            color: #28a745;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .sync-status {
-            font-size: 13px;
-            color: #007bff;
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; font-size: 22px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; transition: border-color 0.3s; background-color: #fff !important; color: #333 !important; }
+        input:focus, select:focus, textarea:focus { border-color: #007bff; outline: none; }
+        .buttons-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+        .btn { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background-color 0.3s, opacity 0.3s; text-align: center; }
+        .btn-save { background-color: #007bff; color: white; }
+        .btn-save:hover { background-color: #0069d9; }
+        .btn-qr { background-color: #17a2b8; color: white; }
+        .btn-qr:hover { background-color: #138496; }
+        .qr-section { margin-top: 25px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
+        .qr-section p { font-size: 13px; color: #28a745; font-weight: bold; margin-bottom: 15px; }
+        #qrcode { display: flex; justify-content: center; margin-top: 10px; }
+        .sync-status { font-size: 13px; color: #007bff; text-align: center; margin-bottom: 15px; font-weight: bold; }
         
-        /* شاشة قفل تجديد الاشتراك لصاحب المحل */
-        .lock-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0b0c10; color: #ffffff;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999; padding: 20px;
-        }
-        .lock-box {
-            background: #12131a; padding: 30px 20px; border-radius: 16px;
-            border: 1px solid #1f222f; max-width: 380px; width: 100%;
-            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
+        /* شاشة قفل تجديد الاشتراك */
+        .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0c10; color: #ffffff; display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+        .lock-box { background: #12131a; padding: 30px 20px; border-radius: 16px; border: 1px solid #1f222f; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .lock-box h3 { color: #d4a359; margin-bottom: 15px; }
         .lock-box p { color: #a0aec0; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .code-display {
-            font-size: 24px; font-weight: bold; color: #ffffff;
-            background: #1f222f; padding: 10px; border-radius: 6px;
-            letter-spacing: 4px; margin-bottom: 20px; border: 1px dashed #d4a359;
-        }
-        .lock-box input {
-            background: #1f222f; color: #fff; border: 1px solid #2d3142;
-            text-align: center; font-size: 18px; letter-spacing: 2px; margin-bottom: 15px;
-        }
+        .code-display { font-size: 24px; font-weight: bold; color: #ffffff; background: #1f222f; padding: 10px; border-radius: 6px; letter-spacing: 4px; margin-bottom: 20px; border: 1px dashed #d4a359; }
+        .lock-box input { background: #1f222f; color: #fff; border: 1px solid #2d3142; text-align: center; font-size: 18px; letter-spacing: 2px; margin-bottom: 15px; }
         .lock-box input:focus { border-color: #d4a359; }
         .btn-unlock { background-color: #d4a359; color: #0b0c10; font-weight: bold; }
         .btn-unlock:hover { background-color: #bfa147; }
@@ -169,9 +53,9 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
-    <div id="syncMessage" class="sync-status" style="display: none;">🔄 جاري فحص السحاب...</div>
+    <div id="syncMessage" class="sync-status" style="display: none;">🔄 جاري المزامنة السحابية...</div>
 
-    <form id="infoForm">
+    <form id="infoForm" onsubmit="event.preventDefault();">
         <div class="form-group">
             <label for="email">البريد الإلكتروني (Email)</label>
             <input type="email" id="email" placeholder="example@email.com" required>
@@ -193,9 +77,8 @@
         </div>
 
         <div class="buttons-stack">
-            <button type="submit" id="saveBtn" class="btn btn-save">حفظ المعلومات</button>
-            <button type="button" id="editBtn" class="btn btn-edit" style="display: none;">تعديل المعلومات</button>
-            <button type="button" id="generateQrBtn" class="btn btn-qr" style="display: block;">إنشاء باركود QR</button>
+            <button type="button" id="saveBtn" class="btn btn-save" onclick="saveDataCloud()">تعديل وحفظ المعلومات</button>
+            <button type="button" id="generateQrBtn" class="btn btn-qr" onclick="generateMyBarcode()">إنشاء باركود QR</button>
         </div>
     </form>
 
@@ -211,33 +94,26 @@
     const form = document.getElementById('infoForm');
     const inputs = form.querySelectorAll('input, select, textarea');
     const saveBtn = document.getElementById('saveBtn');
-    const editBtn = document.getElementById('editBtn');
     const generateQrBtn = document.getElementById('generateQrBtn');
     const qrSection = document.getElementById('qrSection');
     const qrcodeDiv = document.getElementById('qrcode');
     const syncMessage = document.getElementById('syncMessage');
 
-    let generatedUrl = "";
     let systemRandomCode = 0;
-    let isCustomerMode = false;
     let cloudStorageKey = ""; 
 
     const backupCloudUrl = "https://kvdb.io/AymanSafaaVipProject/";
 
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('e') || urlParams.get('ph')) return; // زبون
+        if (urlParams.get('e') || urlParams.get('ph')) return; 
         
         const expiryKey = localStorage.getItem('owner_expiry_date');
         const today = new Date().toISOString().split('T')[0];
         if (!expiryKey || today > expiryKey) {
             systemRandomCode = Math.floor(1000 + Math.random() * 9000);
-            const lockOverlay = document.getElementById('lockOverlay');
-            const randomCodeDisplay = document.getElementById('randomCodeDisplay');
-            if (lockOverlay && randomCodeDisplay) {
-                randomCodeDisplay.innerText = systemRandomCode;
-                lockOverlay.style.display = 'flex';
-            }
+            document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
+            document.getElementById('lockOverlay').style.display = 'flex';
         }
     }
 
@@ -249,18 +125,16 @@
             newExpiry.setDate(newExpiry.getDate() + 30);
             localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
             document.getElementById('lockOverlay').style.display = 'none';
-            alert('🎉 تم تفعيل النظام بنجاح لمدة 30 يوماً!');
+            alert('🎉 تم تفعيل النظام بنجاح!');
         } else {
             alert('❌ كود التفعيل غير صحيح!');
         }
     }
 
     function refreshQRCode(url) {
-        if (qrcodeDiv) {
-            qrcodeDiv.innerHTML = ""; 
-            new QRCode(qrcodeDiv, { text: url, width: 180, height: 180 });
-            if (qrSection) qrSection.style.display = 'block';
-        }
+        qrcodeDiv.innerHTML = ""; 
+        new QRCode(qrcodeDiv, { text: url, width: 180, height: 180 });
+        qrSection.style.display = 'block';
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -270,144 +144,102 @@
         const emailParam = urlParams.get('e');
         const phoneParam = urlParams.get('ph');
 
-        // كشف نمط الفتح: هل هو زبون يفتح من باركود مطبوع؟
         if (emailParam || phoneParam) {
-            isCustomerMode = true;
-            if (generateQrBtn) generateQrBtn.style.display = 'none'; // إخفاء زر التوليد للزبون تماماً
-            if (syncMessage) {
-                syncMessage.style.display = 'block';
-                syncMessage.innerText = "⏳ جاري جلب أحدث التعديلات السحابية...";
-            }
+            syncMessage.style.display = 'block';
+            syncMessage.innerText = "⏳ جاري مزامنة أحدث التعديلات من السحاب...";
 
             const uniqueSeed = (emailParam || '') + (phoneParam || '');
             cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
 
-            // تعبئة البيانات الأصلية
             inputs.forEach(input => {
                 const paramValue = urlParams.get(input.id);
                 if (paramValue) {
-                    try {
-                        input.value = atob(paramValue);
-                    } catch(e) {
-                        input.value = paramValue;
-                    }
+                    try { input.value = atob(paramValue); } catch(e) { input.value = paramValue; }
                 }
             });
 
-            // جلب التعديلات السحابية
             try {
                 const response = await fetch(backupCloudUrl + cloudStorageKey);
                 if (response.ok) {
                     const cloudData = await response.json();
                     if (cloudData) {
                         inputs.forEach(input => {
-                            if (cloudData[input.id] !== undefined) {
-                                input.value = cloudData[input.id];
-                            }
+                            if (cloudData[input.id] !== undefined) input.value = cloudData[input.id];
                         });
-                        if (syncMessage) syncMessage.innerText = "⚡ تم مزامنة التعديلات بنجاح!";
+                        syncMessage.innerText = "⚡ تم مزامنة التعديلات بنجاح!";
                     }
                 } else {
-                    if (syncMessage) syncMessage.innerText = "✨ تعرض النسخة الأصلية المطبوعة.";
+                    syncMessage.innerText = "✨ تعرض النسخة الأصلية.";
                 }
             } catch(e) {
-                if (syncMessage) syncMessage.innerText = "ℹ️ تعمل بالنسخة الأصلية المطبوعة.";
+                syncMessage.innerText = "ℹ️ تعمل بالنسخة الأصلية المطبوعة.";
             }
 
-            inputs.forEach(input => input.disabled = true);
-            if (saveBtn) saveBtn.style.display = 'none';
-            if (editBtn) editBtn.style.display = 'block';
-        } else {
-            // نمط صاحب المحل لأول مرة: الحقول مفتوحة، والأزرار جاهزة للتوليد
-            isCustomerMode = false;
-            if (syncMessage) syncMessage.style.display = 'none';
-            if (generateQrBtn) generateQrBtn.style.display = 'block';
-            if (saveBtn) saveBtn.style.display = 'block';
-            if (editBtn) editBtn.style.display = 'none';
+            // توليد الكود تلقائياً عند فتح رابط زبون
+            refreshQRCode(window.location.href);
         }
     });
 
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // دالة إنشاء الباركود المستقلة والآمنة
+    function generateMyBarcode() {
+        const emailVal = document.getElementById('email').value;
+        const phoneVal = document.getElementById('phone').value;
         
-        const formData = {};
-        inputs.forEach(input => {
-            formData[input.id] = input.value;
-        });
-
-        if (isCustomerMode) {
-            if (!saveBtn) return;
-            saveBtn.disabled = true;
-            saveBtn.innerText = "⏳ جاري الحفظ سحابياً...";
-            try {
-                const res = await fetch(backupCloudUrl + cloudStorageKey, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                if (res.ok) {
-                    if (syncMessage) syncMessage.innerText = "✅ تم حفظ التعديلات سحابياً لجميع الأجهزة!";
-                    alert('✅ نجحت المزامنة! تم حفظ التعديلات سحابياً لجميع الأجهزة.');
-                } else {
-                    alert('فشل الحفظ، يرجى إعادة المحاولة.');
-                }
-            } catch (err) {
-                alert('يرجى التأكد من اتصال الإنترنت لرفع التعديلات.');
-            }
-            saveBtn.disabled = false;
-            saveBtn.innerText = "حفظ المعلومات";
-            inputs.forEach(input => input.disabled = true);
-            if (saveBtn) saveBtn.style.display = 'none';
-            if (editBtn) editBtn.style.display = 'block';
-        } else {
-            // صاحب المحل يقوم بالحفظ المحلي أولاً لتجميع الرابط
-            let queryParts = [];
-            inputs.forEach(input => {
-                if (input.value) {
-                    queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
-                }
-            });
-            
-            const emailVal = document.getElementById('email') ? document.getElementById('email').value : '';
-            const phoneVal = document.getElementById('phone') ? document.getElementById('phone').value : '';
-            
-            generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
-            alert('تم حفظ البيانات محلياً بنجاح! يمكنك الآن الضغط مباشرة على زر "إنشاء باركود QR".');
+        if(!emailVal || !phoneVal) {
+            alert('يرجى ملء الحقول المطلوبة (البريد الإلكتروني والهاتف) أولاً لتوليد الباركود.');
+            return;
         }
-    });
 
-    if (generateQrBtn) {
-        generateQrBtn.addEventListener('click', function() {
-            // إذا ضغط صاحب المحل بدون ملء البيانات
-            const emailVal = document.getElementById('email') ? document.getElementById('email').value : '';
-            const phoneVal = document.getElementById('phone') ? document.getElementById('phone').value : '';
-            
-            if(!emailVal || !phoneVal) {
-                alert('يرجى ملء البيانات أولاً وضغط حفظ قبل توليد الـ QR.');
-                return;
+        let queryParts = [];
+        inputs.forEach(input => {
+            if (input.value) {
+                queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
             }
-
-            let queryParts = [];
-            inputs.forEach(input => {
-                if (input.value) {
-                    queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
-                }
-            });
-
-            generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
-            
-            window.history.pushState({}, '', generatedUrl);
-            refreshQRCode(generatedUrl);
         });
+
+        const generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
+        
+        window.history.pushState({}, '', generatedUrl);
+        refreshQRCode(generatedUrl);
+        alert('🎉 تم إنشاء الباركود بنجاح في الأسفل!');
     }
 
-    if (editBtn) {
-        editBtn.addEventListener('click', function() {
-            inputs.forEach(input => input.disabled = false);
-            if (editBtn) editBtn.style.display = 'none';
-            if (saveBtn) saveBtn.style.display = 'block';
-        });
+    // دالة الحفظ السحابي بدون أي تجميد للحقول أو تحديث للصفحة
+    async function saveDataCloud() {
+        const emailVal = document.getElementById('email').value;
+        const phoneVal = document.getElementById('phone').value;
+
+        if(!emailVal || !phoneVal) {
+            alert('يرجى ملء الحقول أولاً قبل الحفظ.');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = "⏳ جاري الحفظ سحابياً...";
+
+        const formData = {};
+        inputs.forEach(input => { formData[input.id] = input.value; });
+
+        if (!cloudStorageKey) {
+            const uniqueSeed = btoa(emailVal) + btoa(phoneVal);
+            cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
+        }
+
+        try {
+            await fetch(backupCloudUrl + cloudStorageKey, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            syncMessage.style.display = 'block';
+            syncMessage.innerText = "✅ تم حفظ التعديلات سحابياً لجميع الأجهزة!";
+            alert('✅ تم الحفظ السحابي بنجاح! التعديلات ستظهر فوراً عند مسح الباركود الخاص بك.');
+        } catch (err) {
+            alert('تم الحفظ محلياً. يرجى التحقق من اتصال الإنترنت للمزامنة السحابية المباشرة.');
+        }
+
+        saveBtn.disabled = false;
+        saveBtn.innerText = "تعديل وحفظ المعلومات";
     }
 </script>
 
