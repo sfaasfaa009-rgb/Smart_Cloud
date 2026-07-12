@@ -452,7 +452,6 @@ const editBadge = document.getElementById('editBadge');
 let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
-let currentEditIndex = -1; // لتخزين رقم السجل الذي يتم تعديله
 
 // ======== إنشاء رابط ========
 function createShareableLink(data) {
@@ -615,36 +614,27 @@ saveEditBtn.addEventListener('click', function() {
         return;
     }
     
-    // 1. العثور على السجل القديم في مصفوفة records
-    let foundIndex = -1;
+    // البحث عن السجل القديم وتحديثه
+    let found = false;
     for (let i = 0; i < records.length; i++) {
-        // نقارن البيانات القديمة (currentData) مع السجلات
         if (records[i].email === currentData.email && 
             records[i].password === currentData.password &&
             records[i].phone === currentData.phone &&
             records[i].birthdate === currentData.birthdate) {
-            foundIndex = i;
+            records[i] = newData;
+            found = true;
             break;
         }
     }
     
-    if (foundIndex !== -1) {
-        // تحديث السجل في المصفوفة
-        records[foundIndex] = newData;
+    if (found) {
         localStorage.setItem('records', JSON.stringify(records));
         showRecords();
-        
-        // تحديث البيانات الحالية
         currentData = newData;
         
-        // تحديث الرابط في شريط العنوان
         const newUrl = createShareableLink(newData);
         window.history.pushState({}, '', newUrl);
-        
-        // تحديث QR Code
         generateQR(newData);
-        
-        // إلغاء وضع التعديل
         disableEditMode();
         
         alert('✅ تم تحديث المعلومات بنجاح!');
@@ -682,4 +672,24 @@ function loadDataFromURL() {
             disableEditMode();
             return true;
         } catch(e) {
-       
+            console.error('خطأ:', e);
+        }
+    }
+    return false;
+}
+
+// ======== بدء التطبيق ========
+const isInfoView = loadDataFromURL();
+
+if (!isInfoView) {
+    showRecords();
+    if (records.length > 0) {
+        generateQR(records[0]);
+    }
+}
+
+console.log('✅ التطبيق يعمل!');
+</script>
+
+</body>
+</html>
