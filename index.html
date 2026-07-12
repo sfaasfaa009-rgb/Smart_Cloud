@@ -3,245 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدونة توليد واسترجاع الباركود الذكي</title>
+    <title>مدونة المعلومات - مشروعي</title>
+    
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #333; margin-bottom: 25px; font-size: 22px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; font-size: 14px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; transition: border-color 0.3s; background-color: #fff !important; color: #333 !important; }
-        input:focus, select:focus, textarea:focus { border-color: #007bff; outline: none; }
-        .buttons-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
-        .btn { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background-color 0.3s, opacity 0.3s; text-align: center; }
-        .btn-save { background-color: #007bff; color: white; }
-        .btn-save:hover { background-color: #0069d9; }
-        .btn-qr { background-color: #17a2b8; color: white; }
-        .btn-qr:hover { background-color: #138496; }
-        .qr-section { margin-top: 25px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
-        .qr-section p { font-size: 13px; color: #28a745; font-weight: bold; margin-bottom: 15px; }
-        #qrcode { display: flex; justify-content: center; margin-top: 10px; }
-        .sync-status { font-size: 13px; color: #007bff; text-align: center; margin-bottom: 15px; font-weight: bold; }
-        
-        /* شاشة قفل تجديد الاشتراك */
-        .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0c10; color: #ffffff; display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
-        .lock-box { background: #12131a; padding: 30px 20px; border-radius: 16px; border: 1px solid #1f222f; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .lock-box h3 { color: #d4a359; margin-bottom: 15px; }
-        .lock-box p { color: #a0aec0; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .code-display { font-size: 24px; font-weight: bold; color: #ffffff; background: #1f222f; padding: 10px; border-radius: 6px; letter-spacing: 4px; margin-bottom: 20px; border: 1px dashed #d4a359; }
-        .lock-box input { background: #1f222f; color: #fff; border: 1px solid #2d3142; text-align: center; font-size: 18px; letter-spacing: 2px; margin-bottom: 15px; }
-        .lock-box input:focus { border-color: #d4a359; }
-        .btn-unlock { background-color: #d4a359; color: #0b0c10; font-weight: bold; }
-        .btn-unlock:hover { background-color: #bfa147; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: white;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 16px;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+        }
+
+        .field input:focus {
+            border-color: #667eea;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #qrSection {
+            margin: 30px 0 20px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 18px;
+            text-align: center;
+            border: 2px dashed #cbd5e0;
+        }
+
+        #qrSection h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        #qrCodeContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            min-height: 170px;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        #recordsList {
+            margin-top: 20px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            background: #f7fafc;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border-right: 6px solid #667eea;
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .record-item:hover {
+            background: #edf2f7;
+            transform: translateX(-4px);
+        }
+
+        .record-item .data {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #2d3748;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .record-item .delete-btn {
+            background: #fc8181;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: auto;
+            margin: 0;
+        }
+
+        .record-item .delete-btn:hover {
+            background: #e53e3e;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+
+        hr {
+            margin: 25px 0;
+            border: 2px dashed #e2e8f0;
+        }
+
+        #generateQrBtn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-top: 5px;
+        }
+
+        #generateQrBtn:hover {
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+        }
+
+        .empty-message {
+            color: #718096;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .record-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .record-item .delete-btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div id="lockOverlay" class="lock-overlay" style="display: none;">
-    <div class="lock-box">
-        <h3>🔐 تفعيل الاشتراك الشهري</h3>
-        <p>انتهت صلاحية النظام لهذا الشهر. يرجى تزويد الإدارة بالرمز التالي للحصول على كود التجديد:</p>
-        <div id="randomCodeDisplay" class="code-display">0000</div>
-        <div class="form-group">
-            <input type="number" id="activationKeyInput" placeholder="أدخل كود التفعيل هنا">
-        </div>
-        <button type="button" class="btn btn-unlock" onclick="checkActivation()">تفعيل النظام</button>
-    </div>
-</div>
+    <div class="container">
+        <h1>📝 مدونة المعلومات</h1>
+        
+        <form id="infoForm">
+            <div class="field">
+                <label>📧 البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
+            </div>
+            <div class="field">
+                <label>🔑 كلمة المرور</label>
+                <input type="password" id="password" placeholder="********" required>
+            </div>
+            <div class="field">
+                <label>📞 رقم الهاتف</label>
+                <input type="tel" id="phone" placeholder="05xxxxxxxx" required>
+            </div>
+            <div class="field">
+                <label>🎂 تاريخ الميلاد</label>
+                <input type="date" id="birthdate" required>
+            </div>
+            <button type="submit" id="saveBtn">💾 حفظ المعلومات</button>
+        </form>
 
-<div class="container">
-    <h2>حفظ البيانات بالباركود الذكي</h2>
+        <div id="qrSection">
+            <h3>📱 رمز QR الخاص بالمعلومات المدخلة</h3>
+            <div id="qrCodeContainer"></div>
+            <button id="generateQrBtn">🔄 إنشاء QR جديد</button>
+        </div>
+
+        <hr>
+
+        <h3>📋 المعلومات المحفوظة</h3>
+        <div id="recordsList"></div>
+    </div>
+
+    <!-- مكتبة QR Code من CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
-    <div id="syncMessage" class="sync-status" style="display: none;">🔄 جاري المزامنة السحابية...</div>
+    <script>
+        // ======== جلب العناصر ========
+        const form = document.getElementById('infoForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const phoneInput = document.getElementById('phone');
+        const birthdateInput = document.getElementById('birthdate');
+        const qrContainer = document.getElementById('qrCodeContainer');
+        const generateQrBtn = document.getElementById('generateQrBtn');
+        const recordsList = document.getElementById('recordsList');
 
-    <form id="infoForm" onsubmit="event.preventDefault();">
-        <div class="form-group">
-            <label for="email">البريد الإلكتروني (Email)</label>
-            <input type="email" id="email" placeholder="example@email.com" required>
-        </div>
+        let currentQrCode = null;
+        let records = JSON.parse(localStorage.getItem('records')) || [];
 
-        <div class="form-group">
-            <label for="password">كلمة المرور (Password)</label>
-            <input type="text" id="password" placeholder="••••••••" required>
-        </div>
-
-        <div class="form-group">
-            <label for="phone">رقم الهاتف (Phone Number)</label>
-            <input type="tel" id="phone" placeholder="07xxxxxxxx" required>
-        </div>
-
-        <div class="form-group">
-            <label for="birthdate">تاريخ الميلاد (Birthdate)</label>
-            <input type="date" id="birthdate" required>
-        </div>
-
-        <div class="buttons-stack">
-            <button type="button" id="saveBtn" class="btn btn-save" onclick="saveDataCloud()">تعديل وحفظ المعلومات</button>
-            <button type="button" id="generateQrBtn" class="btn btn-qr" onclick="generateMyBarcode()">إنشاء باركود QR</button>
-        </div>
-    </form>
-
-    <div id="qrSection" class="qr-section">
-        <p>✅ هذا الباركود ثابت وخاص بك، يمكنك تصويره أو طباعته ولن يتغير شكل الكود أبداً عند التعديل مستقبلاً.</p>
-        <div id="qrcode"></div>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<script>
-    const form = document.getElementById('infoForm');
-    const inputs = form.querySelectorAll('input, select, textarea');
-    const saveBtn = document.getElementById('saveBtn');
-    const generateQrBtn = document.getElementById('generateQrBtn');
-    const qrSection = document.getElementById('qrSection');
-    const qrcodeDiv = document.getElementById('qrcode');
-    const syncMessage = document.getElementById('syncMessage');
-
-    let systemRandomCode = 0;
-    let cloudStorageKey = ""; 
-
-    const backupCloudUrl = "https://kvdb.io/AymanSafaaVipProject/";
-
-    function checkSystemAccess() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('e') || urlParams.get('ph')) return; 
-        
-        const expiryKey = localStorage.getItem('owner_expiry_date');
-        const today = new Date().toISOString().split('T')[0];
-        if (!expiryKey || today > expiryKey) {
-            systemRandomCode = Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
-            document.getElementById('lockOverlay').style.display = 'flex';
-        }
-    }
-
-    function checkActivation() {
-        const userInput = parseInt(document.getElementById('activationKeyInput').value);
-        const correctAnswer = systemRandomCode + 2026;
-        if (userInput === correctAnswer) {
-            const newExpiry = new Date();
-            newExpiry.setDate(newExpiry.getDate() + 30);
-            localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
-            document.getElementById('lockOverlay').style.display = 'none';
-            alert('🎉 تم تفعيل النظام بنجاح!');
-        } else {
-            alert('❌ كود التفعيل غير صحيح!');
-        }
-    }
-
-    function refreshQRCode(url) {
-        qrcodeDiv.innerHTML = ""; 
-        new QRCode(qrcodeDiv, { text: url, width: 180, height: 180 });
-        qrSection.style.display = 'block';
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-        checkSystemAccess();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const emailParam = urlParams.get('e');
-        const phoneParam = urlParams.get('ph');
-
-        if (emailParam || phoneParam) {
-            syncMessage.style.display = 'block';
-            syncMessage.innerText = "⏳ جاري مزامنة أحدث التعديلات من السحاب...";
-
-            const uniqueSeed = (emailParam || '') + (phoneParam || '');
-            cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
-
-            inputs.forEach(input => {
-                const paramValue = urlParams.get(input.id);
-                if (paramValue) {
-                    try { input.value = atob(paramValue); } catch(e) { input.value = paramValue; }
-                }
-            });
-
-            try {
-                const response = await fetch(backupCloudUrl + cloudStorageKey);
-                if (response.ok) {
-                    const cloudData = await response.json();
-                    if (cloudData) {
-                        inputs.forEach(input => {
-                            if (cloudData[input.id] !== undefined) input.value = cloudData[input.id];
-                        });
-                        syncMessage.innerText = "⚡ تم مزامنة التعديلات بنجاح!";
-                    }
-                } else {
-                    syncMessage.innerText = "✨ تعرض النسخة الأصلية.";
-                }
-            } catch(e) {
-                syncMessage.innerText = "ℹ️ تعمل بالنسخة الأصلية المطبوعة.";
+        // ======== عرض السجلات المخزنة ========
+        function displayRecords() {
+            if (records.length === 0) {
+                recordsList.innerHTML = '<p class="empty-message">📭 لا توجد سجلات محفوظة بعد</p>';
+                return;
             }
-
-            // توليد الكود تلقائياً عند فتح رابط زبون
-            refreshQRCode(window.location.href);
-        }
-    });
-
-    // دالة إنشاء الباركود المستقلة والآمنة
-    function generateMyBarcode() {
-        const emailVal = document.getElementById('email').value;
-        const phoneVal = document.getElementById('phone').value;
-        
-        if(!emailVal || !phoneVal) {
-            alert('يرجى ملء الحقول المطلوبة (البريد الإلكتروني والهاتف) أولاً لتوليد الباركود.');
-            return;
+            recordsList.innerHTML = records.map((rec, index) => `
+                <div class="record-item">
+                    <span class="data">
+                        📧 ${rec.email} | 🔑 ${rec.password} | 📞 ${rec.phone} | 🎂 ${rec.birthdate}
+                    </span>
+                    <button class="delete-btn" onclick="deleteRecord(${index})">✖ حذف</button>
+                </div>
+            `).join('');
         }
 
-        let queryParts = [];
-        inputs.forEach(input => {
-            if (input.value) {
-                queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
+        // ======== حفظ سجل جديد ========
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!emailInput.value || !passwordInput.value || !phoneInput.value || !birthdateInput.value) {
+                alert('⚠️ الرجاء ملء جميع الحقول');
+                return;
             }
+            
+            const newRecord = {
+                email: emailInput.value,
+                password: passwordInput.value,
+                phone: phoneInput.value,
+                birthdate: birthdateInput.value
+            };
+            
+            records.push(newRecord);
+            localStorage.setItem('records', JSON.stringify(records));
+            displayRecords();
+            generateQR(newRecord);
+            form.reset();
+            
+            const btn = document.getElementById('saveBtn');
+            btn.textContent = '✅ تم الحفظ!';
+            setTimeout(() => {
+                btn.textContent = '💾 حفظ المعلومات';
+            }, 2000);
         });
 
-        const generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
-        
-        window.history.pushState({}, '', generatedUrl);
-        refreshQRCode(generatedUrl);
-        alert('🎉 تم إنشاء الباركود بنجاح في الأسفل!');
-    }
-
-    // دالة الحفظ السحابي بدون أي تجميد للحقول أو تحديث للصفحة
-    async function saveDataCloud() {
-        const emailVal = document.getElementById('email').value;
-        const phoneVal = document.getElementById('phone').value;
-
-        if(!emailVal || !phoneVal) {
-            alert('يرجى ملء الحقول أولاً قبل الحفظ.');
-            return;
+        // ======== توليد QR Code ========
+        function generateQR(data) {
+            const jsonData = JSON.stringify(data);
+            qrContainer.innerHTML = '';
+            
+            try {
+                currentQrCode = new QRCode(qrContainer, {
+                    text: jsonData,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#1a202c",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error('خطأ في توليد QR:', error);
+                qrContainer.innerHTML = '<p style="color:#e53e3e;">❌ حدث خطأ في توليد QR</p>';
+            }
         }
 
-        saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ جاري الحفظ سحابياً...";
+        // ======== زر توليد QR يدوياً ========
+        generateQrBtn.addEventListener('click', function() {
+            if (records.length === 0) {
+                alert('⚠️ لا توجد معلومات محفوظة. أضف معلومات جديدة أولاً.');
+                return;
+            }
+            const lastRecord = records[records.length - 1];
+            generateQR(lastRecord);
+            
+            this.textContent = '✅ تم التوليد!';
+            setTimeout(() => {
+                this.textContent = '🔄 إنشاء QR جديد';
+            }, 2000);
+        });
 
-        const formData = {};
-        inputs.forEach(input => { formData[input.id] = input.value; });
-
-        if (!cloudStorageKey) {
-            const uniqueSeed = btoa(emailVal) + btoa(phoneVal);
-            cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
+        // ======== حذف سجل ========
+        function deleteRecord(index) {
+            if (confirm('🗑️ هل أنت متأكد من حذف هذا السجل؟')) {
+                records.splice(index, 1);
+                localStorage.setItem('records', JSON.stringify(records));
+                displayRecords();
+                
+                if (records.length === 0) {
+                    qrContainer.innerHTML = '';
+                } else {
+                    const lastRecord = records[records.length - 1];
+                    generateQR(lastRecord);
+                }
+            }
         }
 
-        try {
-            await fetch(backupCloudUrl + cloudStorageKey, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            syncMessage.style.display = 'block';
-            syncMessage.innerText = "✅ تم حفظ التعديلات سحابياً لجميع الأجهزة!";
-            alert('✅ تم الحفظ السحابي بنجاح! التعديلات ستظهر فوراً عند مسح الباركود الخاص بك.');
-        } catch (err) {
-            alert('تم الحفظ محلياً. يرجى التحقق من اتصال الإنترنت للمزامنة السحابية المباشرة.');
+        // ======== تشغيل التطبيق ========
+        displayRecords();
+        if (records.length > 0) {
+            generateQR(records[0]);
         }
 
-        saveBtn.disabled = false;
-        saveBtn.innerText = "تعديل وحفظ المعلومات";
-    }
-</script>
+        console.log('✅ تطبيق مدونة المعلومات يعمل بنجاح!');
+        console.log(`📊 عدد السجلات المحفوظة: ${records.length}`);
+    </script>
 
 </body>
 </html>
