@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حفظ بيانات الزبون</title>
+    <title>إدخال بيانات الزبون</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,8 +13,8 @@
         }
 
         body {
-            background-color: #080808;
-            color: #ffffff;
+            background-color: #0b0c10;
+            color: #e5e7eb;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,159 +23,160 @@
         }
 
         .container {
-            background-color: #121315;
+            background-color: #12131a;
+            border: 1px solid #1f222f;
+            border-radius: 24px;
             width: 100%;
-            max-width: 380px;
-            border-radius: 25px;
-            padding: 35px 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            max-width: 420px;
+            padding: 30px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* قسم الشعارات العلوي - مرتب من اليسار إلى اليمين */
-        .logos-container {
+        /* قسم الشعارات العلوي - تم إصلاحه ليعمل بدون صور خارجية */
+        .brands-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1f222f;
+        }
+
+        .brand-item {
+            display: flex;
             align-items: center;
-            margin-bottom: 35px;
-            direction: ltr; 
-            padding: 0 10px;
-        }
-
-        .logos-container img {
-            height: 38px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        /* شعار آبل البسيط بدون إضافات مشوهة */
-        .apple-logo {
-            height: 35px !important;
-        }
-
-        .form-group {
-            margin-bottom: 22px;
-            text-align: right;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 15px;
-            margin-bottom: 10px;
-            color: #ffffff;
-            font-weight: 500;
-        }
-
-        /* حقول الإدخال مع إرجاع التوهج والظل الأصفر المحيط */
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 15px;
-            background-color: #1e1f22;
-            border: 1px solid #2d2f34;
+            gap: 8px;
+            font-size: 13px;
+            color: #e5e7eb;
+            background: #1a1c26;
+            padding: 6px 12px;
             border-radius: 12px;
-            color: #ffffff;
+            border: 1px solid #2d3142;
+        }
+
+        /* دوائر ملونة كبديل ذكي وفوري للشعارات المكسورة */
+        .brand-dot {
+            width: 100%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-apple { background-color: #ffffff; }
+        .dot-outlook { background-color: #0078d4; }
+        .dot-steam { background-color: #171a21; border: 1px solid #fff; }
+
+        /* تنسيق الحقول */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
             font-size: 14px;
-            text-align: right;
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: #1a1c26;
+            border: 1px solid #2d3142;
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 15px;
             outline: none;
-            /* التوهج الأصفر الثابت المحيط بالمستطيلات كما في الصورة الأولى */
-            box-shadow: 0 0 8px rgba(255, 193, 7, 0.25);
-            transition: box-shadow 0.3s, border-color 0.3s;
+            transition: border-color 0.3s;
         }
 
-        .form-group input:focus {
-            border-color: #ffb300;
-            box-shadow: 0 0 12px rgba(255, 179, 0, 0.5);
+        .input-field:focus {
+            border-color: #13542b;
         }
 
-        /* تنسيق الحقول الإنجليزية */
-        .form-group input[type="email"],
-        .form-group input[type="password"],
-        .form-group input[type="tel"] {
-            direction: ltr;
+        /* حقل الإيميل يسار ليمين */
+        .input-field[type="email"] {
             text-align: left;
+            direction: ltr;
         }
 
-        .form-group input::placeholder {
-            color: #4f535c;
+        /* إصلاح حقل التاريخ الجذري ليعمل على الهاتف دون تداخل */
+        .input-field[type="date"] {
+            direction: rtl;
+            text-align: right;
+            cursor: pointer;
         }
 
-        /* الأزرار مع التوهج الأصفر المحيط بها أيضاً */
+        /* الأزرار */
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-bottom: 15px;
-            box-shadow: 0 0 8px rgba(255, 193, 7, 0.2);
+            margin-top: 12px;
         }
 
         .btn-submit {
-            background-color: #1b722c;
+            background-color: #13542b;
             color: #ffffff;
+            margin-top: 25px;
+        }
+
+        .btn-submit:hover {
+            background-color: #1a6e3a;
         }
 
         .btn-qr {
-            background-color: #555b61;
-            color: #ffffff;
-            margin-bottom: 0;
-        }
-
-        /* أسفل الصفحة فارغ تماماً ونظيف */
-        .footer-spacer {
-            margin-top: 10px;
+            background-color: #374151;
+            color: #e5e7eb;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- قسم الشعارات بالروابط البديلة المستقرة والترتيب الصحيح -->
-        <div class="logos-container">
-            <!-- 1. Google Play -->
-            <img src="https://jsbin-user-assets.s3.amazonaws.com/rlemon/google-play.png" alt="Google Play" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Google_Play_2022_icon.svg/512px-Google_Play_2022_icon.svg.png'">
-            
-            <!-- 2. App Store (Apple) -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/512px-Apple_logo_black.svg.png" alt="App Store" class="apple-logo" style="filter: invert(0.75);">
-            
-            <!-- 3. Outlook -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/512px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" alt="Outlook">
-            
-            <!-- 4. Steam -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Steam_icon_logo.svg/512px-Steam_icon_logo.svg.png" alt="Steam">
+        <!-- قسم الشعارات بعد إصلاح مشكلة الصور المكسورة -->
+        <div class="brands-header">
+            <div class="brand-item">
+                <span class="brand-dot dot-apple"></span>
+                <span>App Store</span>
+            </div>
+            <div class="brand-item">
+                <span class="brand-dot dot-outlook"></span>
+                <span>Outlook</span>
+            </div>
+            <div class="brand-item">
+                <span class="brand-dot dot-steam"></span>
+                <span>Steam</span>
+            </div>
         </div>
 
-        <!-- الإستمارة -->
-        <form onsubmit="event.preventDefault();">
+        <!-- النموذج -->
+        <form id="customerForm">
+            
             <div class="form-group">
-                <label>(Email) البريد الإلكتروني</label>
-                <input type="email" placeholder="example@email.com" required>
+                <label>البريد الإلكتروني (Email)</label>
+                <input type="email" class="input-field" placeholder="rorotyty56655@gmail.com" required>
             </div>
 
             <div class="form-group">
-                <label>(Password) كلمة المرور</label>
-                <input type="password" placeholder="••••••••" required>
+                <label>كلمة المرور (Password)</label>
+                <input type="password" class="input-field" placeholder="••••••••••••" required>
             </div>
 
+            <!-- حقل التاريخ الصافي والنظيف لتجنب ظهور القائمة البيضاء المكسورة -->
             <div class="form-group">
-                <label>(Phone Number) رقم الهاتف</label>
-                <input type="tel" placeholder="07xxxxxxxxx" required>
-            </div>
-
-            <div class="form-group">
-                <label>(Birthdate) تاريخ الميلاد</label>
-                <select required>
-                    <option value="" disabled selected hidden></option>
-                    <option value="1">اختر التاريخ...</option>
-                </select>
+                <label>تاريخ الميلاد (Birthdate)</label>
+                <input type="date" class="input-field" required>
             </div>
 
             <button type="submit" class="btn btn-submit">حفظ بيانات الزبون</button>
-            <button type="button" class="btn btn-qr">للزبون QR إنشاء باركود</button>
-        </form>
+            <button type="button" class="btn btn-qr">إنشاء باركود QR للزبون</button>
 
-        <div class="footer-spacer"></div>
+        </form>
     </div>
 
 </body>
