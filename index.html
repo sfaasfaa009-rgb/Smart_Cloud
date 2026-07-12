@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدخال بيانات الزبون</title>
-    <!-- تضمين مكتبة توليد الـ QR Code لتعمل مباشرة -->
+    <!-- مكتبة توليد الـ QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
@@ -24,6 +24,25 @@
             padding: 20px;
         }
 
+        /* شاشة القفل لحماية الموقع */
+        #lock-screen {
+            background-color: #12131a;
+            border: 1px solid #1f222f;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 24px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .lock-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #d4a359;
+        }
+
+        /* حاوية المحتوى الرئيسي للموقع (مخفية افتراضياً) */
         .container {
             background-color: #12131a;
             border: 1px solid #1f222f;
@@ -32,6 +51,7 @@
             max-width: 420px;
             padding: 30px 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none; 
         }
 
         /* قسم الشعارات العلوي */
@@ -88,13 +108,11 @@
             transition: all 0.3s ease;
         }
 
-        /* تأثير التوهج عند الضغط */
         .input-field:focus {
             border-color: #d4a359;
             box-shadow: 0 0 12px rgba(212, 163, 89, 0.5);
         }
 
-        /* تنسيق اتجاه الحقول للغات الأجنبية والأرقام */
         .input-field[type="email"],
         .input-field[type="text"],
         .input-field[type="tel"] {
@@ -140,10 +158,10 @@
             background-color: #4b5563;
         }
 
-        /* حاوية الـ QR Code البيضاء */
+        /* حاوية الـ QR Code */
         #qrcode-container {
             margin-top: 25px;
-            display: none; /* مخفي افتراضياً حتى يتم التوليد */
+            display: none;
             justify-content: center;
             align-items: center;
             background: #ffffff;
@@ -158,7 +176,17 @@
 </head>
 <body>
 
-    <div class="container">
+    <!-- شاشة القفل لحماية الموقع من السرقة وضمان الاشتراك الشهري -->
+    <div id="lock-screen">
+        <div class="lock-title">الموقع مقفل، يرجى إدخال الرمز السري للدخول</div>
+        <div class="form-group">
+            <input type="text" id="sitePassword" class="input-field" placeholder="أدخل رمز الحماية السري هنا" style="text-align: center;">
+        </div>
+        <button type="button" class="btn btn-submit" onclick="checkAccessCode()" style="margin-top: 10px;">فتح الموقع</button>
+    </div>
+
+    <!-- حاوية الموقع الرئيسية (تظهر بعد إدخال الرمز الصحيح) -->
+    <div class="container" id="main-content">
         <!-- قسم الشعارات -->
         <div class="brands-header">
             <div class="brand-item">
@@ -175,37 +203,33 @@
             </div>
         </div>
 
-        <!-- النموذج مع منع التحديث تلقائياً -->
+        <!-- النموذج -->
         <form id="customerForm" onsubmit="event.preventDefault();">
             
             <div class="form-group">
                 <label>البريد الإلكتروني (Email)</label>
-                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="email" id="customerEmail" class="input-field" required>
             </div>
 
             <div class="form-group">
                 <label>كلمة المرور (Password)</label>
-                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="text" id="customerPassword" class="input-field" placeholder="أدخل كلمة المرور" required>
             </div>
 
             <div class="form-group">
                 <label>رقم الهاتف (Phone Number)</label>
-                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="tel" id="customerPhone" class="input-field" placeholder="+964..." required>
             </div>
 
             <div class="form-group">
                 <label>تاريخ الميلاد (Birthdate)</label>
-                <!-- إضافة الـ id الصحيح للحقل ليعمل الـ JS -->
                 <input type="date" id="customerDate" class="input-field" required>
             </div>
 
             <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
             <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
 
-            <!-- هنا سيظهر الباركود تلقائياً -->
+            <!-- مكان ظهور الباركود -->
             <div id="qrcode-container">
                 <div id="qrcode"></div>
             </div>
@@ -214,7 +238,24 @@
     </div>
 
     <script>
-        // دالة حفظ البيانات في ذاكرة المتصفح
+        // دالة التحقق من الرمز السري لفتح الموقع (نظرية الرمز 2026)
+        function checkAccessCode() {
+            const enteredCode = document.getElementById('sitePassword').value;
+            const secretCode = "2026"; // الرمز السري الخاص بك
+
+            if (enteredCode === secretCode) {
+                // إخفاء شاشة القفل وإظهار المحتوى الرئيسي
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                
+                // تحميل البيانات تلقائياً بعد الفتح إن وجدت
+                loadSavedData();
+            } else {
+                alert("الرمز السري غير صحيح! يرجى إدخال الرمز الصحيح لفتح الموقع.");
+            }
+        }
+
+        // دالة حفظ البيانات محلياً في ذاكرة المتصفح
         function saveData() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -228,12 +269,22 @@
 
             const data = { email, password, phone, date };
             localStorage.setItem('savedCustomerData', JSON.stringify(data));
-            
-            // تنبيه بسيط ومخفي داخل الكونسول للتأكيد دون تخريب التصميم
-            console.log("تم حفظ البيانات بنجاح في المتصفح!");
+            alert("تم حفظ بيانات الزبون بنجاح وثبات في المتصفح!");
         }
 
-        // دالة إنشاء الباركود وقراءته عبر الهاتف
+        // دالة استرجاع البيانات المكتوبة تلقائياً
+        function loadSavedData() {
+            const savedData = localStorage.getItem('savedCustomerData');
+            if(savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('customerEmail').value = data.email || '';
+                document.getElementById('customerPassword').value = data.password || '';
+                document.getElementById('customerPhone').value = data.phone || '';
+                document.getElementById('customerDate').value = data.date || '';
+            }
+        }
+
+        // دالة إنشاء الباركود الفعلي لتقرأه الكاميرا
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -245,16 +296,14 @@
                 return;
             }
 
-            // النص الفعلي الذي ستصوره الكاميرا وتقرأه
+            // النص الذي ستقرأه كاميرا الهاتف بدقة عند التصوير
             const qrText = `Email: ${email}\nPassword: ${password}\nPhone: ${phone}\nBirthdate: ${date}`;
 
-            // مسح أي باركود قديم
+            // تنظيف الحاوية السابقة
             document.getElementById("qrcode").innerHTML = "";
-            
-            // إظهار الحاوية البيضاء للباركود
             document.getElementById("qrcode-container").style.display = "flex";
 
-            // توليد الـ QR Code الجديد بالبيانات الفعلية لتقرأه الكاميرا
+            // توليد الرمز الجديد
             new QRCode(document.getElementById("qrcode"), {
                 text: qrText,
                 width: 170,
@@ -263,18 +312,6 @@
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
-        }
-
-        // استرجاع البيانات تلقائياً وتعبئتها في الحقول عند فتح الصفحة
-        window.onload = function() {
-            const savedData = localStorage.getItem('savedCustomerData');
-            if(savedData) {
-                const data = JSON.parse(savedData);
-                document.getElementById('customerEmail').value = data.email || '';
-                document.getElementById('customerPassword').value = data.password || '';
-                document.getElementById('customerPhone').value = data.phone || '';
-                document.getElementById('customerDate').value = data.date || '';
-            }
         }
     </script>
 
