@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -121,9 +120,59 @@
             justify-content: center;
             margin-top: 10px;
         }
+
+        /* تنسيق شاشة قفل تجديد الاشتراك لصاحب المحل */
+        .lock-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b0c10;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .lock-box {
+            background: #12131a;
+            padding: 30px 20px;
+            border-radius: 16px;
+            border: 1px solid #1f222f;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .lock-box h3 { color: #d4a359; margin-bottom: 15px; }
+        .lock-box p { color: #a0aec0; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .code-display {
+            font-size: 24px; font-weight: bold; color: #ffffff;
+            background: #1f222f; padding: 10px; border-radius: 6px;
+            letter-spacing: 4px; margin-bottom: 20px; border: 1px dashed #d4a359;
+        }
+        .lock-box input {
+            background: #1f222f; color: #fff; border: 1px solid #2d3142;
+            text-align: center; font-size: 18px; letter-spacing: 2px; margin-bottom: 15px;
+        }
+        .lock-box input:focus { border-color: #d4a359; }
+        .btn-unlock { background-color: #d4a359; color: #0b0c10; font-weight: bold; }
+        .btn-unlock:hover { background-color: #bfa147; }
     </style>
 </head>
 <body>
+
+<!-- شاشة قفل تفعيل الاشتراك الشهري لصاحب المحل -->
+<div id="lockOverlay" class="lock-overlay" style="display: none;">
+    <div class="lock-box">
+        <h3>🔐 تفعيل الاشتراك الشهري</h3>
+        <p>انتهت صلاحية النظام لهذا الشهر. يرجى تزويد الإدارة بالرمز التالي للحصول على كود التجديد:</p>
+        <div id="randomCodeDisplay" class="code-display">0000</div>
+        <div class="form-group">
+            <input type="number" id="activationKeyInput" placeholder="أدخل كود التفعيل هنا">
+        </div>
+        <button type="button" class="btn btn-unlock" onclick="checkActivation()">تفعيل النظام</button>
+    </div>
+</div>
 
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
@@ -180,13 +229,54 @@
     const qrcodeDiv = document.getElementById('qrcode');
 
     let generatedUrl = "";
+    let systemRandomCode = 0;
 
-    // جلب البيانات تلقائياً شاملة رقم الهاتف إذا تم فتح الصفحة عن طريق مسح الباركود
+    // --- نظام فحص صلاحية اشتراك صاحب المحل (30 يوم) ---
+    function checkSystemAccess() {
+        const urlParams = new URLSearchParams(window.location.search);
+        // إذا كان الرابط يحتوي على معلمات الزبون (?e=) فلا نقفل الصفحة عليه، القفل فقط لصاحب المحل عند فتح الواجهة فارغة
+        if (urlParams.get('e')) return;
+
+        const expiryKey = localStorage.getItem('owner_expiry_date');
+        const today = new Date().toISOString().split('T')[0];
+
+        // إذا لم يكن هناك تاريخ مسجل مسبقاً أو انتهت الـ 30 يوماً، يظهر القفل فوراً
+        if (!expiryKey || today > expiryKey) {
+            // توليد رقم عشوائي من 4 أرقام لصاحب المحل
+            systemRandomCode = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
+            document.getElementById('lockOverlay').style.display = 'flex';
+        }
+    }
+
+    // دالة التحقق من كود التفعيل عند إدخاله (الرمز العشوائي + 2026)
+    function checkActivation() {
+        const userInput = parseInt(document.getElementById('activationKeyInput').value);
+        const correctAnswer = systemRandomCode + 2026;
+
+        if (userInput === correctAnswer) {
+            // تمديد الصلاحية لـ 30 يوماً إضافية وحفظها في ذاكرة المتصفح
+            const newExpiry = new Date();
+            newExpiry.setDate(newExpiry.getDate() + 30);
+            localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
+            
+            document.getElementById('lockOverlay').style.display = 'none';
+            alert('🎉 تم تفعيل النظام بنجاح لمدة 30 يوماً كاملة!');
+        } else {
+            alert('❌ كود التفعيل غير صحيح! يرجى مراجعة الإدارة.');
+        }
+    }
+
+
+    // جلب البيانات تلقائياً شاملة رقم الهاتف إذا تم فتح الصفحة عن طريق مسح الباركود للزبون
     window.addEventListener('DOMContentLoaded', () => {
+        // تشغيل فحص اشتراك صاحب المحل أولاً
+        checkSystemAccess();
+
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
         const passParam = urlParams.get('p');
-        const phoneParam = urlParams.get('ph'); // المعلمة الجديدة لرقم الهاتف
+        const phoneParam = urlParams.get('ph'); 
         const dateParam = urlParams.get('d');
 
         if (emailParam && passParam && phoneParam && dateParam) {
@@ -231,6 +321,18 @@
         // تفعيل زر الباركود
         generateQrBtn.disabled = false;
         
+        // تحديث شريط المتصفح بالبيانات الجديدة لثبات التعديلات للزبون فوراً عند التعديل والحفظ
+        window.history.pushState({}, '', generatedUrl);
+
+        if (qrSection.style.display === 'block') {
+            qrcodeDiv.innerHTML = ""; 
+            new QRCode(qrcodeDiv, {
+                text: generatedUrl,
+                width: 180,
+                height: 180
+            });
+        }
+        
         alert('تم حفظ البيانات محلياً! اضغط الآن على زر "إنشاء باركود QR" لتوليد الكود الجديد الخاص بك.');
     });
 
@@ -262,10 +364,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
- 
