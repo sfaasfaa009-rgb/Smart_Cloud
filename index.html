@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدخال بيانات الزبون</title>
+    <!-- تضمين مكتبة توليد الـ QR Code لتعمل مباشرة -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -72,7 +74,7 @@
             color: #9ca3af;
         }
 
-        /* المستطيلات مع الظل (التوهج) الأصفر المحيط بها */
+        /* المستطيلات مع الظل الأصفر المحيط بها */
         .input-field {
             width: 100%;
             background-color: #1a1c26;
@@ -136,6 +138,22 @@
         .btn-qr:hover {
             background-color: #4b5563;
         }
+
+        /* حاوية الـ QR Code لتظهر بشكل متناسق في المنتصف */
+        #qrcode-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 16px;
+            max-width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 0 15px rgba(212, 163, 89, 0.3);
+            display: none; /* مخفي افتراضياً حتى يتم التوليد */
+        }
     </style>
 </head>
 <body>
@@ -165,7 +183,6 @@
                 <input type="email" id="customerEmail" class="input-field" required>
             </div>
 
-            <!-- تم تغيير type إلى "text" ليظهر الرمز السري بوضوح -->
             <div class="form-group">
                 <label>كلمة المرور (Password)</label>
                 <input type="text" id="customerPassword" class="input-field" placeholder="أدخل كلمة المرور" required>
@@ -181,24 +198,76 @@
                 <input type="date" id="customerDate" class="input-field" required>
             </div>
 
-            <!-- تم تعديل type هنا إلى button لتجنب عمل refresh تلقائي للمتصفح -->
             <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
             <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
+
+            <!-- هنا سيظهر الباركود تلقائياً -->
+            <div id="qrcode-container">
+                <div id="qrcode"></div>
+            </div>
 
         </form>
     </div>
 
     <script>
-        // دالة حفظ البيانات
+        // دالة حفظ البيانات محلياً في المتصفح لكي لا تضيع عند إعادة فتح الصفحة
         function saveData() {
-            // هنا يمكنك إضافة الكود المسؤول عن حفظ البيانات محلياً
-            alert("تم الضغط على حفظ البيانات بنجاح، ولن تختفي البيانات الآن!");
+            const email = document.getElementById('customerEmail').value;
+            const password = document.getElementById('customerPassword').value;
+            const phone = document.getElementById('customerPhone').value;
+            const date = document.getElementById('customerDate').value;
+
+            if(!email || !password || !phone || !date) {
+                alert("يرجى ملأ جميع الحقول أولاً قبل الحفظ.");
+                return;
+            }
+
+            const data = { email, password, phone, date };
+            localStorage.setItem('savedCustomerData', JSON.stringify(data));
         }
 
-        // دالة إنشاء الباركود
+        // دالة إنشاء الباركود الفعلي بناءً على البيانات المدخلة
         function generateQR() {
-            // هنا يمكنك إضافة الكود المسؤول عن توليد الـ QR Code
-            alert("تم الضغط على إنشاء باركود QR بنجاح!");
+            const email = document.getElementById('customerEmail').value;
+            const password = document.getElementById('customerPassword').value;
+            const phone = document.getElementById('customerPhone').value;
+            const date = document.getElementById('customerDate').value;
+
+            if(!email || !password || !phone || !date) {
+                alert("يرجى ملأ جميع الحقول لتوليد الباركود الخاص بالزبون.");
+                return;
+            }
+
+            // تجهيز النص الذي سيحتويه الباركود
+            const qrText = `Email: ${email}\nPassword: ${password}\nPhone: ${phone}\nBirthdate: ${date}`;
+
+            // مسح أي باركود قديم تم توليده سابقاً
+            document.getElementById("qrcode").innerHTML = "";
+            
+            // إظهار الحاوية البيضاء للباركود
+            document.getElementById("qrcode-container").style.display = "flex";
+
+            // توليد الـ QR Code الجديد
+            new QRCode(document.getElementById("qrcode"), {
+                text: qrText,
+                width: 170,
+                height: 170,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // استرجاع البيانات تلقائياً إذا كانت محفوظة مسبقاً عند فتح الصفحة
+        window.onload = function() {
+            const savedData = localStorage.getItem('savedCustomerData');
+            if(savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('customerEmail').value = data.email || '';
+                document.getElementById('customerPassword').value = data.password || '';
+                document.getElementById('customerPhone').value = data.phone || '';
+                document.getElementById('customerDate').value = data.date || '';
+            }
         }
     </script>
 
