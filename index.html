@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>النسخة التجارية الاحترافية</title>
+    <title>النسخة التجارية الاحترافية المحمية</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -28,19 +28,26 @@
         .qr-section { margin-top: 25px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
         #qrcode { display: flex; justify-content: center; margin: 15px 0; }
         .share-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .device-id-box { background: #e9ecef; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; font-weight: bold; color: #555; word-break: break-all; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
-    <!-- 🔐 شاشة قفل الاشتراك (لصاحب المحل فقط) -->
+    <!-- 🔐 شاشة قفل الاشتراك المحمية ضد السرقة -->
     <div id="activationSection">
         <div class="lock-icon">🔐</div>
         <h3>نظام توليد الباركود الذكي</h3>
-        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">يرجى إدخال كود الاشتراك لتفعيل الخدمة.</p>
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">يرجى تزويد المطور برمز جهازك التالي لتوليد كود التفعيل الخاص بك:</p>
+        
+        <!-- صندوق يعرض رمز بصمة الجهاز الحالي -->
+        <div class="device-id-box">
+            رمز جهازك: <span id="displayDeviceId">جاري التوليد...</span>
+        </div>
+
         <div class="form-group">
-            <input type="text" id="activationKey" placeholder="أدخل كود الاشتراك هنا" style="text-align: center; font-weight: bold;">
+            <input type="text" id="activationKey" placeholder="أدخل كود التفعيل الخاص بجهازك" style="text-align: center; font-weight: bold;">
         </div>
         <button type="button" id="activateBtn" class="btn btn-activate">تفعيل الآن</button>
     </div>
@@ -89,13 +96,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-    const validKeys = ["VIP-MONTH-2026", "SHOP-FREE-TEST"];
+    // 🔐 مصفوفة الأكواد المحمية (تغيرها شهرياً)
+    // طريقة الصياغة: "اسم_المحل-الشهر_والسنة-رمز_الجهاز"
+    const validKeys = [
+        "SHOP1-JULY2026-9874", // مثال لكود مخصص للمحل الأول الذي يحمل جهاز بصمته 9874
+        "TEST-2026-1234"      // كود تجريبي لجهاز بصمته 1234
+    ];
 
     const activationSection = document.getElementById('activationSection');
     const mainAppSection = document.getElementById('mainAppSection');
     const activationKeyInput = document.getElementById('activationKey');
     const activateBtn = document.getElementById('activateBtn');
     const appTitle = document.getElementById('appTitle');
+    const displayDeviceId = document.getElementById('displayDeviceId');
 
     const form = document.getElementById('infoForm');
     const inputs = form.querySelectorAll('input');
@@ -109,25 +122,37 @@
     const whatsappBtn = document.getElementById('whatsappBtn');
 
     let generatedUrl = "";
-    let isCustomerMode = false; // متغير لتحديد هل المستخدم الحالي زبون أم صاحب محل
+    let isCustomerMode = false;
+    let myDeviceId = "";
+
+    // 📋 توليد بصمة فريدة وثابتة لجهاز المستخدم الحالي تعتمد على المتصفح
+    function getOrCreateDeviceId() {
+        let id = localStorage.getItem('app_device_fingerprint');
+        if (!id) {
+            // توليد رقم عشوائي من 4 أرقام لسهولة التعامل للزبائن والمحلات
+            id = Math.floor(1000 + Math.random() * 9000).toString();
+            localStorage.setItem('app_device_fingerprint', id);
+        }
+        return id;
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
+        myDeviceId = getOrCreateDeviceId();
+        displayDeviceId.innerText = myDeviceId; // عرض البصمة في شاشة القفل
+
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
 
-        // إذا كان الرابط يحتوي على بيانات زبون (واجهة الزبون)
+        // واجهة الزبون
         if (emailParam) {
             isCustomerMode = true;
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
             appTitle.innerText = "📋 بيانات الحساب الخاصة بك";
             appTitle.style.color = '#333333';
-
-            // إخفاء زر توليد الكود وزر حفظ المحل نهائياً عن أعين الزبون
             generateQrBtn.style.display = 'none';
             saveBtn.style.display = 'none';
 
-            // فحص هل توجد بيانات معدلة ومحفوظة مسبقاً في هاتف الزبون؟
             const localData = localStorage.getItem('customer_modified_data');
             if (localData) {
                 const parsed = JSON.parse(localData);
@@ -136,14 +161,12 @@
                 document.getElementById('phone').value = parsed.phone;
                 document.getElementById('birthdate').value = parsed.date;
             } else {
-                // إذا كانت أول مرة يفتح الكود، نقرأ من الرابط المشفر
                 document.getElementById('email').value = atob(emailParam);
                 document.getElementById('password').value = atob(urlParams.get('p'));
                 document.getElementById('phone').value = atob(urlParams.get('ph'));
                 document.getElementById('birthdate').value = urlParams.get('d');
             }
 
-            // قفل المدخلات وإظهار زر التعديل فقط للزبون
             inputs.forEach(input => input.disabled = true);
             editBtn.style.display = 'block';
             customerSaveBtn.style.display = 'none';
@@ -151,10 +174,12 @@
         // واجهة صاحب المحل
         else {
             isCustomerMode = false;
-            generateQrBtn.style.display = 'block'; // تظهر فقط لصاحب المحل
+            generateQrBtn.style.display = 'block';
+            
             const savedKey = localStorage.getItem('shop_active_key');
             
-            if (savedKey && validKeys.includes(savedKey)) {
+            // يجب أن يكون الكود المحفوظ صحيحاً ومطابقاً لبصمة هذا الجهاز الحالي
+            if (savedKey && validKeys.includes(savedKey) && savedKey.endsWith(myDeviceId)) {
                 activationSection.style.display = 'none';
                 mainAppSection.style.display = 'block';
             } else {
@@ -164,90 +189,65 @@
         }
     });
 
-    // تفعيل الحساب لصاحب المحل
+    // تفعيل الحساب يدوياً
     activateBtn.addEventListener('click', () => {
         const userKey = activationKeyInput.value.trim();
-        if (validKeys.includes(userKey)) {
+        
+        // الشرط الصارم: يجب أن يكون الكود في القائمة + ينتهي برمز هذا الجهاز تحديداً!
+        if (validKeys.includes(userKey) && userKey.endsWith(myDeviceId)) {
             localStorage.setItem('shop_active_key', userKey);
-            alert("تم التفعيل بنجاح!");
+            alert("✅ تم التفعيل بنجاح! هذا الجهاز أصبح مرخصاً الآن.");
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
         } else {
-            alert("❌ كود التفعيل غير صحيح!");
+            alert("❌ كود التفعيل غير صحيح، أو أنه مخصص لجهاز هاتف آخر!");
         }
     });
 
-    // معالجة نموذج الحفظ (لصاحب المحل)
+    // بقية الأكواد للعمليات بدون تغيير...
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (isCustomerMode) return; // منع تشغيل هذا الجزء للزبون
-
+        if (isCustomerMode) return;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
         const birthdate = document.getElementById('birthdate').value;
-
-        const encEmail = btoa(email);
-        const encPass = btoa(password);
-        const encPhone = btoa(phone);
-
+        const encEmail = btoa(email); const encPass = btoa(password); const encPhone = btoa(phone);
         generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
-
         inputs.forEach(input => input.disabled = true);
-        saveBtn.style.display = 'none';
-        editBtn.style.display = 'block';
-        generateQrBtn.disabled = false;
+        saveBtn.style.display = 'none'; editBtn.style.display = 'block'; generateQrBtn.disabled = false;
     });
 
-    // حفظ التعديلات الخاصة بالزبون فقط في هاتفه
     customerSaveBtn.addEventListener('click', function() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
         const birthdate = document.getElementById('birthdate').value;
-
         const customerData = { email, password, phone, date: birthdate };
         localStorage.setItem('customer_modified_data', JSON.stringify(customerData));
-
         alert("✅ تم حفظ تعديلاتك بنجاح داخل حسابك!");
         inputs.forEach(input => input.disabled = true);
-        customerSaveBtn.style.display = 'none';
-        editBtn.style.display = 'block';
+        customerSaveBtn.style.display = 'none'; editBtn.style.display = 'block';
     });
 
-    // زر التعديل (ذكي: يتعرف إن كان المستخدم زبون أم صاحب محل)
     editBtn.addEventListener('click', function() {
         inputs.forEach(input => input.disabled = false);
         editBtn.style.display = 'none';
-        
-        if (isCustomerMode) {
-            customerSaveBtn.style.display = 'block'; // يظهر للزبون زر حفظ التعديلات فقط
-        } else {
-            saveBtn.style.display = 'block'; // يظهر لصاحب المحل زر الحفظ الأساسي لتوليد الـ QR
-            generateQrBtn.disabled = true;
-            qrSection.style.display = 'none';
-        }
+        if (isCustomerMode) { customerSaveBtn.style.display = 'block'; } else { saveBtn.style.display = 'block'; generateQrBtn.disabled = true; qrSection.style.display = 'none'; }
     });
 
-    // توليد الـ QR (خاص بصاحب المحل فقط)
     generateQrBtn.addEventListener('click', function() {
-        if (!generatedUrl) return;
-        qrcodeDiv.innerHTML = ""; 
+        if (!generatedUrl) return; qrcodeDiv.innerHTML = ""; 
         new QRCode(qrcodeDiv, { text: generatedUrl, width: 180, height: 180 });
         whatsappBtn.href = `https://api.whatsapp.com/send?text=مرحباً، هذا هو كود حسابك الآمن والمباشر: ${encodeURIComponent(generatedUrl)}`;
         qrSection.style.display = 'block';
     });
 
-    // تحميل الباركود كصورة
     downloadQrBtn.addEventListener('click', function() {
         const qrImg = qrcodeDiv.querySelector('img');
         if (qrImg) {
-            const downloadLink = document.createElement('a');
-            downloadLink.href = qrImg.src;
-            downloadLink.download = 'my_code.png';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            const downloadLink = document.createElement('a'); downloadLink.href = qrImg.src; downloadLink.download = 'my_code.png';
+            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
         }
     });
 </script>
