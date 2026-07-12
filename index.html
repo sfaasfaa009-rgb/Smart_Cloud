@@ -24,132 +24,57 @@
             padding: 20px;
         }
 
-        /* شاشة القفل لحماية الموقع */
-        #lock-screen {
+        /* حاوية النظام الرئيسية */
+        #main-container {
             background-color: #12131a;
             border: 1px solid #1f222f;
             border-radius: 24px;
             width: 100%;
-            max-width: 420px;
-            padding: 40px 24px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: none;
-        }
-
-        .lock-title {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #d4a359;
-        }
-
-        .device-code-box {
-            font-size: 16px;
-            color: #9ca3af;
-            margin-bottom: 25px;
-            background: #1a1c26;
-            padding: 10px;
-            border-radius: 12px;
-            display: inline-block;
-            border: 1px dashed #2d3142;
-        }
-
-        .device-code-box span {
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 18px;
-            letter-spacing: 2px;
-        }
-
-        /* حاوية المحتوى الرئيسي للموقع */
-        .container {
-            background-color: #12131a;
-            border: 1px solid #1f222f;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 420px;
+            max-width: 480px;
             padding: 30px 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: none; 
+            text-align: center;
         }
 
-        /* قسم الشعارات العلوي */
-        .brands-header {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #1f222f;
-        }
-
-        .brand-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #e5e7eb;
-            background: #1a1c26;
-            padding: 8px 14px;
-            border-radius: 12px;
-            border: 1px solid #2d3142;
-        }
-
-        .brand-logo {
-            width: 18px;
-            height: 18px;
-            object-fit: contain;
-        }
-
-        /* تنسيق الحقول */
-        .form-group {
+        h2 {
             margin-bottom: 20px;
+            color: #d4a359;
+            font-size: 22px;
+        }
+
+        .form-group {
+            text-align: right;
+            margin-bottom: 15px;
         }
 
         label {
             display: block;
+            margin-bottom: 5px;
             font-size: 14px;
-            margin-bottom: 8px;
             color: #9ca3af;
         }
 
-        .input-field {
+        input {
             width: 100%;
-            background-color: #1a1c26;
+            padding: 12px;
+            border-radius: 8px;
             border: 1px solid #2d3142;
-            border-radius: 12px;
-            padding: 14px 16px;
+            background-color: #1f222f;
             color: #ffffff;
-            font-size: 15px;
+            font-size: 16px;
             outline: none;
-            box-shadow: 0 0 8px rgba(212, 163, 89, 0.2);
-            transition: all 0.3s ease;
+            transition: 0.3s;
         }
 
-        .input-field:focus {
-            border-color: #d4a359;
-            box-shadow: 0 0 12px rgba(212, 163, 89, 0.5);
-        }
-
-        .input-field:disabled {
-            background-color: #15161e;
+        input:disabled {
+            background-color: #0b0c10;
             color: #9ca3af;
-            border-color: #222533;
-            box-shadow: none;
+            border-color: #1f222f;
             cursor: not-allowed;
         }
 
-        .input-field[type="email"],
-        .input-field[type="text"],
-        .input-field[type="tel"] {
-            text-align: left;
-            direction: ltr;
-        }
-
-        .input-field[type="date"] {
-            direction: ltr;
-            text-align: right;
-            cursor: pointer;
+        input:focus:not(:disabled) {
+            border-color: #d4a359;
         }
 
         /* الأزرار */
@@ -157,252 +82,80 @@
             width: 100%;
             padding: 14px;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 12px;
-            transition: background-color 0.2s;
-        }
-
-        .btn-submit {
-            background-color: #13542b;
-            color: #ffffff;
-            margin-top: 25px;
-        }
-
-        .btn-submit:hover {
-            background-color: #1a6e3a;
-        }
-
-        .btn-qr {
-            background-color: #374151;
-            color: #e5e7eb;
-        }
-
-        .btn-qr:hover {
-            background-color: #4b5563;
-        }
-
-        .btn-edit {
+            transition: 0.3s;
+            margin-top: 10px;
             background-color: #d4a359;
             color: #0b0c10;
-            margin-top: 25px;
         }
 
-        .btn-edit:hover {
-            background-color: #bfa255;
-        }
-
+        /* حاوية الـ QR كود */
         #qrcode-container {
             margin-top: 25px;
-            display: none;
-            justify-content: center;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 16px;
-            max-width: 220px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 0 15px rgba(212, 163, 89, 0.3);
+            justify-content: center;
+            background: #1f222f;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px dashed #2d3142;
+        }
+
+        #qrcode {
+            padding: 10px;
+            background: #ffffff; /* خلفية بيضاء لسهولة مسح الباركود */
+            border-radius: 8px;
+        }
+
+        .qr-text {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #9ca3af;
         }
     </style>
 </head>
 <body>
 
-    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي للأدمن -->
-    <div id="lock-screen">
-        <div class="lock-title">الموقع مقفل، يرجى تفعيل الجهاز</div>
-        <div class="device-code-box">كود جهازك الحالي: <span id="displayDeviceCode">0000</span></div>
+    <div id="main-container">
+        <h2>نظام إدارة بيانات الزبائن</h2>
+        
         <div class="form-group">
-            <input type="text" id="sitePassword" class="input-field" placeholder="أدخل رمز التفعيل هنا" style="text-align: center;">
-        </div>
-        <button type="button" class="btn btn-submit" onclick="checkAccessCode()" style="margin-top: 10px;">فتح الموقع</button>
-    </div>
-
-    <!-- حاوية الموقع الرئيسية (تخدم الأدمن والزبون ديناميكياً) -->
-    <div class="container" id="main-content">
-        <!-- قسم الشعارات -->
-        <div class="brands-header">
-            <div class="brand-item">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_%28iOS%29.svg" alt="App Store" class="brand-logo">
-                <span>App Store</span>
-            </div>
-            <div class="brand-item">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" class="brand-logo">
-                <span>Outlook</span>
-            </div>
-            <div class="brand-item">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam" class="brand-logo">
-                <span>Steam</span>
-            </div>
+            <label for="customerEmail">البريد الإلكتروني:</label>
+            <input type="email" id="customerEmail" disabled>
         </div>
 
-        <!-- النموذج -->
-        <form id="customerForm" onsubmit="event.preventDefault();">
-            
-            <div class="form-group">
-                <label>البريد الإلكتروني (Email)</label>
-                <input type="email" id="customerEmail" class="input-field" required>
-            </div>
+        <div class="form-group">
+            <label for="customerPassword">كلمة المرور:</label>
+            <input type="text" id="customerPassword" disabled>
+        </div>
 
-            <div class="form-group">
-                <label>كلمة المرور (Password)</label>
-                <input type="text" id="customerPassword" class="input-field" placeholder="أدخل كلمة المرور" required>
-            </div>
+        <div class="form-group">
+            <label for="customerPhone">رقم الهاتف:</label>
+            <input type="tel" id="customerPhone" disabled>
+        </div>
 
-            <div class="form-group">
-                <label>رقم الهاتف (Phone Number)</label>
-                <input type="tel" id="customerPhone" class="input-field" placeholder="+964..." required>
-            </div>
+        <div class="form-group">
+            <label for="customerDate">التاريخ:</label>
+            <input type="date" id="customerDate" disabled>
+        </div>
 
-            <div class="form-group">
-                <label>تاريخ الميلاد (Birthdate)</label>
-                <input type="date" id="customerDate" class="input-field" required>
-            </div>
+        <button id="editBtn" class="btn" onclick="toggleCustomerEdit()">تعديل المعلومات</button>
 
-            <!-- أزرار الأدمن (تظهر في المنظور العادي) -->
-            <div id="admin-actions">
-                <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
-                <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
-            </div>
-
-            <!-- زر الزبون (يظهر فقط عند مسح الباركود) -->
-            <div id="customer-actions" style="display: none;">
-                <button type="button" id="editBtn" class="btn btn-edit" onclick="toggleCustomerEdit()">تعديل المعلومات</button>
-            </div>
-
-            <!-- مكان ظهور الباركود -->
-            <div id="qrcode-container">
-                <div id="qrcode"></div>
-            </div>
-
-        </form>
+        <!-- منطقة عرض الباركود -->
+        <div id="qrcode-container">
+            <div id="qrcode"></div>
+            <p class="qr-text">الـ QR Code المحدث للزبون</p>
+        </div>
     </div>
 
     <script>
-        let generatedDeviceCode = "";
-        let isCustomerMode = false;
+        let qrGeneratorInstance = null;
 
-        window.onload = function() {
-            // فحص الرابط: هل يحتوي على بيانات زبون قادمة من الباركود؟
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('cdata')) {
-                // تفعيل منظور الزبون فوراً وتخطي شاشة القفل لحماية خصوصيته وسهولة دخوله
-                isCustomerMode = true;
-                document.getElementById('main-content').style.display = 'block';
-                document.getElementById('admin-actions').style.display = 'none';
-                document.getElementById('customer-actions').style.display = 'block';
-                
-                // فك تشفير البيانات وعرضها مقفلة
-                loadCustomerFromUrl(urlParams.get('cdata'));
-                return;
-            }
-
-            // إذا لم يكن زبون، إذن هو الأدمن (أنت)، نتحقق من شاشة القفل
-            const isActivated = localStorage.getItem('siteActivated');
-            if (isActivated === 'true') {
-                document.getElementById('main-content').style.display = 'block';
-                localStorage.removeItem('savedCustomerData'); 
-                return;
-            }
-
-            document.getElementById('lock-screen').style.display = 'block';
-            let deviceCode = localStorage.getItem('deviceCode');
-            if (!deviceCode) {
-                deviceCode = Math.floor(1000 + Math.random() * 9000).toString();
-                localStorage.setItem('deviceCode', deviceCode);
-            }
-            generatedDeviceCode = deviceCode;
-            document.getElementById('displayDeviceCode').innerText = generatedDeviceCode;
-        }
-
-        function checkAccessCode() {
-            const enteredCode = document.getElementById('sitePassword').value.trim();
-            const correctSum = Number(generatedDeviceCode) + 2026;
-
-            if (Number(enteredCode) === correctSum) {
-                localStorage.setItem('siteActivated', 'true');
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                localStorage.removeItem('savedCustomerData');
-            } else {
-                alert("الرمز السري غير صحيح!");
-            }
-        }
-
-        function saveData() {
-            const email = document.getElementById('customerEmail').value;
-            const password = document.getElementById('customerPassword').value;
-            const phone = document.getElementById('customerPhone').value;
-            const date = document.getElementById('customerDate').value;
-
-            if(!email || !password || !phone || !date) {
-                alert("يرجى ملأ جميع الحقول أولاً قبل الحفظ.");
-                return;
-            }
-
-            const data = { email, password, phone, date };
-            localStorage.setItem('savedCustomerData', JSON.stringify(data));
-            alert("تم حفظ بيانات الزبون بنجاح لتوليد الكود!");
-        }
-
-        // دالة إنشاء الباركود الذكي الذي يحتوي على رابط الصفحة مشفراً بالبيانات
-        function generateQR() {
-            const email = document.getElementById('customerEmail').value;
-            const password = document.getElementById('customerPassword').value;
-            const phone = document.getElementById('customerPhone').value;
-            const date = document.getElementById('customerDate').value;
-
-            if(!email || !password || !phone || !date) {
-                alert("يرجى ملأ جميع الحقول لتوليد الباركود.");
-                return;
-            }
-
-            // تجميع البيانات وتشفيرها بصيغة Base64 لتمريرها في الرابط بأمان
-            const rawData = JSON.stringify({ email, password, phone, date });
-            const encodedData = btoa(unescape(encodeURIComponent(rawData)));
-
-            // الحصول على رابط موقعك الحالي على جيتهاب وإضافة كود البيانات له
-            const currentUrl = window.location.href.split('?')[0];
-            const customerDestinationUrl = `${currentUrl}?cdata=${encodedData}`;
-
-            document.getElementById("qrcode").innerHTML = "";
-            document.getElementById("qrcode-container").style.display = "flex";
-
-            // توليد الـ QR بالرابط الفعلي المباشر
-            new QRCode(document.getElementById("qrcode"), {
-                text: customerDestinationUrl,
-                width: 180,
-                height: 180,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
-            });
-
-            alert("تم توليد باركود الرابط الدائم للزبون بنجاح!");
-            localStorage.removeItem('savedCustomerData');
-        }
-
-        // دالة فك التشفير وعرض بيانات الزبون مقفلة افتراضياً لحمايتها
-        function loadCustomerFromUrl(encodedData) {
-            try {
-                const decodedData = decodeURIComponent(escape(atob(encodedData)));
-                const data = JSON.parse(decodedData);
-
-                document.getElementById('customerEmail').value = data.email || '';
-                document.getElementById('customerPassword').value = data.password || '';
-                document.getElementById('customerPhone').value = data.phone || '';
-                document.getElementById('customerDate').value = data.date || '';
-
-                // قفل الحقول لمنع العبث العشوائي إلا عند الضغط على تعديل
-                setFieldsDisabled(true);
-            } catch (e) {
-                alert("خطأ في قراءة بيانات الباركود.");
-            }
-        }
-
+        // دالة مساعدة لتعطيل أو تفعيل الحقول
         function setFieldsDisabled(status) {
             document.getElementById('customerEmail').disabled = status;
             document.getElementById('customerPassword').disabled = status;
@@ -410,7 +163,55 @@
             document.getElementById('customerDate').disabled = status;
         }
 
-        // دالة زر "تعديل المعلومات" الخاص بالزبون للتحويل بين القفل والتعديل
+        // دالة تحديث وتوليد الـ QR Code بشكل صحيح
+        function updateQRCode(textData) {
+            const qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = ""; // مسح القديم
+            
+            // إنشاء باركود جديد
+            new QRCode(qrContainer, {
+                text: textData,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
+            });
+        }
+
+        // عند فتح الصفحة: فحص الرابط وفك التشفير وعرض البيانات فوراً
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cdata = urlParams.get('cdata');
+
+            if (cdata) {
+                try {
+                    // فك التشفير بشكل آمن يدعم اللغة العربية
+                    const decodedData = decodeURIComponent(escape(atob(cdata)));
+                    const customerData = JSON.parse(decodedData);
+
+                    // تعبئة الحقول بالبيانات المستخرجة من الرابط
+                    document.getElementById('customerEmail').value = customerData.email || '';
+                    document.getElementById('customerPassword').value = customerData.password || '';
+                    document.getElementById('customerPhone').value = customerData.phone || '';
+                    document.getElementById('customerDate').value = customerData.date || '';
+
+                    // توليد الـ QR للرابط الحالي
+                    updateQRCode(window.location.href);
+                } catch (e) {
+                    console.error("خطأ في فك تشفير البيانات الممررة:", e);
+                    alert("الرابط يحتوي على بيانات غير صالحة أو تالفة.");
+                }
+            } else {
+                // إذا فتح الصفحة لأول مرة بدون بيانات، نفتح الحقول لإدخال بيانات جديدة
+                setFieldsDisabled(false);
+                const editBtn = document.getElementById('editBtn');
+                editBtn.innerText = "توليد الرابط والـ QR الأول";
+                editBtn.style.backgroundColor = "#13542b";
+                editBtn.style.color = "#ffffff";
+            }
+        };
+
+        // دالة زر "تعديل المعلومات" للتحويل بين القفل والتعديل والحفظ الثابت
         function toggleCustomerEdit() {
             const isCurrentlyDisabled = document.getElementById('customerEmail').disabled;
             const editBtn = document.getElementById('editBtn');
@@ -422,7 +223,7 @@
                 editBtn.style.backgroundColor = "#13542b";
                 editBtn.style.color = "#ffffff";
             } else {
-                // حفظ التعديلات وقفل الحقول مرة أخرى وتحديث الرابط والـ QR بالبيانات الجديدة
+                // حفظ التعديلات وقفل الحقول
                 const email = document.getElementById('customerEmail').value;
                 const password = document.getElementById('customerPassword').value;
                 const phone = document.getElementById('customerPhone').value;
@@ -438,13 +239,19 @@
                 editBtn.style.backgroundColor = "#d4a359";
                 editBtn.style.color = "#0b0c10";
 
-                // تحديث بيانات الرابط في المتصفح لكي لا تضيع التعديلات
+                // تحويل البيانات الجديدة وتشفيرها بشكل متوافق مع الحروف العربية
                 const rawData = JSON.stringify({ email, password, phone, date });
                 const encodedData = btoa(unescape(encodeURIComponent(rawData)));
                 const currentUrl = window.location.href.split('?')[0];
-                window.history.replaceState({}, '', `${currentUrl}?cdata=${encodedData}`);
+                const newUrl = `${currentUrl}?cdata=${encodedData}`;
+                
+                // تحديث شريط المتصفح فوراً بالبيانات الجديدة
+                window.history.replaceState({}, '', newUrl);
 
-                alert("تمت مراجعة وتحديث معلوماتك بنجاح!");
+                // تحديث الـ QR كود بالرابط الجديد الحامل للتعديلات
+                updateQRCode(newUrl);
+
+                alert("تم تحديث معلوماتك وثباتها في الرابط بنجاح!");
             }
         }
     </script>
