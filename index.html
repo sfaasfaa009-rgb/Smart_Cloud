@@ -121,13 +121,14 @@
             margin-top: 10px;
         }
         .sync-status {
-            font-size: 12px;
-            color: #6c757d;
+            font-size: 13px;
+            color: #007bff;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-weight: bold;
         }
         
+        /* شاشة قفل تجديد الاشتراك لصاحب المحل */
         .lock-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -173,7 +174,7 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
-    <div id="syncMessage" class="sync-status">🔄 جاري التحقق من أحدث التعديلات...</div>
+    <div id="syncMessage" class="sync-status">🔄 جاري فحص السحاب لجلب التعديلات...</div>
 
     <form id="infoForm">
         <div class="form-group">
@@ -226,10 +227,8 @@
     let isCustomerMode = false;
     let cloudStorageId = ""; 
 
-    // مستودع بيانات سحابي مجاني وسريع ومفتوح لا يرفض أي طلبات
-    const apiBase = "https://api.jsonbin.io/v3/b";
-    // معرف وصول عام للمزامنة الفورية
-    const apiKey = "$2a$10$R8Y9X2q2v6.XkH94eJmsIe7fP0F9vS5A2mS4D3f2G1H0J9K8L7M6N"; 
+    // مستودع البيانات المفتوح والمباشر لضمان الحفظ بدون سيرفر معقد
+    const bucketUrl = "https://kvdb.io/AymanSafaaQrProject77/";
 
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -284,42 +283,33 @@
             generateQrBtn.style.display = 'none'; 
             syncMessage.style.display = 'block';
 
-            // نصنع كود فريد نظيف مبني على الإيميل والهاتف
-            cloudStorageId = "user_" + (emailParam + phoneParam).replace(/[^a-zA-Z0-9]/g, "").substring(0, 25);
+            // توليد معرف فريد نظيف جداً وثابت لكل زبون بناءً على بياناته الأصلية المطبوعة
+            cloudStorageId = "id_" + (emailParam + phoneParam).replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
 
-            // 1. فحص كاش المتصفح المحلي فوراً لتأمين الثبات التام على نفس الجهاز
-            const localCache = localStorage.getItem(cloudStorageId);
-            
-            if (localCache) {
-                const parsed = JSON.parse(localCache);
-                document.getElementById('email').value = parsed.email;
-                document.getElementById('password').value = parsed.password;
-                document.getElementById('phone').value = parsed.phone;
-                document.getElementById('birthdate').value = parsed.birthdate;
-                syncMessage.innerText = "⚡ تم عرض أحدث التعديلات المحفوظة.";
-            } else {
-                // عرض البيانات المدمجة بالرابط كخيار أساسي أولي
-                document.getElementById('email').value = atob(emailParam);
-                document.getElementById('password').value = atob(passParam);
-                document.getElementById('phone').value = atob(phoneParam);
-                document.getElementById('birthdate').value = dateParam;
-            }
+            // خطوة 1: عرض البيانات الأصلية فوراً وبدون أي تأخير أو حقول فارغة
+            document.getElementById('email').value = atob(emailParam);
+            document.getElementById('password').value = atob(passParam);
+            document.getElementById('phone').value = atob(phoneParam);
+            document.getElementById('birthdate').value = dateParam;
+            syncMessage.innerText = "ℹ️ تم عرض البيانات الأصلية. جاري فحص التعديلات...";
 
-            // 2. فحص المستودع السحابي في الخلفية لمزامنة الأجهزة الأخرى
+            // خطوة 2: الاتصال بالسيرفر المفتوح لسحب أي تعديل جديد تم من هاتف آخر
             try {
-                const response = await fetch(`https://api.keyvalue.xyz/new`, { method: 'POST' }); // استخدام بروتوكول قراءة خلفي سريع
-                // لتسريع الأداء وجلب البيانات من أي جهاز آخر تم الحفظ منه
-                const cloudSaved = localStorage.getItem(cloudStorageId + "_cloud");
-                if (cloudSaved && !localCache) {
-                    const parsed = JSON.parse(cloudSaved);
-                    document.getElementById('email').value = parsed.email;
-                    document.getElementById('password').value = parsed.password;
-                    document.getElementById('phone').value = parsed.phone;
-                    document.getElementById('birthdate').value = parsed.birthdate;
-                    syncMessage.innerText = "⚡ تم تحديث البيانات سحابياً بنجاح!";
+                const response = await fetch(bucketUrl + cloudStorageId);
+                if (response.ok) {
+                    const cloudData = await response.json();
+                    if (cloudData && cloudData.email) {
+                        document.getElementById('email').value = cloudData.email;
+                        document.getElementById('password').value = cloudData.password;
+                        document.getElementById('phone').value = cloudData.phone;
+                        document.getElementById('birthdate').value = cloudData.birthdate;
+                        syncMessage.innerText = "⚡ ممتاز! تم مزامنة أحدث البيانات المعدلة من السحاب.";
+                    }
+                } else {
+                    syncMessage.innerText = "✨ لم يتم تعديل البيانات من قبل (تعرض النسخة الأصلية).";
                 }
             } catch(e) {
-                console.log("خادم المزامنة مستقر ومحمي داخلياً.");
+                syncMessage.innerText = "⏳ تعمل الآن بالنسخة الأصلية المطبوعة.";
             }
 
             inputs.forEach(input => input.disabled = true);
@@ -336,7 +326,7 @@
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ جاري تثبيت التعديلات...";
+        saveBtn.innerText = "⏳ جاري حفظ وتثبيت التعديلات في السحاب...";
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -346,12 +336,23 @@
         const updatedData = { email, password, phone, birthdate };
 
         if (isCustomerMode) {
-            // القفل الفوري والنهائي للمدخلات على الشاشة الحالية لمنع الارتداد
-            localStorage.setItem(cloudStorageId, JSON.stringify(updatedData));
-            localStorage.setItem(cloudStorageId + "_cloud", JSON.stringify(updatedData));
+            try {
+                // خطوة الحفظ الإجبارية والمباشرة في المستودع السحابي
+                const res = await fetch(bucketUrl + cloudStorageId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
 
-            syncMessage.innerText = "⚡ تم التحديث والحفظ بنجاح تام!";
-            alert('✅ تم حفظ تعديلاتك بنجاح وثبتت بالكامل! عند فتح الكود من أي جهاز آخر ستظهر التعديلات الجديدة فوراً.');
+                if(res.ok) {
+                    syncMessage.innerText = "✅ تم تحديث السحاب بأحدث تعديل!";
+                    alert('✅ تم الحفظ بنجاح! الإيميل الجديد ثبت الآن، وسظهر فوراً عند فتح الباركود من أي هاتف آخر.');
+                } else {
+                    alert('حدث خطأ أثناء الرفع، يرجى المحاولة مرة أخرى.');
+                }
+            } catch (err) {
+                alert('يرجى التأكد من اتصال الهاتف بالإنترنت لتثبيت التعديل.');
+            }
         } else {
             // منظور صاحب المحل لأول مرة
             const encEmail = btoa(email);
