@@ -207,6 +207,7 @@
             font-weight: 600;
         }
 
+        /* صفحة عرض المعلومات */
         .info-page {
             display: none;
         }
@@ -332,6 +333,21 @@
             display: block;
         }
 
+        .success-msg {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 18px;
@@ -352,7 +368,7 @@
 
 <div class="container">
 
-    <!-- الصفحة الرئيسية -->
+    <!-- ======== الصفحة الرئيسية ======== -->
     <div class="main-page" id="mainPage">
         <h1>📝 مدونة المعلومات</h1>
         
@@ -373,7 +389,8 @@
                 <label>🎂 تاريخ الميلاد</label>
                 <input type="date" id="birthdate" required>
             </div>
-            <button type="submit">💾 حفظ المعلومات</button>
+            <button type="submit" id="saveBtn">💾 حفظ المعلومات</button>
+            <div class="success-msg" id="successMsg">✅ تم حفظ المعلومات بنجاح!</div>
         </form>
 
         <div id="qrSection">
@@ -382,7 +399,7 @@
                 <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
             </div>
             <button class="btn-pink" id="generateQrBtn">🔄 إنشاء QR جديد</button>
-            <p class="qr-note">📸 صوّر الكود بأي هاتف وستفتح صفحة تعرض المعلومات بشكل جميل</p>
+            <p class="qr-note">📸 صوّر الكود بأي هاتف وستظهر المعلومات في حقول جميلة</p>
         </div>
 
         <hr>
@@ -391,7 +408,7 @@
         <div id="recordsList"></div>
     </div>
 
-    <!-- صفحة عرض المعلومات -->
+    <!-- ======== صفحة عرض المعلومات ======== -->
     <div class="info-page" id="infoPage">
         <div class="info-card">
             <div class="card-title">📇 معلومات السجل</div>
@@ -437,9 +454,12 @@ const birthdateInput = document.getElementById('birthdate');
 const qrContainer = document.getElementById('qrCodeContainer');
 const generateBtn = document.getElementById('generateQrBtn');
 const recordsList = document.getElementById('recordsList');
+const successMsg = document.getElementById('successMsg');
+const saveBtn = document.getElementById('saveBtn');
+
+// عناصر صفحة العرض
 const mainPage = document.getElementById('mainPage');
 const infoPage = document.getElementById('infoPage');
-
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
 const viewPhone = document.getElementById('viewPhone');
@@ -476,10 +496,12 @@ function generateQR(data) {
     img.onload = function() {
         qrContainer.innerHTML = '';
         qrContainer.appendChild(img);
+        console.log('✅ تم إنشاء QR Code');
     };
     
     img.onerror = function() {
         qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ، حاول مرة أخرى</p>';
+        console.error('❌ فشل تحميل QR');
     };
 }
 
@@ -500,6 +522,7 @@ function showRecords() {
 // ======== حفظ ========
 form.addEventListener('submit', function(e) {
     e.preventDefault();
+    console.log('✅ تم الضغط على زر الحفظ');
     
     if (!emailInput.value || !passwordInput.value || !phoneInput.value || !birthdateInput.value) {
         alert('⚠️ املأ جميع الحقول');
@@ -513,14 +536,22 @@ form.addEventListener('submit', function(e) {
         birthdate: birthdateInput.value
     };
     
+    console.log('📦 البيانات:', data);
+    
     records.push(data);
     localStorage.setItem('records', JSON.stringify(records));
     showRecords();
     generateQR(data);
     
-    const btn = form.querySelector('button[type="submit"]');
-    btn.textContent = '✅ تم الحفظ!';
-    setTimeout(() => btn.textContent = '💾 حفظ المعلومات', 2000);
+    // رسالة نجاح
+    successMsg.classList.add('show');
+    setTimeout(() => successMsg.classList.remove('show'), 3000);
+    
+    saveBtn.textContent = '✅ تم الحفظ!';
+    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
+    
+    // تنظيف الحقول
+    form.reset();
 });
 
 // ======== زر توليد QR ========
@@ -600,7 +631,7 @@ function disableEditMode() {
 editBtn.addEventListener('click', enableEditMode);
 cancelEditBtn.addEventListener('click', disableEditMode);
 
-// ======== حفظ التعديلات (الإصدار المُصلح) ========
+// ======== حفظ التعديلات ========
 saveEditBtn.addEventListener('click', function() {
     const newData = {
         email: viewEmail.textContent.trim(),
@@ -614,7 +645,6 @@ saveEditBtn.addEventListener('click', function() {
         return;
     }
     
-    // البحث عن السجل القديم وتحديثه
     let found = false;
     for (let i = 0; i < records.length; i++) {
         if (records[i].email === currentData.email && 
@@ -658,38 +688,4 @@ function loadDataFromURL() {
     
     if (dataParam) {
         try {
-            const data = JSON.parse(decodeURIComponent(dataParam));
-            currentData = data;
-            
-            mainPage.style.display = 'none';
-            infoPage.classList.add('active');
-            
-            viewEmail.textContent = data.email;
-            viewPassword.textContent = data.password;
-            viewPhone.textContent = data.phone;
-            viewBirthdate.textContent = data.birthdate;
-            
-            disableEditMode();
-            return true;
-        } catch(e) {
-            console.error('خطأ:', e);
-        }
-    }
-    return false;
-}
-
-// ======== بدء التطبيق ========
-const isInfoView = loadDataFromURL();
-
-if (!isInfoView) {
-    showRecords();
-    if (records.length > 0) {
-        generateQR(records[0]);
-    }
-}
-
-console.log('✅ التطبيق يعمل!');
-</script>
-
-</body>
-</html>
+   
