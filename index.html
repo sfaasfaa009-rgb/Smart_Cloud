@@ -121,7 +121,7 @@
             margin-top: 10px;
         }
 
-        /* تنسيق شاشة قفل تجديد الاشتراك لصاحب المحل */
+        /* شاشة قفل تجديد الاشتراك لصاحب المحل */
         .lock-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -157,6 +157,13 @@
         .lock-box input:focus { border-color: #d4a359; }
         .btn-unlock { background-color: #d4a359; color: #0b0c10; font-weight: bold; }
         .btn-unlock:hover { background-color: #bfa147; }
+        
+        .loading-text {
+            color: #ff9800;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -177,32 +184,29 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
+    <div id="loadingStatus" class="loading-text">⏳ جاري جلب أحدث البيانات المعدلة...</div>
+
     <form id="infoForm">
-        <!-- 1_ حقل مستطيل للايميل -->
         <div class="form-group">
             <label for="email">البريد الإلكتروني (Email)</label>
             <input type="email" id="email" placeholder="example@email.com" required>
         </div>
 
-        <!-- 2_ حقل مستطيل للباسورد -->
         <div class="form-group">
             <label for="password">كلمة المرور (Password)</label>
             <input type="text" id="password" placeholder="••••••••" required>
         </div>
 
-        <!-- الحقل الجديد: حقل مستطيل لرقم الهاتف تحت الباسورد مباشرة -->
         <div class="form-group">
             <label for="phone">رقم الهاتف (Phone Number)</label>
             <input type="tel" id="phone" placeholder="07xxxxxxxx" required>
         </div>
 
-        <!-- 3_ حقل مستطيل للمواليد -->
         <div class="form-group">
             <label for="birthdate">تاريخ الميلاد (Birthdate)</label>
             <input type="date" id="birthdate" required>
         </div>
 
-        <!-- الأزرار مرتبة تحت بعضها -->
         <div class="buttons-stack">
             <button type="submit" id="saveBtn" class="btn btn-save">حفظ / Save</button>
             <button type="button" id="editBtn" class="btn btn-edit" style="display: none;">تعديل المعلومات</button>
@@ -211,12 +215,11 @@
     </form>
 
     <div id="qrSection" class="qr-section">
-        <p>✅ تم إنشاء الباركود الخاص ببياناتك بنجاح! يمكنك تصويره الآن لفتحه من أي جهاز آخر.</p>
+        <p>✅ هذا الباركود ثابت وخاص بك، يمكنك تصويره أو طباعته ولن يتغير عند تعديل بياناتك مستقبلاً.</p>
         <div id="qrcode"></div>
     </div>
 </div>
 
-<!-- مكتبة توليد الـ QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
@@ -227,21 +230,23 @@
     const generateQrBtn = document.getElementById('generateQrBtn');
     const qrSection = document.getElementById('qrSection');
     const qrcodeDiv = document.getElementById('qrcode');
+    const loadingStatus = document.getElementById('loadingStatus');
 
     let generatedUrl = "";
     let systemRandomCode = 0;
-    let isCustomerMode = false; // متغير لمعرفة هل تصفح الصفحة حالياً هو زبون أم صاحب محل
+    let isCustomerMode = false;
+    let customerId = "";
 
-    // --- نظام فحص صلاحية اشتراك صاحب المحل (30 يوم) ---
+    // استخدام مستودع مجاني ومفتوح لحفظ البيانات السحابية برقم الهاتف
+    const apiBase = "https://api.restful-api.dev/objects";
+
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
-        // إذا كان الرابط يحتوي على معلمات الزبون (?e=) فلا نقفل الصفحة عليه، القفل فقط لصاحب المحل عند فتح الواجهة فارغة
-        if (urlParams.get('e')) return;
+        if (urlParams.get('id')) return;
 
         const expiryKey = localStorage.getItem('owner_expiry_date');
         const today = new Date().toISOString().split('T')[0];
 
-        // إذا لم يكن هناك تاريخ مسجل مسبقاً أو انتهت الـ 30 يوماً، يظهر القفل فوراً
         if (!expiryKey || today > expiryKey) {
             systemRandomCode = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
@@ -249,7 +254,6 @@
         }
     }
 
-    // دالة التحقق من كود التفعيل عند إدخاله (الرمز العشوائي + 2026)
     function checkActivation() {
         const userInput = parseInt(document.getElementById('activationKeyInput').value);
         const correctAnswer = systemRandomCode + 2026;
@@ -258,15 +262,13 @@
             const newExpiry = new Date();
             newExpiry.setDate(newExpiry.getDate() + 30);
             localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
-            
             document.getElementById('lockOverlay').style.display = 'none';
             alert('🎉 تم تفعيل النظام بنجاح لمدة 30 يوماً كاملة!');
         } else {
-            alert('❌ كود التفعيل غير صحيح! يرجى مراجعة الإدارة.');
+            alert('❌ كود التفعيل غير صحيح!');
         }
     }
 
-    // دالة مخصصة لتحديث وتوليد الـ QR Code مباشرة على الشاشة دون الحاجة لضغط زر توليد
     function refreshQRCode(url) {
         qrcodeDiv.innerHTML = ""; 
         new QRCode(qrcodeDiv, {
@@ -277,87 +279,125 @@
         qrSection.style.display = 'block';
     }
 
-    // جلب البيانات تلقائياً شاملة رقم الهاتف إذا تم فتح الصفحة عن طريق مسح الباركود للزبون
-    window.addEventListener('DOMContentLoaded', () => {
+    // جلب البيانات السحابية عند فتح أي جهاز لكود الزبون الثابت
+    async function fetchCloudData(id) {
+        loadingStatus.style.display = "block";
+        try {
+            const response = await fetch(`${apiBase}/${id}`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result && result.data) {
+                    document.getElementById('email').value = result.data.email;
+                    document.getElementById('password').value = result.data.password;
+                    document.getElementById('phone').value = result.data.phone;
+                    document.getElementById('birthdate').value = result.data.birthdate;
+                }
+            }
+        } catch (error) {
+            console.log("تعذر جلب البيانات السحابية، سيتم استخدام البيانات المحلية إن وجدت.");
+        }
+        loadingStatus.style.display = "none";
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
         checkSystemAccess();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const emailParam = urlParams.get('e');
-        const passParam = urlParams.get('p');
-        const phoneParam = urlParams.get('ph'); 
-        const dateParam = urlParams.get('d');
+        const idParam = urlParams.get('id');
 
-        if (emailParam && passParam && phoneParam && dateParam) {
-            isCustomerMode = true; // تفعيل وضع الزبون
+        if (idParam) {
+            isCustomerMode = true;
+            customerId = idParam;
+            generateQrBtn.style.display = 'none'; 
 
-            // فك التشفير وعرض بيانات صاحب الكود فوراً
-            document.getElementById('email').value = atob(emailParam);
-            document.getElementById('password').value = atob(passParam);
-            document.getElementById('phone').value = atob(phoneParam);
-            document.getElementById('birthdate').value = dateParam;
+            // فك التشفير عن رقم الهاتف الأساسي للحصول على المعرّف
+            const decryptedPhone = atob(idParam);
+            document.getElementById('phone').value = decryptedPhone;
 
-            // قفل الحقول وإظهار زر التعديل
+            // جلب البيانات المعدلة من السحابة فوراً لكي تظهر على أي جهاز آخر مسح الكود
+            await fetchCloudData(idParam.replaceAll('=', ''));
+
             inputs.forEach(input => input.disabled = true);
             saveBtn.style.display = 'none';
             editBtn.style.display = 'block';
-            
-            // إخفاء زر إنشاء باركود QR تماماً للزبون بناءً على طلبك
-            generateQrBtn.style.display = 'none';
 
-            // عرض الباركود الحالي للزبون تلقائياً في الأسفل لكي يتم تحديثه فوراً عند أي تعديل لاحق
+            // عرض الباركود الثابت نفسه بالأسفل دون تعديل في شكله
             generatedUrl = window.location.href;
             refreshQRCode(generatedUrl);
         }
     });
 
-    // عند الضغط على زر "حفظ / Save"
-    form.addEventListener('submit', function(e) {
+    // عند الضغط على زر حفظ
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        saveBtn.disabled = true;
+        saveBtn.innerText = "جاري الحفظ والرفع...";
         
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
         const birthdate = document.getElementById('birthdate').value;
 
-        // تشفير البيانات بـ Base64 لدمجها داخل الرابط
-        const encEmail = btoa(email);
-        const encPass = btoa(password);
-        const encPhone = btoa(phone);
+        const hashedId = btoa(phone).replaceAll('=', '');
 
-        // تجهيز الرابط المحدث شاملاً رقم الهاتف
-        generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
-
-        // قفل الحقول لمنع التعديل بالخطأ
-        inputs.forEach(input => input.disabled = true);
-        
-        // إخفاء زر حفظ وإظهار زر تعد المعلومات
-        saveBtn.style.display = 'none';
-        editBtn.style.display = 'block';
-
-        // تحديث شريط المتصفح بالبيانات والرابط الجديد فوراً لضمان ثبات التعديلات للزبون
-        window.history.pushState({}, '', generatedUrl);
-
-        // إذا كنا في وضع الزبون، نقوم بتحديث الباركود تلقائياً على الشاشة دون الحاجة لزر التوليد المفتعل
         if (isCustomerMode) {
-            refreshQRCode(generatedUrl);
-            alert('✅ تم حفظ تعديلاتك وتحديث الباركود الخاص بك بنجاح!');
+            // رفع البيانات المعدلة للسحابة لتحديثها لكل الأجهزة ذاتياً لقراءة نفس الباركود
+            const payload = {
+                id: hashedId,
+                name: "Customer_Data_" + phone,
+                data: { email, password, phone, birthdate }
+            };
+
+            try {
+                await fetch(apiBase, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                alert('✅ تم حفظ تعديلاتك سحابياً بنجاح! الباركود المطبوع لديك ثابت وسيعرض هذه البيانات الجديدة تلقائياً في أي جهاز مسح الكود.');
+            } catch (err) {
+                alert('حدث خطأ أثناء الحفظ السحابي، تأكد من اتصالك بالإنترنت.');
+            }
+
+            inputs.forEach(input => input.disabled = true);
+            saveBtn.style.display = 'none';
+            editBtn.style.display = 'block';
         } else {
-            // إذا كان صاحب المحل هو من ينشئ الكود أول مرة، نفعّل له زر إنشاء باركود
+            // دورة صاحب المحل لأول مرة
+            generatedUrl = window.location.origin + window.location.pathname + `?id=${btoa(phone)}`;
+            
+            // رفع النسخة الأولى للسحابة
+            const payload = {
+                id: hashedId,
+                name: "Customer_Data_" + phone,
+                data: { email, password, phone, birthdate }
+            };
+            try {
+                await fetch(apiBase, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            } catch(e){}
+
+            inputs.forEach(input => input.disabled = true);
+            saveBtn.style.display = 'none';
+            editBtn.style.display = 'block';
             generateQrBtn.disabled = false;
-            alert('تم حفظ البيانات محلياً! اضغط الآن على زر "إنشاء باركود QR" لتوليد الكود الجديد الخاص بك.');
+            alert('تم حفظ البيانات بنجاح! اضغط على زر "إنشاء باركود QR" لتوليد الكود الثابت الخاص بالزبون.');
         }
+
+        saveBtn.disabled = false;
+        saveBtn.innerText = "حفظ / Save";
     });
 
-    // عند الضغط على زر "إنشاء باركود QR" (خاص بصاحب المحل فقط عند الإنشاء الأول)
     generateQrBtn.addEventListener('click', function() {
         if (!generatedUrl) return;
         window.history.pushState({}, '', generatedUrl);
         refreshQRCode(generatedUrl);
     });
 
-    // عند رغبة المستخدم أو الزبون في تعديل المعلومات
     editBtn.addEventListener('click', function() {
         inputs.forEach(input => input.disabled = false);
+        if (isCustomerMode) {
+            document.getElementById('phone').disabled = true; // تثبيت الهاتف كمعرف
+        }
         editBtn.style.display = 'none';
         saveBtn.style.display = 'block';
         
