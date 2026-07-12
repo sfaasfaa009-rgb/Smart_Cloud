@@ -66,7 +66,7 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        /* ✅ كلمة المرور تظهر كاملة */
+        /* كلمة المرور تظهر كاملة */
         .field input[type="password"] {
             -webkit-text-security: none;
             font-family: 'Courier New', monospace;
@@ -123,6 +123,7 @@
         #qrCodeContainer img {
             max-width: 100%;
             height: auto;
+            border-radius: 8px;
         }
 
         #recordsList {
@@ -172,7 +173,7 @@
             border: 1px dashed #e2e8f0;
         }
 
-        /* ✅ بطاقة المعلومات الجميلة (نفس تصميم الموقع) */
+        /* بطاقة المعلومات الجميلة */
         .info-card {
             background: white;
             border-radius: 16px;
@@ -251,6 +252,12 @@
             margin-top: 10px;
         }
 
+        /* مؤقت التحميل */
+        .loading {
+            color: #667eea;
+            font-weight: 600;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 18px;
@@ -308,11 +315,8 @@
     <h3>📋 السجلات المحفوظة</h3>
     <div id="recordsList"></div>
 
-    <!-- ✅ بطاقة المعلومات ستظهر هنا بشكل جميل -->
     <div id="displayArea"></div>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 // ======== العناصر ========
@@ -330,17 +334,35 @@ let records = JSON.parse(localStorage.getItem('records')) || [];
 
 // ======== تنسيق النص للـ QR ========
 function formatText(data) {
-    return `📇 معلومات السجل
-━━━━━━━━━━━━━━━━━━
-📧 البريد: ${data.email}
-🔑 كلمة المرور: ${data.password}
-📞 الهاتف: ${data.phone}
-🎂 تاريخ الميلاد: ${data.birthdate}
-━━━━━━━━━━━━━━━━━━
-📅 ${new Date().toLocaleString('ar-SA')}`;
+    return `📇 معلومات السجل\n━━━━━━━━━━━━━━━━━━\n📧 البريد: ${data.email}\n🔑 كلمة المرور: ${data.password}\n📞 الهاتف: ${data.phone}\n🎂 تاريخ الميلاد: ${data.birthdate}\n━━━━━━━━━━━━━━━━━━\n📅 ${new Date().toLocaleString('ar-SA')}`;
 }
 
-// ======== عرض بطاقة المعلومات (نفس تصميم الموقع) ========
+// ======== توليد QR Code باستخدام API ========
+function generateQR(data) {
+    const text = formatText(data);
+    const encodedText = encodeURIComponent(text);
+    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedText}&format=png&margin=20`;
+    
+    qrContainer.innerHTML = `<p class="loading">⏳ جاري إنشاء QR...</p>`;
+    
+    // إنشاء صورة QR
+    const img = document.createElement('img');
+    img.src = apiUrl;
+    img.alt = 'QR Code';
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+    
+    img.onload = function() {
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(img);
+    };
+    
+    img.onerror = function() {
+        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في إنشاء QR، حاول مرة أخرى</p>';
+    };
+}
+
+// ======== عرض بطاقة المعلومات ========
 function showInfoCard(data) {
     displayArea.innerHTML = `
         <div class="info-card">
@@ -363,26 +385,6 @@ function showInfoCard(data) {
             </div>
         </div>
     `;
-}
-
-// ======== توليد QR ========
-function generateQR(data) {
-    const text = formatText(data);
-    qrContainer.innerHTML = '';
-    
-    try {
-        new QRCode(qrContainer, {
-            text: text,
-            width: 200,
-            height: 200,
-            colorDark: "#1a202c",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    } catch(e) {
-        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ خطأ في التوليد</p>';
-        console.error(e);
-    }
 }
 
 // ======== عرض السجلات ========
