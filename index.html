@@ -37,6 +37,7 @@
             font-size: 28px;
         }
 
+        /* ======== الصفحة الرئيسية ======== */
         .main-page {
             display: block;
         }
@@ -149,53 +150,6 @@
             border-radius: 8px;
         }
 
-        #recordsList {
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .record-item {
-            background: #f7fafc;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border-right: 5px solid #667eea;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .record-item .data {
-            font-size: 13px;
-            color: #2d3748;
-            word-break: break-all;
-            flex: 1;
-        }
-
-        .record-item .delete-btn {
-            background: #fc8181;
-            color: white;
-            border: none;
-            padding: 5px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            width: auto;
-            margin: 0;
-        }
-
-        .record-item .delete-btn:hover {
-            background: #e53e3e;
-        }
-
-        hr {
-            margin: 20px 0;
-            border: 1px dashed #e2e8f0;
-        }
-
         .qr-note {
             color: #718096;
             font-size: 12px;
@@ -207,7 +161,7 @@
             font-weight: 600;
         }
 
-        /* صفحة عرض المعلومات */
+        /* ======== صفحة عرض المعلومات ======== */
         .info-page {
             display: none;
         }
@@ -399,13 +353,8 @@
                 <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
             </div>
             <button class="btn-pink" id="generateQrBtn">🔄 إنشاء QR جديد</button>
-            <p class="qr-note">📸 صوّر الكود بأي هاتف وستظهر المعلومات في حقول جميلة</p>
+            <p class="qr-note">📸 صوّر الكود بأي هاتف وستفتح صفحة تعرض المعلومات بشكل جميل</p>
         </div>
-
-        <hr>
-
-        <h3>📋 السجلات المحفوظة</h3>
-        <div id="recordsList"></div>
     </div>
 
     <!-- ======== صفحة عرض المعلومات ======== -->
@@ -447,15 +396,14 @@
 <script>
 // ======== العناصر ========
 const form = document.getElementById('infoForm');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const phoneInput = document.getElementById('phone');
-const birthdateInput = document.getElementById('birthdate');
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const phone = document.getElementById('phone');
+const birthdate = document.getElementById('birthdate');
 const qrContainer = document.getElementById('qrCodeContainer');
 const generateBtn = document.getElementById('generateQrBtn');
-const recordsList = document.getElementById('recordsList');
-const successMsg = document.getElementById('successMsg');
 const saveBtn = document.getElementById('saveBtn');
+const successMsg = document.getElementById('successMsg');
 
 // عناصر صفحة العرض
 const mainPage = document.getElementById('mainPage');
@@ -505,45 +453,29 @@ function generateQR(data) {
     };
 }
 
-// ======== عرض السجلات ========
-function showRecords() {
-    if (records.length === 0) {
-        recordsList.innerHTML = '<p style="color:#a0aec0; text-align:center;">📭 لا توجد سجلات</p>';
-        return;
-    }
-    recordsList.innerHTML = records.map((rec, i) => `
-        <div class="record-item">
-            <span class="data">📧 ${rec.email} | 🔑 ${rec.password} | 📞 ${rec.phone} | 🎂 ${rec.birthdate}</span>
-            <button class="delete-btn" onclick="deleteRecord(${i})">✖</button>
-        </div>
-    `).join('');
-}
-
 // ======== حفظ ========
 form.addEventListener('submit', function(e) {
     e.preventDefault();
     console.log('✅ تم الضغط على زر الحفظ');
     
-    if (!emailInput.value || !passwordInput.value || !phoneInput.value || !birthdateInput.value) {
+    if (!email.value || !password.value || !phone.value || !birthdate.value) {
         alert('⚠️ املأ جميع الحقول');
         return;
     }
     
     const data = {
-        email: emailInput.value,
-        password: passwordInput.value,
-        phone: phoneInput.value,
-        birthdate: birthdateInput.value
+        email: email.value,
+        password: password.value,
+        phone: phone.value,
+        birthdate: birthdate.value
     };
     
     console.log('📦 البيانات:', data);
     
     records.push(data);
     localStorage.setItem('records', JSON.stringify(records));
-    showRecords();
     generateQR(data);
     
-    // رسالة نجاح
     successMsg.classList.add('show');
     setTimeout(() => successMsg.classList.remove('show'), 3000);
     
@@ -551,7 +483,10 @@ form.addEventListener('submit', function(e) {
     setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
     
     // تنظيف الحقول
-    form.reset();
+    email.value = '';
+    password.value = '';
+    phone.value = '';
+    birthdate.value = '';
 });
 
 // ======== زر توليد QR ========
@@ -565,20 +500,6 @@ generateBtn.addEventListener('click', function() {
     this.textContent = '✅ تم!';
     setTimeout(() => this.textContent = '🔄 إنشاء QR جديد', 2000);
 });
-
-// ======== حذف ========
-function deleteRecord(index) {
-    if (confirm('🗑️ تأكد من الحذف؟')) {
-        records.splice(index, 1);
-        localStorage.setItem('records', JSON.stringify(records));
-        showRecords();
-        if (records.length > 0) {
-            generateQR(records[records.length - 1]);
-        } else {
-            qrContainer.innerHTML = '<p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>';
-        }
-    }
-}
 
 // ======== تفعيل التعديل ========
 function enableEditMode() {
@@ -659,7 +580,6 @@ saveEditBtn.addEventListener('click', function() {
     
     if (found) {
         localStorage.setItem('records', JSON.stringify(records));
-        showRecords();
         currentData = newData;
         
         const newUrl = createShareableLink(newData);
@@ -681,11 +601,45 @@ function goBack() {
     disableEditMode();
 }
 
-// ======== قراءة البيانات ========
+// ======== قراءة البيانات من الرابط ========
 function loadDataFromURL() {
     const params = new URLSearchParams(window.location.search);
     const dataParam = params.get('data');
     
     if (dataParam) {
         try {
-   
+            const data = JSON.parse(decodeURIComponent(dataParam));
+            currentData = data;
+            
+            mainPage.style.display = 'none';
+            infoPage.classList.add('active');
+            
+            viewEmail.textContent = data.email;
+            viewPassword.textContent = data.password;
+            viewPhone.textContent = data.phone;
+            viewBirthdate.textContent = data.birthdate;
+            
+            disableEditMode();
+            return true;
+        } catch(e) {
+            console.error('خطأ:', e);
+        }
+    }
+    return false;
+}
+
+// ======== بدء التطبيق ========
+const isInfoView = loadDataFromURL();
+
+if (!isInfoView) {
+    if (records.length > 0) {
+        generateQR(records[0]);
+    }
+}
+
+console.log('✅ التطبيق يعمل بنجاح!');
+console.log(`📊 عدد السجلات: ${records.length}`);
+</script>
+
+</body>
+</html>
