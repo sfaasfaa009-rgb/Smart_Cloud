@@ -120,15 +120,15 @@
             justify-content: center;
             margin-top: 10px;
         }
-        .loading-text {
-            color: #ff9800;
-            font-weight: bold;
+        .sync-status {
+            font-size: 12px;
+            color: #6c757d;
             text-align: center;
-            display: none;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
         
-        /* شاشة قفل تجديد الاشتراك */
+        /* شاشة قفل تجديد الاشتراك لصاحب المحل */
         .lock-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -174,7 +174,7 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
-    <div id="loadingStatus" class="loading-text">⏳ جاري التحقق ومزامنة البيانات...</div>
+    <div id="syncMessage" class="sync-status">🔄 جاري التحقق من أحدث التعديلات سحابياً...</div>
 
     <form id="infoForm">
         <div class="form-group">
@@ -205,7 +205,7 @@
     </form>
 
     <div id="qrSection" class="qr-section">
-        <p>✅ هذا الباركود ثابت وخاص بك، يمكنك تصويره أو طباعته ولن يتغير عند تعديل بياناتك مستقبلاً.</p>
+        <p>✅ هذا الباركود ثابت وخاص بك، يمكنك تصويره أو طباعته ولن يتغير شكل الكود أبداً عند التعديل مستقبلاً.</p>
         <div id="qrcode"></div>
     </div>
 </div>
@@ -220,16 +220,19 @@
     const generateQrBtn = document.getElementById('generateQrBtn');
     const qrSection = document.getElementById('qrSection');
     const qrcodeDiv = document.getElementById('qrcode');
-    const loadingStatus = document.getElementById('loadingStatus');
+    const syncMessage = document.getElementById('syncMessage');
 
     let generatedUrl = "";
     let systemRandomCode = 0;
     let isCustomerMode = false;
+    let cloudStorageId = ""; 
+
+    // مستودع سحابي مجاني ومفتوح للمزامنة الفورية بين الأجهزة
     const apiBase = "https://api.restful-api.dev/objects";
 
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('id') || urlParams.get('e')) return;
+        if (urlParams.get('e')) return;
 
         const expiryKey = localStorage.getItem('owner_expiry_date');
         const today = new Date().toISOString().split('T')[0];
@@ -266,40 +269,34 @@
         qrSection.style.display = 'block';
     }
 
-    // جلب البيانات عند الفتح
+    // جلب ومزامنة البيانات عند فتح الصفحة
     window.addEventListener('DOMContentLoaded', async () => {
         checkSystemAccess();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id');
         const emailParam = urlParams.get('e');
         const passParam = urlParams.get('p');
+        const phoneParam = urlParams.get('ph');
         const dateParam = urlParams.get('d');
 
-        if (idParam) {
+        if (emailParam && passParam && phoneParam && dateParam) {
             isCustomerMode = true;
-            generateQrBtn.style.display = 'none';
+            generateQrBtn.style.display = 'none'; 
+            syncMessage.style.display = 'block';
 
-            // 1. عرض البيانات الأساسية الممررة فوراً كخيار احتياطي أولي لمنع الفراغات
             try {
-                document.getElementById('phone').value = atob(idParam);
-                if(emailParam) document.getElementById('email').value = atob(emailParam);
-                if(passParam) document.getElementById('password').value = atob(passParam);
-                if(dateParam) document.getElementById('birthdate').value = dateParam;
-            } catch(e) { console.log("خطأ في فك التشفير الأولي"); }
+                // خطوة 1: عرض البيانات المدمجة بالرابط فوراً (تظهر كاملة 100% وبدون فراغات)
+                const defaultPhone = atob(phoneParam);
+                document.getElementById('email').value = atob(emailParam);
+                document.getElementById('password').value = atob(passParam);
+                document.getElementById('phone').value = defaultPhone;
+                document.getElementById('birthdate').value = dateParam;
 
-            inputs.forEach(input => input.disabled = true);
-            saveBtn.style.display = 'none';
-            editBtn.style.display = 'block';
+                // إنشاء معرف سحابي فريد ثابت معتمد على رقم الهاتف الأول
+                cloudStorageId = phoneParam.replaceAll('=', '') + "994";
 
-            generatedUrl = window.location.href;
-            refreshQRCode(generatedUrl);
-
-            // 2. محاولة جلب التعديلات الجديدة السحابية إن وُجدت وتحديث الشاشة بها
-            loadingStatus.style.display = "block";
-            const cleanId = idParam.replaceAll('=', '');
-            try {
-                const response = await fetch(`${apiBase}/${cleanId}`);
+                // خطوة 2: فحص السحابة بشكل خلفي لجلب أي تعديلات جديدة تمت من أجهزة أخرى
+                const response = await fetch(`${apiBase}/${cloudStorageId}`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result && result.data) {
@@ -307,19 +304,32 @@
                         document.getElementById('password').value = result.data.password;
                         document.getElementById('phone').value = result.data.phone;
                         document.getElementById('birthdate').value = result.data.birthdate;
+                        syncMessage.innerText = "⚡ تم تحديث البيانات بآخر التعديلات من السحاب!";
                     }
+                } else {
+                    syncMessage.innerText = "ℹ️ البيانات معروضة بنسختها الأصلية المطبوعة.";
                 }
-            } catch (error) { console.log("السيرفر السحابي لم يستجب، تم الاعتماد على البيانات المدمجة."); }
-            loadingStatus.style.display = "none";
+            } catch(e) {
+                syncMessage.innerText = "⚠️ تعذر الاتصال بالسحاب. تم عرض البيانات الأصلية.";
+            }
+
+            inputs.forEach(input => input.disabled = true);
+            saveBtn.style.display = 'none';
+            editBtn.style.display = 'block';
+
+            generatedUrl = window.location.href;
+            refreshQRCode(generatedUrl);
+        } else {
+            syncMessage.style.display = 'none';
         }
     });
 
-    // عند الضغط على زر حفظ
+    // عند الضغط على زر حفظ التعديلات أو البيانات
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ جاري المعالجة والرفع...";
-        
+        saveBtn.innerText = "⏳ جاري حفظ التعديلات...";
+
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
@@ -328,48 +338,35 @@
         const encEmail = btoa(email);
         const encPass = btoa(password);
         const encPhone = btoa(phone);
-        const cleanId = encPhone.replaceAll('=', '');
-
-        const payload = {
-            id: cleanId,
-            name: "Customer_" + phone,
-            data: { email, password, phone, birthdate }
-        };
 
         if (isCustomerMode) {
-            // تحديث السحابة للزبون
-            try {
-                await fetch(apiBase, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                alert('✅ تم حفظ تعديلاتك سحابياً بنجاح! الباركود الثابت لديك سيعرض هذه التحديثات تلقائياً على أي جهاز.');
-            } catch (err) {
-                alert('⚠️ تم الحفظ محلياً، يرجى التأكد من اتصال الإنترنت لمزامنة الأجهزة الأخرى.');
-            }
-            inputs.forEach(input => input.disabled = true);
-            saveBtn.style.display = 'none';
-            editBtn.style.display = 'block';
-        } else {
-            // صاحب المحل لأول مرة: ندمج البيانات بالرابط لضمان عدم ظهورها فارغة أبداً
-            generatedUrl = window.location.origin + window.location.pathname + `?id=${encPhone}&e=${encEmail}&p=${encPass}&d=${birthdate}`;
-            
-            try {
-                await fetch(apiBase, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch(e){}
+            // رفع التحديثات الجديدة للسحاب لتحديث جميع الهواتف الأخرى فوراً عند مسح الكود
+            const payload = {
+                id: cloudStorageId,
+                name: "User_" + cloudStorageId,
+                data: { email, password, phone, birthdate }
+            };
 
-            inputs.forEach(input => input.disabled = true);
-            saveBtn.style.display = 'none';
-            editBtn.style.display = 'block';
-            generateQrBtn.disabled = false; // تفعيل الزر الآن بعد انتهاء الرفع بأمان
-            alert('✅ تم حفظ البيانات بنجاح! اضغط الآن على زر "إنشاء باركود QR" بالأسفل لتوليد الكود الثابت للزبون.');
+            try {
+                await fetch(apiBase, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                alert('✅ تم حفظ التعديلات بنجاح! الباركود المطبوع ثابت وسيعرض هذه البيانات الجديدة في أي جهاز آخر يتم مسحه منه.');
+            } catch (err) {
+                alert('تم الحفظ، لكن يرجى التأكد من اتصال الإنترنت لتظهر التعديلات على الأجهزة الأخرى.');
+            }
+        } else {
+            // منظور صاحب المحل لأول مرة
+            generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
+            generateQrBtn.disabled = false;
+            alert('تم حفظ البيانات بنجاح! اضغط على زر "إنشاء باركود QR" لتوليد الكود الثابت للزبون.');
         }
 
+        inputs.forEach(input => input.disabled = true);
+        saveBtn.style.display = 'none';
+        editBtn.style.display = 'block';
         saveBtn.disabled = false;
         saveBtn.innerText = "حفظ / Save";
     });
@@ -381,10 +378,8 @@
     });
 
     editBtn.addEventListener('click', function() {
+        // فتح جميع الحقول بالكامل وبدون أي قفل أو قيود
         inputs.forEach(input => input.disabled = false);
-        if (isCustomerMode) {
-            document.getElementById('phone').disabled = true; 
-        }
         editBtn.style.display = 'none';
         saveBtn.style.display = 'block';
         
