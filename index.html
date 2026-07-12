@@ -227,7 +227,7 @@
     let isCustomerMode = false;
     let cloudStorageId = ""; 
 
-    // مستودع سحابي مجاني ومفتوح للمزامنة الفورية بين الأجهزة
+    // مستودع المزامنة السحابية الفورية
     const apiBase = "https://api.restful-api.dev/objects";
 
     function checkSystemAccess() {
@@ -284,33 +284,44 @@
             generateQrBtn.style.display = 'none'; 
             syncMessage.style.display = 'block';
 
-            try {
-                // خطوة 1: عرض البيانات المدمجة بالرابط فوراً (تظهر كاملة 100% وبدون فراغات)
-                const defaultPhone = atob(phoneParam);
+            // إنشاء معرف سحابي ثابت معتمد على بارامتر الهاتف
+            cloudStorageId = phoneParam.replaceAll('=', '') + "994";
+
+            // فحص كاش المتصفح أولاً لمعرفة إذا كان قد عدل البيانات مؤخراً في هذا الجهاز
+            const localCache = sessionStorage.getItem('current_user_data');
+            
+            if (localCache) {
+                const parsed = JSON.parse(localCache);
+                document.getElementById('email').value = parsed.email;
+                document.getElementById('password').value = parsed.password;
+                document.getElementById('phone').value = parsed.phone;
+                document.getElementById('birthdate').value = parsed.birthdate;
+                syncMessage.innerText = "⚡ تم تحميل البيانات المعدلة حديثاً.";
+            } else {
+                // عرض البيانات الأصلية المدمجة بالرابط فوراً لمنع أي فراغات
                 document.getElementById('email').value = atob(emailParam);
                 document.getElementById('password').value = atob(passParam);
-                document.getElementById('phone').value = defaultPhone;
+                document.getElementById('phone').value = atob(phoneParam);
                 document.getElementById('birthdate').value = dateParam;
+            }
 
-                // إنشاء معرف سحابي فريد ثابت معتمد على رقم الهاتف الأول
-                cloudStorageId = phoneParam.replaceAll('=', '') + "994";
-
-                // خطوة 2: فحص السحابة بشكل خلفي لجلب أي تعديلات جديدة تمت من أجهزة أخرى
+            // فحص السحابة بشكل خلفي لجلب التعديلات إذا تمت من جهاز آخر
+            try {
                 const response = await fetch(`${apiBase}/${cloudStorageId}`);
                 if (response.ok) {
                     const result = await response.json();
-                    if (result && result.data) {
+                    if (result && result.data && !localCache) { // إذا لم يكن هناك كاش محلي أحدث، نعتمد السحاب
                         document.getElementById('email').value = result.data.email;
                         document.getElementById('password').value = result.data.password;
                         document.getElementById('phone').value = result.data.phone;
                         document.getElementById('birthdate').value = result.data.birthdate;
-                        syncMessage.innerText = "⚡ تم تحديث البيانات بآخر التعديلات من السحاب!";
+                        syncMessage.innerText = "⚡ تم مزامنة أحدث التعديلات من السحاب!";
                     }
                 } else {
-                    syncMessage.innerText = "ℹ️ البيانات معروضة بنسختها الأصلية المطبوعة.";
+                    if(!localCache) syncMessage.innerText = "ℹ️ البيانات معروضة بنسختها الأصلية المطبوعة.";
                 }
             } catch(e) {
-                syncMessage.innerText = "⚠️ تعذر الاتصال بالسحاب. تم عرض البيانات الأصلية.";
+                if(!localCache) syncMessage.innerText = "⚠️ تعذر الاتصال بالسحاب. تم عرض البيانات المتوفرة.";
             }
 
             inputs.forEach(input => input.disabled = true);
@@ -335,16 +346,16 @@
         const phone = document.getElementById('phone').value;
         const birthdate = document.getElementById('birthdate').value;
 
-        const encEmail = btoa(email);
-        const encPass = btoa(password);
-        const encPhone = btoa(phone);
-
         if (isCustomerMode) {
-            // رفع التحديثات الجديدة للسحاب لتحديث جميع الهواتف الأخرى فوراً عند مسح الكود
+            // خطوة 1: حفظ فوري في كاش المتصفح لمنع حقول المدخلات من العودة للقيم القديمة
+            const updatedData = { email, password, phone, birthdate };
+            sessionStorage.setItem('current_user_data', JSON.stringify(updatedData));
+
+            // خطوة 2: رفع التحديثات للسحاب لتحديث جميع الأجهزة الأخرى
             const payload = {
                 id: cloudStorageId,
                 name: "User_" + cloudStorageId,
-                data: { email, password, phone, birthdate }
+                data: updatedData
             };
 
             try {
@@ -353,17 +364,23 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                alert('✅ تم حفظ التعديلات بنجاح! الباركود المطبوع ثابت وسيعرض هذه البيانات الجديدة في أي جهاز آخر يتم مسحه منه.');
+                syncMessage.innerText = "⚡ تم حفظ التعديلات سحابياً وبنجاح!";
+                alert('✅ تم حفظ تعديلاتك بنجاح وبقيت ثابتة على الشاشة! ستظهر هذه التعديلات الجديدة في أي جهاز آخر يتم مسح الباركود منه.');
             } catch (err) {
-                alert('تم الحفظ، لكن يرجى التأكد من اتصال الإنترنت لتظهر التعديلات على الأجهزة الأخرى.');
+                alert('تم حفظ التعديلات محلياً على الهاتف، يرجى التحقق من اتصال الإنترنت لضمان مزامنتها مع الأجهزة الأخرى.');
             }
         } else {
             // منظور صاحب المحل لأول مرة
+            const encEmail = btoa(email);
+            const encPass = btoa(password);
+            const encPhone = btoa(phone);
+
             generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
             generateQrBtn.disabled = false;
             alert('تم حفظ البيانات بنجاح! اضغط على زر "إنشاء باركود QR" لتوليد الكود الثابت للزبون.');
         }
 
+        // قفل الحقول مجدداً مع الإبقاء على القيم الجديدة المعدلة ثابتة
         inputs.forEach(input => input.disabled = true);
         saveBtn.style.display = 'none';
         editBtn.style.display = 'block';
@@ -378,7 +395,6 @@
     });
 
     editBtn.addEventListener('click', function() {
-        // فتح جميع الحقول بالكامل وبدون أي قفل أو قيود
         inputs.forEach(input => input.disabled = false);
         editBtn.style.display = 'none';
         saveBtn.style.display = 'block';
