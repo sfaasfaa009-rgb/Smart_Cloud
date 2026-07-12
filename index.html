@@ -90,11 +90,6 @@
         .btn-qr:hover {
             background-color: #138496;
         }
-        .btn-qr:disabled {
-            background-color: #6c757d;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
         .btn-edit {
             background-color: #007bff;
             color: white;
@@ -174,10 +169,9 @@
 <div class="container">
     <h2>حفظ البيانات بالباركود الذكي</h2>
     
-    <div id="syncMessage" class="sync-status">🔄 جاري فحص السحاب...</div>
+    <div id="syncMessage" class="sync-status" style="display: none;">🔄 جاري فحص السحاب...</div>
 
     <form id="infoForm">
-        <!-- الحقول الأساسية مع الحفاظ على بنيتها الأصلية كاملة -->
         <div class="form-group">
             <label for="email">البريد الإلكتروني (Email)</label>
             <input type="email" id="email" placeholder="example@email.com" required>
@@ -199,9 +193,9 @@
         </div>
 
         <div class="buttons-stack">
-            <button type="submit" id="saveBtn" class="btn btn-save">حفظ / Save</button>
+            <button type="submit" id="saveBtn" class="btn btn-save">حفظ المعلومات</button>
             <button type="button" id="editBtn" class="btn btn-edit" style="display: none;">تعديل المعلومات</button>
-            <button type="button" id="generateQrBtn" class="btn btn-qr" disabled>إنشاء باركود QR</button>
+            <button type="button" id="generateQrBtn" class="btn btn-qr" style="display: block;">إنشاء باركود QR</button>
         </div>
     </form>
 
@@ -228,12 +222,11 @@
     let isCustomerMode = false;
     let cloudStorageKey = ""; 
 
-    // السيرفر السحابي الثابت والجديد تماماً للمزامنة اللحظية الشاملة
     const backupCloudUrl = "https://kvdb.io/AymanSafaaVipProject/";
 
     function checkSystemAccess() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('e') || urlParams.get('p')) return;
+        if (urlParams.get('e') || urlParams.get('ph')) return; // زبون
         
         const expiryKey = localStorage.getItem('owner_expiry_date');
         const today = new Date().toISOString().split('T')[0];
@@ -277,19 +270,19 @@
         const emailParam = urlParams.get('e');
         const phoneParam = urlParams.get('ph');
 
+        // كشف نمط الفتح: هل هو زبون يفتح من باركود مطبوع؟
         if (emailParam || phoneParam) {
             isCustomerMode = true;
-            if (generateQrBtn) generateQrBtn.style.display = 'none'; 
+            if (generateQrBtn) generateQrBtn.style.display = 'none'; // إخفاء زر التوليد للزبون تماماً
             if (syncMessage) {
                 syncMessage.style.display = 'block';
-                syncMessage.innerText = "⏳ جاري جلب أحدث التعديلات السحابية عبر الأجهزة...";
+                syncMessage.innerText = "⏳ جاري جلب أحدث التعديلات السحابية...";
             }
 
-            // توليد معرف فريد ثابت ومحمي للزبون في السحاب يعتمد على الرابط المطبوع
             const uniqueSeed = (emailParam || '') + (phoneParam || '');
             cloudStorageKey = "id_" + uniqueSeed.replace(/[^a-zA-Z0-9]/g, "").substring(0, 30);
 
-            // 1. قراءة البيانات الأصلية وتعبئتها في كافة الحقول تلقائياً
+            // تعبئة البيانات الأصلية
             inputs.forEach(input => {
                 const paramValue = urlParams.get(input.id);
                 if (paramValue) {
@@ -301,54 +294,52 @@
                 }
             });
 
-            // 2. الاتصال بالسيرفر فوراً لجلب آخر تعديل تم من هاتف آخر
+            // جلب التعديلات السحابية
             try {
                 const response = await fetch(backupCloudUrl + cloudStorageKey);
                 if (response.ok) {
                     const cloudData = await response.json();
                     if (cloudData) {
-                        // دمج التعديلات الجديدة وعرضها مباشرة
                         inputs.forEach(input => {
                             if (cloudData[input.id] !== undefined) {
                                 input.value = cloudData[input.id];
                             }
                         });
-                        if (syncMessage) syncMessage.innerText = "⚡ تم مزامنة أحدث التعديلات بنجاح!";
+                        if (syncMessage) syncMessage.innerText = "⚡ تم مزامنة التعديلات بنجاح!";
                     }
                 } else {
-                    if (syncMessage) syncMessage.innerText = "✨ تعرض النسخة الأصلية (لم تُعدّل بعد).";
+                    if (syncMessage) syncMessage.innerText = "✨ تعرض النسخة الأصلية المطبوعة.";
                 }
             } catch(e) {
-                if (syncMessage) syncMessage.innerText = "ℹ️ تعمل الآن بالنسخة الأصلية المطبوعة.";
+                if (syncMessage) syncMessage.innerText = "ℹ️ تعمل بالنسخة الأصلية المطبوعة.";
             }
 
             inputs.forEach(input => input.disabled = true);
             if (saveBtn) saveBtn.style.display = 'none';
             if (editBtn) editBtn.style.display = 'block';
-
-            generatedUrl = window.location.href;
-            refreshQRCode(generatedUrl);
         } else {
+            // نمط صاحب المحل لأول مرة: الحقول مفتوحة، والأزرار جاهزة للتوليد
+            isCustomerMode = false;
             if (syncMessage) syncMessage.style.display = 'none';
+            if (generateQrBtn) generateQrBtn.style.display = 'block';
+            if (saveBtn) saveBtn.style.display = 'block';
+            if (editBtn) editBtn.style.display = 'none';
         }
     });
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        if (!saveBtn) return;
         
-        saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ جاري الحفظ والمزامنة السحابية...";
-
-        // تجميع البيانات من كافة الحقول تلقائياً مهما كان عددها ونوعها
         const formData = {};
         inputs.forEach(input => {
             formData[input.id] = input.value;
         });
 
         if (isCustomerMode) {
+            if (!saveBtn) return;
+            saveBtn.disabled = true;
+            saveBtn.innerText = "⏳ جاري الحفظ سحابياً...";
             try {
-                // رفع التعديلات فوراً إلى المستودع السحابي المفتوح لتحديث كافة الأجهزة المتصلة
                 const res = await fetch(backupCloudUrl + cloudStorageKey, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -357,15 +348,20 @@
 
                 if (res.ok) {
                     if (syncMessage) syncMessage.innerText = "✅ تم حفظ التعديلات سحابياً لجميع الأجهزة!";
-                    alert('✅ نجحت المزامنة! تم حفظ التعديلات سحابياً، ستظهر فوراً عند فتح الباركود من أي هاتف آخر وبثبات تام.');
+                    alert('✅ نجحت المزامنة! تم حفظ التعديلات سحابياً لجميع الأجهزة.');
                 } else {
-                    alert('فشل الحفظ في السيرفر، يرجى المحاولة مرة أخرى.');
+                    alert('فشل الحفظ، يرجى إعادة المحاولة.');
                 }
             } catch (err) {
-                alert('يرجى التأكد من اتصال الإنترنت لرفع التعديلات للسحاب.');
+                alert('يرجى التأكد من اتصال الإنترنت لرفع التعديلات.');
             }
+            saveBtn.disabled = false;
+            saveBtn.innerText = "حفظ المعلومات";
+            inputs.forEach(input => input.disabled = true);
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'block';
         } else {
-            // منظور صاحب المحل عند التوليد الأول
+            // صاحب المحل يقوم بالحفظ المحلي أولاً لتجميع الرابط
             let queryParts = [];
             inputs.forEach(input => {
                 if (input.value) {
@@ -377,20 +373,30 @@
             const phoneVal = document.getElementById('phone') ? document.getElementById('phone').value : '';
             
             generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
-            if (generateQrBtn) generateQrBtn.disabled = false;
-            alert('تم حفظ البيانات بنجاح! اضغط على زر "إنشاء باركود QR" لتوليد الكود الثابت للزبون.');
+            alert('تم حفظ البيانات محلياً بنجاح! يمكنك الآن الضغط مباشرة على زر "إنشاء باركود QR".');
         }
-
-        inputs.forEach(input => input.disabled = true);
-        if (saveBtn) saveBtn.style.display = 'none';
-        if (editBtn) editBtn.style.display = 'block';
-        saveBtn.disabled = false;
-        saveBtn.innerText = "حفظ / Save";
     });
 
     if (generateQrBtn) {
         generateQrBtn.addEventListener('click', function() {
-            if (!generatedUrl) return;
+            // إذا ضغط صاحب المحل بدون ملء البيانات
+            const emailVal = document.getElementById('email') ? document.getElementById('email').value : '';
+            const phoneVal = document.getElementById('phone') ? document.getElementById('phone').value : '';
+            
+            if(!emailVal || !phoneVal) {
+                alert('يرجى ملء البيانات أولاً وضغط حفظ قبل توليد الـ QR.');
+                return;
+            }
+
+            let queryParts = [];
+            inputs.forEach(input => {
+                if (input.value) {
+                    queryParts.push(`${input.id}=${btoa(unescape(encodeURIComponent(input.value)))}`);
+                }
+            });
+
+            generatedUrl = window.location.origin + window.location.pathname + `?e=${btoa(emailVal)}&ph=${btoa(phoneVal)}&` + queryParts.join('&');
+            
             window.history.pushState({}, '', generatedUrl);
             refreshQRCode(generatedUrl);
         });
