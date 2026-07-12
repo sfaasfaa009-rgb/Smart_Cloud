@@ -3,239 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>النسخة التجارية الاحترافية الذكية</title>
+    <title>حساب نشط وجاهز</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2, h3 { text-align: center; color: #333; margin-bottom: 25px; }
-        #activationSection { text-align: center; display: none; }
-        .lock-icon { font-size: 50px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; font-size: 14px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; transition: border-color 0.3s; }
-        input:focus { border-color: #007bff; outline: none; }
-        input:disabled { background-color: #e9ecef; color: #333; font-weight: bold; }
-        .buttons-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
-        .btn { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background-color 0.3s; text-align: center; text-decoration: none; }
-        .btn-activate { background-color: #ffc107; color: #333; }
-        .btn-save { background-color: #28a745; color: white; }
-        .btn-qr { background-color: #17a2b8; color: white; }
-        .btn-qr:disabled { background-color: #6c757d; opacity: 0.6; cursor: not-allowed; }
-        .btn-edit { background-color: #007bff; color: white; }
-        .btn-download { background-color: #6f42c1; color: white; }
-        .btn-whatsapp { background-color: #25d366; color: white; }
-        .qr-section { margin-top: 25px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
-        #qrcode { display: flex; justify-content: center; margin: 15px 0; }
-        .share-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .device-id-box { background: #e9ecef; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; font-weight: bold; color: #333; word-break: break-all; }
+        /* إعدادات الصفحة الخلفية - باللون الأسود الكامل */
+        body {
+            background-color: #0d0d0d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* الحاوية الرئيسية (الكرت) */
+        .container {
+            width: 100%;
+            max-width: 360px;
+            background-color: #141414;
+            padding: 25px 20px;
+            border-radius: 15px;
+            box-sizing: border-box;
+        }
+
+        /* قسم الشعارات في الأعلى - مرتبة من اليسار بدون حقل وبدون ظلال */
+        .logos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            margin-bottom: 25px;
+        }
+
+        .brand-logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        /* نمط حقول المدخلات مع الظل الأصفر المضيء */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #222222;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            /* الظل الأصفر المحيط */
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: #777777;
+        }
+
+        /* تخصيص خيارات القائمة المنسدلة */
+        .input-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23777777' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: left 12px center;
+        }
+
+        /* أزرار العمليات مع الظل الأصفر */
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+            transition: transform 0.1s ease;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-save {
+            background-color: #1e7e34; /* درجة الأخضر المعتمدة لحفظ البيانات */
+            color: #ffffff;
+        }
+
+        .btn-qr {
+            background-color: #5a6268; /* درجة الرمادي المعتمدة للباركود */
+            color: #ffffff;
+        }
+
+        /* شريط المعلومات السفلي */
+        .footer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a1a1a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .footer-text {
+            color: #aaaaaa;
+        }
+
+        .btn-undo {
+            color: #28a745;
+            text-decoration: none;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    
-    <!-- 🔐 شاشة قفل الاشتراك الذكية بدون تعديل كود -->
-    <div id="activationSection">
-        <div class="lock-icon">🔐</div>
-        <h3>نظام توليد الباركود الذكي</h3>
-        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">يرجى تزويد المطور برمز جهازك التالي لتفعيل الخدمة:</p>
+    <div class="container">
         
-        <div class="device-id-box">
-            رمز جهازك هو: <span id="displayDeviceId" style="color: #007bff; font-size: 18px;">جاري التوليد...</span>
+        <!-- قسم الشعارات مرتبة من اليسار إلى اليمين -->
+        <div class="logos-header">
+            <!-- Google Play -->
+            <img class="brand-logo" src="https://cdn-icons-png.flaticon.com/512/300/300218.png" alt="Google Play">
+            <!-- App Store (بلونه الأزرق الأصلي) -->
+            <img class="brand-logo" src="https://cdn-icons-png.flaticon.com/512/888/888841.png" alt="App Store">
+            <!-- Steam (باللون الأبيض البارز) -->
+            <img class="brand-logo" src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam">
+            <!-- Outlook -->
+            <img class="brand-logo" src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Outlook">
         </div>
 
-        <div class="form-group">
-            <input type="text" id="activationKey" placeholder="أدخل كود التفعيل هنا" style="text-align: center; font-weight: bold; font-size: 18px;">
+        <!-- حقول إدخال البيانات والتفاصيل الأصلية للموقع -->
+        <div class="input-group">
+            <label>البريد الإلكتروني (Email)</label>
+            <input type="email" placeholder="example@email.com">
         </div>
-        <button type="button" id="activateBtn" class="btn btn-activate">تفعيل الآن</button>
+
+        <div class="input-group">
+            <label>كلمة المرور (Password)</label>
+            <input type="password" placeholder="••••••••">
+        </div>
+
+        <div class="input-group">
+            <label>رقم الهاتف (Phone Number)</label>
+            <input type="text" placeholder="07xxxxxxxx">
+        </div>
+
+        <div class="input-group">
+            <label>تاريخ الميلاد (Birthdate)</label>
+            <select>
+                <option value="" disabled selected></option>
+                <!-- خيارات التواريخ تترك كما هي في ملفك الأساسي -->
+            </select>
+        </div>
+
+        <!-- أزرار التحكم -->
+        <button class="btn-save">حفظ بيانات الزبون</button>
+        <button class="btn-qr">إنشاء باركود QR للزبون</button>
+
+        <!-- التذييل (الفوتر) المعرب والمطابق للصورة -->
+        <div class="footer-bar">
+            <span class="footer-text">النسخة التجارية الاحترافية الذكية Closed</span>
+            <a href="#" class="btn-undo">Undo</a>
+        </div>
+
     </div>
 
-    <!-- 📱 واجهة العمل الأساسية وعرض بيانات الزبون -->
-    <div id="mainAppSection" style="display: none;">
-        <h2 id="appTitle" style="font-size: 18px; color: #28a745;">✅ الحساب نشط وجاهز</h2>
-        
-        <form id="infoForm">
-            <div class="form-group">
-                <label for="email">البريد الإلكتروني (Email)</label>
-                <input type="email" id="email" placeholder="example@email.com" required>
-            </div>
-            <div class="form-group">
-                <label for="password">كلمة المرور (Password)</label>
-                <input type="text" id="password" placeholder="••••••••" required>
-            </div>
-            <div class="form-group">
-                <label for="phone">رقم الهاتف (Phone Number)</label>
-                <input type="tel" id="phone" placeholder="07xxxxxxxx" required>
-            </div>
-            <div class="form-group">
-                <label for="birthdate">تاريخ الميلاد (Birthdate)</label>
-                <input type="date" id="birthdate" required>
-            </div>
-
-            <div class="buttons-stack">
-                <button type="submit" id="saveBtn" class="btn btn-save">حفظ بيانات الزبون</button>
-                <button type="button" id="editBtn" class="btn btn-edit" style="display: none;">تعديل المعلومات</button>
-                <button type="button" id="customerSaveBtn" class="btn btn-save" style="display: none;">حفظ التعديلات الجديدة</button>
-                <button type="button" id="generateQrBtn" class="btn btn-qr" style="display: none;" disabled>إنشاء باركود QR للزبون</button>
-            </div>
-        </form>
-
-        <div id="qrSection" class="qr-section">
-            <p style="color: #28a745; font-size: 14px; font-weight: bold;">تم إنشاء الباركود بنجاح!</p>
-            <div id="qrcode"></div>
-            <div class="share-box">
-                <button type="button" id="downloadQrBtn" class="btn btn-download">📥 تحميل كصورة في الهاتف</button>
-                <a id="whatsappBtn" href="#" target="_blank" class="btn btn-whatsapp">💬 إرسال عبر الواتساب للزبون</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<script>
-    const activationSection = document.getElementById('activationSection');
-    const mainAppSection = document.getElementById('mainAppSection');
-    const activationKeyInput = document.getElementById('activationKey');
-    const activateBtn = document.getElementById('activateBtn');
-    const appTitle = document.getElementById('appTitle');
-    const displayDeviceId = document.getElementById('displayDeviceId');
-
-    const form = document.getElementById('infoForm');
-    const inputs = form.querySelectorAll('input');
-    const saveBtn = document.getElementById('saveBtn');
-    const editBtn = document.getElementById('editBtn');
-    const customerSaveBtn = document.getElementById('customerSaveBtn');
-    const generateQrBtn = document.getElementById('generateQrBtn');
-    const qrSection = document.getElementById('qrSection');
-    const qrcodeDiv = document.getElementById('qrcode');
-    const downloadQrBtn = document.getElementById('downloadQrBtn');
-    const whatsappBtn = document.getElementById('whatsappBtn');
-
-    let generatedUrl = "";
-    let isCustomerMode = false;
-    let myDeviceId = "";
-
-    function getOrCreateDeviceId() {
-        let id = localStorage.getItem('app_device_fingerprint');
-        if (!id) {
-            id = Math.floor(1000 + Math.random() * 9000).toString();
-            localStorage.setItem('app_device_fingerprint', id);
-        }
-        return id;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        myDeviceId = getOrCreateDeviceId();
-        displayDeviceId.innerText = myDeviceId;
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const emailParam = urlParams.get('e');
-
-        if (emailParam) {
-            isCustomerMode = true;
-            activationSection.style.display = 'none';
-            mainAppSection.style.display = 'block';
-            appTitle.innerText = "📋 بيانات الحساب الخاصة بك";
-            appTitle.style.color = '#333333';
-            generateQrBtn.style.display = 'none';
-            saveBtn.style.display = 'none';
-
-            const localData = localStorage.getItem('customer_modified_data');
-            if (localData) {
-                const parsed = JSON.parse(localData);
-                document.getElementById('email').value = parsed.email;
-                document.getElementById('password').value = parsed.password;
-                document.getElementById('phone').value = parsed.phone;
-                document.getElementById('birthdate').value = parsed.date;
-            } else {
-                document.getElementById('email').value = atob(emailParam);
-                document.getElementById('password').value = atob(urlParams.get('p'));
-                document.getElementById('phone').value = atob(urlParams.get('ph'));
-                document.getElementById('birthdate').value = urlParams.get('d');
-            }
-
-            inputs.forEach(input => input.disabled = true);
-            editBtn.style.display = 'block';
-            customerSaveBtn.style.display = 'none';
-        } else {
-            isCustomerMode = false;
-            generateQrBtn.style.display = 'block';
-            
-            const savedKey = localStorage.getItem('shop_active_key');
-            
-            // التحقق من الكود المحفوظ بالاعتماد على المعادلة السرية
-            if (savedKey && parseInt(savedKey) === (parseInt(myDeviceId) + 2026)) {
-                activationSection.style.display = 'none';
-                mainAppSection.style.display = 'block';
-            } else {
-                activationSection.style.display = 'block';
-                mainAppSection.style.display = 'none';
-            }
-        }
-    });
-
-    // زر تفعيل الحساب لصاحب المحل بالمعادلة السرية
-    activateBtn.addEventListener('click', () => {
-        const userKey = activationKeyInput.value.trim();
-        
-        // المعادلة السرية: يجب أن يكون كود التفعيل يساوي (رقم الجهاز الحالي + 2026)
-        if (parseInt(userKey) === (parseInt(myDeviceId) + 2026)) {
-            localStorage.setItem('shop_active_key', userKey);
-            alert("✅ تم التفعيل بنجاح! تم ترخيص هذا الجهاز.");
-            activationSection.style.display = 'none';
-            mainAppSection.style.display = 'block';
-        } else {
-            alert("❌ كود التفعيل غير صحيح لهذا الجهاز!");
-        }
-    });
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (isCustomerMode) return;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const phone = document.getElementById('phone').value;
-        const birthdate = document.getElementById('birthdate').value;
-        const encEmail = btoa(email); const encPass = btoa(password); const encPhone = btoa(phone);
-        generatedUrl = window.location.origin + window.location.pathname + `?e=${encEmail}&p=${encPass}&ph=${encPhone}&d=${birthdate}`;
-        inputs.forEach(input => input.disabled = true);
-        saveBtn.style.display = 'none'; editBtn.style.display = 'block'; generateQrBtn.disabled = false;
-    });
-
-    customerSaveBtn.addEventListener('click', function() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const phone = document.getElementById('phone').value;
-        const birthdate = document.getElementById('birthdate').value;
-        const customerData = { email, password, phone, date: birthdate };
-        localStorage.setItem('customer_modified_data', JSON.stringify(customerData));
-        alert("✅ تم حفظ تعديلاتك بنجاح داخل حسابك!");
-        inputs.forEach(input => input.disabled = true);
-        customerSaveBtn.style.display = 'none'; editBtn.style.display = 'block';
-    });
-
-    editBtn.addEventListener('click', function() {
-        inputs.forEach(input => input.disabled = false);
-        editBtn.style.display = 'none';
-        if (isCustomerMode) { customerSaveBtn.style.display = 'block'; } else { saveBtn.style.display = 'block'; generateQrBtn.disabled = true; qrSection.style.display = 'none'; }
-    });
-
-    generateQrBtn.addEventListener('click', function() {
-        if (!generatedUrl) return; qrcodeDiv.innerHTML = ""; 
-        new QRCode(qrcodeDiv, { text: generatedUrl, width: 180, height: 180 });
-        whatsappBtn.href = `https://api.whatsapp.com/send?text=مرحباً، هذا هو كود حسابك الآمن والمباشر: ${encodeURIComponent(generatedUrl)}`;
-        qrSection.style.display = 'block';
-    });
-
-    downloadQrBtn.addEventListener('click', function() {
-        const qrImg = qrcodeDiv.querySelector('img');
-        if (qrImg) {
-            const downloadLink = document.createElement('a'); downloadLink.href = qrImg.src; downloadLink.download = 'my_code.png';
-            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
-        }
-    });
-</script>
 </body>
 </html>
