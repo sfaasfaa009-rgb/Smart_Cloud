@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدخال بيانات الزبون</title>
-    <!-- مكتبة توليد الـ QR Code الموثوقة -->
+    <title>نظام إدارة بيانات الزبائن</title>
+    <!-- مكتبة توليد الـ QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
@@ -34,6 +34,7 @@
             padding: 40px 24px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
         }
 
         .lock-title {
@@ -112,7 +113,6 @@
             color: #9ca3af;
         }
 
-        /* المستطيلات مع الظل الأصفر المحيط بها */
         .input-field {
             width: 100%;
             background-color: #1a1c26;
@@ -129,6 +129,14 @@
         .input-field:focus {
             border-color: #d4a359;
             box-shadow: 0 0 12px rgba(212, 163, 89, 0.5);
+        }
+
+        .input-field:disabled {
+            background-color: #15161e;
+            color: #9ca3af;
+            border-color: #222533;
+            box-shadow: none;
+            cursor: not-allowed;
         }
 
         .input-field[type="email"],
@@ -176,7 +184,16 @@
             background-color: #4b5563;
         }
 
-        /* حاوية الـ QR Code المحدثة */
+        .btn-edit {
+            background-color: #d4a359;
+            color: #0b0c10;
+            margin-top: 25px;
+        }
+
+        .btn-edit:hover {
+            background-color: #bfa255;
+        }
+
         #qrcode-container {
             margin-top: 25px;
             display: none;
@@ -194,7 +211,7 @@
 </head>
 <body>
 
-    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي -->
+    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي للأدمن -->
     <div id="lock-screen">
         <div class="lock-title">الموقع مقفل، يرجى تفعيل الجهاز</div>
         <div class="device-code-box">كود جهازك الحالي: <span id="displayDeviceCode">0000</span></div>
@@ -204,7 +221,7 @@
         <button type="button" class="btn btn-submit" onclick="checkAccessCode()" style="margin-top: 10px;">فتح الموقع</button>
     </div>
 
-    <!-- حاوية الموقع الرئيسية -->
+    <!-- حاوية الموقع الرئيسية (تخدم الأدمن والزبون ديناميكياً) -->
     <div class="container" id="main-content">
         <!-- قسم الشعارات -->
         <div class="brands-header">
@@ -245,10 +262,18 @@
                 <input type="date" id="customerDate" class="input-field" required>
             </div>
 
-            <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
-            <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
+            <!-- أزرار الأدمن (تظهر في المنظور العادي) -->
+            <div id="admin-actions">
+                <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
+                <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
+            </div>
 
-            <!-- مكان ظهور الباركود المعياري الدائم -->
+            <!-- زر الزبون (يظهر فقط عند مسح الباركود) -->
+            <div id="customer-actions" style="display: none;">
+                <button type="button" id="editBtn" class="btn btn-edit" onclick="toggleCustomerEdit()">تعديل المعلومات</button>
+            </div>
+
+            <!-- مكان ظهور الباركود -->
             <div id="qrcode-container">
                 <div id="qrcode"></div>
             </div>
@@ -258,16 +283,32 @@
 
     <script>
         let generatedDeviceCode = "";
+        let isCustomerMode = false;
 
         window.onload = function() {
+            // فحص الرابط: هل يحتوي على بيانات زبون قادمة من الباركود؟
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('cdata')) {
+                // تفعيل منظور الزبون فوراً وتخطي شاشة القفل لحماية خصوصيته وسهولة دخوله
+                isCustomerMode = true;
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('admin-actions').style.display = 'none';
+                document.getElementById('customer-actions').style.display = 'block';
+                
+                // فك تشفير البيانات وعرضها مقفلة
+                loadCustomerFromUrl(urlParams.get('cdata'));
+                return;
+            }
+
+            // إذا لم يكن زبون، إذن هو الأدمن (أنت)، نتحقق من شاشة القفل
             const isActivated = localStorage.getItem('siteActivated');
             if (isActivated === 'true') {
-                document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 localStorage.removeItem('savedCustomerData'); 
                 return;
             }
 
+            document.getElementById('lock-screen').style.display = 'block';
             let deviceCode = localStorage.getItem('deviceCode');
             if (!deviceCode) {
                 deviceCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -307,7 +348,7 @@
             alert("تم حفظ بيانات الزبون بنجاح لتوليد الكود!");
         }
 
-        // دالة إنشاء باركود معياري بصيغة vCard تقرأه كاميرات الموبايل فوراً كـ جهة اتصال
+        // دالة إنشاء الباركود الذكي الذي يحتوي على رابط الصفحة مشفراً بالبيانات
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -319,32 +360,92 @@
                 return;
             }
 
-            // بناء نص الكود بصيغة vCard العالمية ليتعرف عليه الموبايل كملف بيانات رسمي
-            const vCardText = `BEGIN:VCARD\r\n` +
-                              `VERSION:3.0\r\n` +
-                              `FN:${email}\r\n` +
-                              `TEL:${phone}\r\n` +
-                              `BDAY:${date.replace(/-/g, '')}\r\n` +
-                              `NOTE:Password: ${password}\r\n` +
-                              `END:VCARD`;
+            // تجميع البيانات وتشفيرها بصيغة Base64 لتمريرها في الرابط بأمان
+            const rawData = JSON.stringify({ email, password, phone, date });
+            const encodedData = btoa(unescape(encodeURIComponent(rawData)));
+
+            // الحصول على رابط موقعك الحالي على جيتهاب وإضافة كود البيانات له
+            const currentUrl = window.location.href.split('?')[0];
+            const customerDestinationUrl = `${currentUrl}?cdata=${encodedData}`;
 
             document.getElementById("qrcode").innerHTML = "";
             document.getElementById("qrcode-container").style.display = "flex";
 
-            // توليد الـ QR Code بالصيغة القياسية وبأعلى دقة تصحيح أخطاء H ليُقرأ سريعاً من شاشات الموبايل
+            // توليد الـ QR بالرابط الفعلي المباشر
             new QRCode(document.getElementById("qrcode"), {
-                text: vCardText,
+                text: customerDestinationUrl,
                 width: 180,
                 height: 180,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                correctLevel : QRCode.CorrectLevel.M
             });
 
-            alert("تم حفظ بيانات الزبون وتوليد الباركود الدائم بنجاح!");
-            
-            // تصفير البيانات المحلية لتجهيز الحقول فارغة تماماً للزبون التالي
+            alert("تم توليد باركود الرابط الدائم للزبون بنجاح!");
             localStorage.removeItem('savedCustomerData');
+        }
+
+        // دالة فك التشفير وعرض بيانات الزبون مقفلة افتراضياً لحمايتها
+        function loadCustomerFromUrl(encodedData) {
+            try {
+                const decodedData = decodeURIComponent(escape(atob(encodedData)));
+                const data = JSON.parse(decodedData);
+
+                document.getElementById('customerEmail').value = data.email || '';
+                document.getElementById('customerPassword').value = data.password || '';
+                document.getElementById('customerPhone').value = data.phone || '';
+                document.getElementById('customerDate').value = data.date || '';
+
+                // قفل الحقول لمنع العبث العشوائي إلا عند الضغط على تعديل
+                setFieldsDisabled(true);
+            } catch (e) {
+                alert("خطأ في قراءة بيانات الباركود.");
+            }
+        }
+
+        function setFieldsDisabled(status) {
+            document.getElementById('customerEmail').disabled = status;
+            document.getElementById('customerPassword').disabled = status;
+            document.getElementById('customerPhone').disabled = status;
+            document.getElementById('customerDate').disabled = status;
+        }
+
+        // دالة زر "تعديل المعلومات" الخاص بالزبون للتحويل بين القفل والتعديل
+        function toggleCustomerEdit() {
+            const isCurrentlyDisabled = document.getElementById('customerEmail').disabled;
+            const editBtn = document.getElementById('editBtn');
+
+            if (isCurrentlyDisabled) {
+                // فتح الحقول للتعديل
+                setFieldsDisabled(false);
+                editBtn.innerText = "حفظ التعديلات الجديدة";
+                editBtn.style.backgroundColor = "#13542b";
+                editBtn.style.color = "#ffffff";
+            } else {
+                // حفظ التعديلات وقفل الحقول مرة أخرى وتحديث الرابط والـ QR بالبيانات الجديدة
+                const email = document.getElementById('customerEmail').value;
+                const password = document.getElementById('customerPassword').value;
+                const phone = document.getElementById('customerPhone').value;
+                const date = document.getElementById('customerDate').value;
+
+                if(!email || !password || !phone || !date) {
+                    alert("لا يمكن ترك حقول فارغة أثناء التعديل.");
+                    return;
+                }
+
+                setFieldsDisabled(true);
+                editBtn.innerText = "تعديل المعلومات";
+                editBtn.style.backgroundColor = "#d4a359";
+                editBtn.style.color = "#0b0c10";
+
+                // تحديث بيانات الرابط في المتصفح لكي لا تضيع التعديلات
+                const rawData = JSON.stringify({ email, password, phone, date });
+                const encodedData = btoa(unescape(encodeURIComponent(rawData)));
+                const currentUrl = window.location.href.split('?')[0];
+                window.history.replaceState({}, '', `${currentUrl}?cdata=${encodedData}`);
+
+                alert("تمت مراجعة وتحديث معلوماتك بنجاح!");
+            }
         }
     </script>
 
