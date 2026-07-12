@@ -68,12 +68,6 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
 
-        .field input:disabled {
-            background: #edf2f7;
-            color: #2d3748;
-            font-weight: 500;
-        }
-
         button {
             width: 100%;
             padding: 16px;
@@ -142,7 +136,6 @@
             flex-wrap: wrap;
             gap: 10px;
             transition: all 0.2s ease;
-            cursor: pointer;
         }
 
         .record-item:hover {
@@ -198,108 +191,81 @@
             padding: 20px;
         }
 
-        /* ======== نافذة عرض المعلومات ======== */
-        .info-popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        /* تنسيق عرض المعلومات المنظمة */
+        .info-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         }
 
-        .info-popup.active {
-            display: flex;
-        }
-
-        .popup-content {
-            background: white;
-            max-width: 500px;
-            width: 100%;
-            padding: 35px;
-            border-radius: 25px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-            animation: popIn 0.4s ease;
-        }
-
-        @keyframes popIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .popup-content h2 {
+        .info-card h4 {
             text-align: center;
             color: #1a202c;
-            margin-bottom: 25px;
-            font-size: 24px;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 12px;
         }
 
-        .popup-field {
-            margin-bottom: 18px;
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 15px;
+            align-items: center;
         }
 
-        .popup-field label {
-            display: block;
-            font-weight: 600;
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 700;
             color: #4a5568;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            min-width: 120px;
+            font-size: 15px;
         }
 
-        .popup-field .value {
-            background: #f7fafc;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            font-size: 16px;
+        .info-value {
             color: #2d3748;
             font-weight: 500;
             word-break: break-all;
+            flex: 1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: white;
         }
 
-        .popup-field .value.email-value {
-            border-color: #667eea;
-            background: #ebf4ff;
+        .info-value.email {
+            border-right: 4px solid #667eea;
+        }
+        .info-value.password {
+            border-right: 4px solid #9f7aea;
+        }
+        .info-value.phone {
+            border-right: 4px solid #48bb78;
+        }
+        .info-value.birthdate {
+            border-right: 4px solid #ed8936;
         }
 
-        .popup-field .value.password-value {
-            border-color: #f093fb;
-            background: #faf5ff;
-        }
-
-        .popup-field .value.phone-value {
-            border-color: #48bb78;
-            background: #f0fff4;
-        }
-
-        .popup-field .value.birthdate-value {
-            border-color: #ed8936;
-            background: #fffaf0;
-        }
-
-        .popup-close-btn {
-            background: #fc8181;
-            margin-top: 15px;
-        }
-
-        .popup-close-btn:hover {
-            background: #e53e3e;
+        /* تنسيق النص المنسق للـ QR */
+        .qr-preview {
+            background: #1a202c;
+            color: #48bb78;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         @media (max-width: 600px) {
@@ -316,8 +282,16 @@
             .record-item .delete-btn {
                 width: 100%;
             }
-            .popup-content {
-                padding: 25px;
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+                align-items: flex-start;
+            }
+            .info-label {
+                min-width: auto;
+            }
+            .info-value {
+                width: 100%;
             }
         }
     </style>
@@ -351,36 +325,21 @@
             <h3>📱 رمز QR الخاص بالمعلومات المدخلة</h3>
             <div id="qrCodeContainer"></div>
             <button id="generateQrBtn">🔄 إنشاء QR جديد</button>
+            
+            <!-- معاينة النص الذي سيظهر في QR -->
+            <div id="qrTextPreview" style="margin-top:15px; text-align:right;">
+                <small style="color:#718096;">📝 النص الذي سيظهر عند مسح الكود:</small>
+                <div class="qr-preview" id="qrPreviewContent">سيظهر هنا النص المنسق</div>
+            </div>
         </div>
 
         <hr>
 
-        <h3>📋 المعلومات المحفوظة (اضغط على السجل لعرضه)</h3>
+        <h3>📋 المعلومات المحفوظة</h3>
         <div id="recordsList"></div>
-    </div>
 
-    <!-- ======== نافذة عرض المعلومات ======== -->
-    <div class="info-popup" id="infoPopup">
-        <div class="popup-content">
-            <h2>📇 معلومات السجل</h2>
-            <div class="popup-field">
-                <label>📧 البريد الإلكتروني</label>
-                <div class="value email-value" id="popupEmail">-</div>
-            </div>
-            <div class="popup-field">
-                <label>🔑 كلمة المرور</label>
-                <div class="value password-value" id="popupPassword">-</div>
-            </div>
-            <div class="popup-field">
-                <label>📞 رقم الهاتف</label>
-                <div class="value phone-value" id="popupPhone">-</div>
-            </div>
-            <div class="popup-field">
-                <label>🎂 تاريخ الميلاد</label>
-                <div class="value birthdate-value" id="popupBirthdate">-</div>
-            </div>
-            <button class="popup-close-btn" onclick="closePopup()">✖ إغلاق</button>
-        </div>
+        <!-- عرض المعلومات بشكل منظم -->
+        <div id="displayArea"></div>
     </div>
 
     <!-- مكتبة QR Code من CDN -->
@@ -396,10 +355,48 @@
         const qrContainer = document.getElementById('qrCodeContainer');
         const generateQrBtn = document.getElementById('generateQrBtn');
         const recordsList = document.getElementById('recordsList');
-        const infoPopup = document.getElementById('infoPopup');
+        const displayArea = document.getElementById('displayArea');
+        const qrPreviewContent = document.getElementById('qrPreviewContent');
 
         let currentQrCode = null;
         let records = JSON.parse(localStorage.getItem('records')) || [];
+
+        // ======== دالة لتنسيق النص بشكل جميل ========
+        function formatDataForQR(data) {
+            return `📇 معلومات السجل
+━━━━━━━━━━━━━━━━━━━━━
+📧 البريد: ${data.email}
+🔑 كلمة المرور: ${data.password}
+📞 الهاتف: ${data.phone}
+🎂 تاريخ الميلاد: ${data.birthdate}
+━━━━━━━━━━━━━━━━━━━━━
+🕐 تم الإنشاء: ${new Date().toLocaleString('ar-SA')}`;
+        }
+
+        // ======== عرض المعلومات بشكل مرتب في الصفحة ========
+        function displayFormattedInfo(data) {
+            displayArea.innerHTML = `
+                <div class="info-card">
+                    <h4>📇 معلومات السجل</h4>
+                    <div class="info-row">
+                        <span class="info-label">📧 البريد الإلكتروني</span>
+                        <span class="info-value email">${data.email}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🔑 كلمة المرور</span>
+                        <span class="info-value password">${data.password}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📞 رقم الهاتف</span>
+                        <span class="info-value phone">${data.phone}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🎂 تاريخ الميلاد</span>
+                        <span class="info-value birthdate">${data.birthdate}</span>
+                    </div>
+                </div>
+            `;
+        }
 
         // ======== عرض السجلات المخزنة ========
         function displayRecords() {
@@ -408,39 +405,14 @@
                 return;
             }
             recordsList.innerHTML = records.map((rec, index) => `
-                <div class="record-item" onclick="showRecord(${index})">
+                <div class="record-item">
                     <span class="data">
                         📧 ${rec.email} | 🔑 ${rec.password} | 📞 ${rec.phone} | 🎂 ${rec.birthdate}
                     </span>
-                    <button class="delete-btn" onclick="event.stopPropagation(); deleteRecord(${index})">✖ حذف</button>
+                    <button class="delete-btn" onclick="deleteRecord(${index})">✖ حذف</button>
                 </div>
             `).join('');
         }
-
-        // ======== عرض السجل في نافذة منبثقة ========
-        function showRecord(index) {
-            const rec = records[index];
-            if (!rec) return;
-            
-            document.getElementById('popupEmail').textContent = rec.email;
-            document.getElementById('popupPassword').textContent = rec.password;
-            document.getElementById('popupPhone').textContent = rec.phone;
-            document.getElementById('popupBirthdate').textContent = rec.birthdate;
-            
-            infoPopup.classList.add('active');
-        }
-
-        // ======== إغلاق النافذة ========
-        function closePopup() {
-            infoPopup.classList.remove('active');
-        }
-
-        // ======== إغلاق النافذة بالضغط خارجها ========
-        infoPopup.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closePopup();
-            }
-        });
 
         // ======== حفظ سجل جديد ========
         form.addEventListener('submit', function(e) {
@@ -462,6 +434,8 @@
             localStorage.setItem('records', JSON.stringify(records));
             displayRecords();
             generateQR(newRecord);
+            displayFormattedInfo(newRecord);
+            
             form.reset();
             
             const btn = document.getElementById('saveBtn');
@@ -471,16 +445,22 @@
             }, 2000);
         });
 
-        // ======== توليد QR Code ========
+        // ======== توليد QR Code بنص منسق ========
         function generateQR(data) {
-            const jsonData = JSON.stringify(data);
+            // تحويل البيانات إلى نص منسق
+            const formattedText = formatDataForQR(data);
+            
+            // عرض النص في المعاينة
+            qrPreviewContent.textContent = formattedText;
+            
+            // تنظيف حاوية QR
             qrContainer.innerHTML = '';
             
             try {
                 currentQrCode = new QRCode(qrContainer, {
-                    text: jsonData,
-                    width: 180,
-                    height: 180,
+                    text: formattedText,
+                    width: 200,
+                    height: 200,
                     colorDark: "#1a202c",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
@@ -499,6 +479,7 @@
             }
             const lastRecord = records[records.length - 1];
             generateQR(lastRecord);
+            displayFormattedInfo(lastRecord);
             
             this.textContent = '✅ تم التوليد!';
             setTimeout(() => {
@@ -515,17 +496,25 @@
                 
                 if (records.length === 0) {
                     qrContainer.innerHTML = '';
+                    displayArea.innerHTML = '';
+                    qrPreviewContent.textContent = 'لا توجد بيانات لعرضها';
                 } else {
                     const lastRecord = records[records.length - 1];
                     generateQR(lastRecord);
+                    displayFormattedInfo(lastRecord);
                 }
             }
         }
 
         // ======== تشغيل التطبيق ========
         displayRecords();
+        
+        // إذا كان هناك سجلات، اعرض أول سجل
         if (records.length > 0) {
             generateQR(records[0]);
+            displayFormattedInfo(records[0]);
+        } else {
+            qrPreviewContent.textContent = '📭 أضف معلومات جديدة لإنشاء QR Code';
         }
 
         console.log('✅ تطبيق مدونة المعلومات يعمل بنجاح!');
