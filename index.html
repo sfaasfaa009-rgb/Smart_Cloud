@@ -37,6 +37,15 @@
             font-size: 28px;
         }
 
+        /* ======== الصفحة الرئيسية ======== */
+        .main-page {
+            display: block;
+        }
+
+        .main-page.hidden {
+            display: none;
+        }
+
         .field {
             margin-bottom: 18px;
         }
@@ -66,7 +75,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        /* كلمة المرور تظهر كاملة */
         .field input[type="password"] {
             -webkit-text-security: none;
             font-family: 'Courier New', monospace;
@@ -173,105 +181,106 @@
             border: 1px dashed #e2e8f0;
         }
 
-        /* بطاقة المعلومات الجميلة */
-        .info-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 20px;
-            border: 3px solid #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-        }
-
-        .info-card h3 {
-            text-align: center;
-            color: #1a202c;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #667eea;
-            font-size: 20px;
-        }
-
-        .info-row {
-            display: flex;
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            font-weight: 700;
-            color: #4a5568;
-            min-width: 110px;
-            font-size: 14px;
-        }
-
-        .info-value {
-            color: #2d3748;
-            font-weight: 500;
-            word-break: break-all;
-            flex: 1;
-            padding: 8px 14px;
-            border-radius: 8px;
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
-        }
-
-        .info-value.email-value {
-            border-color: #667eea;
-            background: #ebf4ff;
-            color: #2b6cb0;
-        }
-
-        .info-value.password-value {
-            border-color: #9f7aea;
-            background: #faf5ff;
-            color: #6b46c1;
-        }
-
-        .info-value.phone-value {
-            border-color: #48bb78;
-            background: #f0fff4;
-            color: #276749;
-        }
-
-        .info-value.birthdate-value {
-            border-color: #ed8936;
-            background: #fffaf0;
-            color: #c05621;
-        }
-
         .qr-note {
             color: #718096;
             font-size: 12px;
             margin-top: 10px;
         }
 
-        /* مؤقت التحميل */
         .loading {
             color: #667eea;
             font-weight: 600;
+        }
+
+        /* ======== صفحة عرض المعلومات (عند مسح QR) ======== */
+        .info-page {
+            display: none;
+        }
+
+        .info-page.active {
+            display: block;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            border: 3px solid #667eea;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .info-card .card-title {
+            text-align: center;
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .info-card .info-field {
+            margin-bottom: 20px;
+        }
+
+        .info-card .info-field label {
+            display: block;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .info-card .info-field .value-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+            word-break: break-all;
+            background: #f7fafc;
+        }
+
+        .info-card .info-field .value-box.email-box {
+            border-color: #667eea;
+            background: #ebf4ff;
+            color: #2b6cb0;
+        }
+
+        .info-card .info-field .value-box.password-box {
+            border-color: #9f7aea;
+            background: #faf5ff;
+            color: #6b46c1;
+        }
+
+        .info-card .info-field .value-box.phone-box {
+            border-color: #48bb78;
+            background: #f0fff4;
+            color: #276749;
+        }
+
+        .info-card .info-field .value-box.birthdate-box {
+            border-color: #ed8936;
+            background: #fffaf0;
+            color: #c05621;
+        }
+
+        .info-card .back-btn {
+            margin-top: 20px;
+            background: #718096;
+        }
+
+        .info-card .back-btn:hover {
+            background: #4a5568;
         }
 
         @media (max-width: 600px) {
             .container {
                 padding: 18px;
             }
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-            .info-label {
-                min-width: auto;
-            }
-            .info-value {
-                width: 100%;
+            .info-card {
+                padding: 20px;
             }
         }
     </style>
@@ -279,43 +288,70 @@
 <body>
 
 <div class="container">
-    <h1>📝 مدونة المعلومات</h1>
-    
-    <form id="infoForm">
-        <div class="field">
-            <label>📧 البريد الإلكتروني</label>
-            <input type="email" id="email" placeholder="example@mail.com" required>
-        </div>
-        <div class="field">
-            <label>🔑 كلمة المرور</label>
-            <input type="password" id="password" placeholder="********" required>
-        </div>
-        <div class="field">
-            <label>📞 رقم الهاتف</label>
-            <input type="tel" id="phone" placeholder="05xxxxxxxx" required>
-        </div>
-        <div class="field">
-            <label>🎂 تاريخ الميلاد</label>
-            <input type="date" id="birthdate" required>
-        </div>
-        <button type="submit">💾 حفظ المعلومات</button>
-    </form>
 
-    <div id="qrSection">
-        <h3>📱 رمز QR</h3>
-        <div id="qrCodeContainer">
-            <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
+    <!-- ======== الصفحة الرئيسية ======== -->
+    <div class="main-page" id="mainPage">
+        <h1>📝 مدونة المعلومات</h1>
+        
+        <form id="infoForm">
+            <div class="field">
+                <label>📧 البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
+            </div>
+            <div class="field">
+                <label>🔑 كلمة المرور</label>
+                <input type="password" id="password" placeholder="********" required>
+            </div>
+            <div class="field">
+                <label>📞 رقم الهاتف</label>
+                <input type="tel" id="phone" placeholder="05xxxxxxxx" required>
+            </div>
+            <div class="field">
+                <label>🎂 تاريخ الميلاد</label>
+                <input type="date" id="birthdate" required>
+            </div>
+            <button type="submit">💾 حفظ المعلومات</button>
+        </form>
+
+        <div id="qrSection">
+            <h3>📱 رمز QR</h3>
+            <div id="qrCodeContainer">
+                <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
+            </div>
+            <button class="btn-pink" id="generateQrBtn">🔄 إنشاء QR جديد</button>
+            <p class="qr-note">📸 صوّر الكود بأي هاتف وستفتح صفحة تعرض المعلومات بشكل جميل</p>
         </div>
-        <button class="btn-pink" id="generateQrBtn">🔄 إنشاء QR جديد</button>
-        <p class="qr-note">📸 صوّر الكود بأي هاتف وستظهر المعلومات في حقول جميلة</p>
+
+        <hr>
+
+        <h3>📋 السجلات المحفوظة</h3>
+        <div id="recordsList"></div>
     </div>
 
-    <hr>
+    <!-- ======== صفحة عرض المعلومات (تظهر عند مسح QR) ======== -->
+    <div class="info-page" id="infoPage">
+        <div class="info-card">
+            <div class="card-title">📇 معلومات السجل</div>
+            <div class="info-field">
+                <label>📧 البريد الإلكتروني</label>
+                <div class="value-box email-box" id="viewEmail">-</div>
+            </div>
+            <div class="info-field">
+                <label>🔑 كلمة المرور</label>
+                <div class="value-box password-box" id="viewPassword">-</div>
+            </div>
+            <div class="info-field">
+                <label>📞 رقم الهاتف</label>
+                <div class="value-box phone-box" id="viewPhone">-</div>
+            </div>
+            <div class="info-field">
+                <label>🎂 تاريخ الميلاد</label>
+                <div class="value-box birthdate-box" id="viewBirthdate">-</div>
+            </div>
+            <button class="back-btn" onclick="goBack()">🔙 العودة للصفحة الرئيسية</button>
+        </div>
+    </div>
 
-    <h3>📋 السجلات المحفوظة</h3>
-    <div id="recordsList"></div>
-
-    <div id="displayArea"></div>
 </div>
 
 <script>
@@ -328,24 +364,31 @@ const birthdate = document.getElementById('birthdate');
 const qrContainer = document.getElementById('qrCodeContainer');
 const generateBtn = document.getElementById('generateQrBtn');
 const recordsList = document.getElementById('recordsList');
-const displayArea = document.getElementById('displayArea');
+const mainPage = document.getElementById('mainPage');
+const infoPage = document.getElementById('infoPage');
+
+// عناصر صفحة العرض
+const viewEmail = document.getElementById('viewEmail');
+const viewPassword = document.getElementById('viewPassword');
+const viewPhone = document.getElementById('viewPhone');
+const viewBirthdate = document.getElementById('viewBirthdate');
 
 let records = JSON.parse(localStorage.getItem('records')) || [];
 
-// ======== تنسيق النص للـ QR ========
-function formatText(data) {
-    return `📇 معلومات السجل\n━━━━━━━━━━━━━━━━━━\n📧 البريد: ${data.email}\n🔑 كلمة المرور: ${data.password}\n📞 الهاتف: ${data.phone}\n🎂 تاريخ الميلاد: ${data.birthdate}\n━━━━━━━━━━━━━━━━━━\n📅 ${new Date().toLocaleString('ar-SA')}`;
+// ======== إنشاء رابط للمشاركة ========
+function createShareableLink(data) {
+    const encoded = encodeURIComponent(JSON.stringify(data));
+    return window.location.origin + window.location.pathname + '?data=' + encoded;
 }
 
-// ======== توليد QR Code باستخدام API ========
+// ======== توليد QR Code ========
 function generateQR(data) {
-    const text = formatText(data);
-    const encodedText = encodeURIComponent(text);
-    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedText}&format=png&margin=20`;
+    const url = createShareableLink(data);
+    const encodedUrl = encodeURIComponent(url);
+    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
     
     qrContainer.innerHTML = `<p class="loading">⏳ جاري إنشاء QR...</p>`;
     
-    // إنشاء صورة QR
     const img = document.createElement('img');
     img.src = apiUrl;
     img.alt = 'QR Code';
@@ -358,33 +401,8 @@ function generateQR(data) {
     };
     
     img.onerror = function() {
-        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في إنشاء QR، حاول مرة أخرى</p>';
+        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ، حاول مرة أخرى</p>';
     };
-}
-
-// ======== عرض بطاقة المعلومات ========
-function showInfoCard(data) {
-    displayArea.innerHTML = `
-        <div class="info-card">
-            <h3>📇 معلومات السجل</h3>
-            <div class="info-row">
-                <span class="info-label">📧 البريد الإلكتروني</span>
-                <span class="info-value email-value">${data.email}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">🔑 كلمة المرور</span>
-                <span class="info-value password-value">${data.password}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">📞 رقم الهاتف</span>
-                <span class="info-value phone-value">${data.phone}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">🎂 تاريخ الميلاد</span>
-                <span class="info-value birthdate-value">${data.birthdate}</span>
-            </div>
-        </div>
-    `;
 }
 
 // ======== عرض السجلات ========
@@ -421,7 +439,6 @@ form.addEventListener('submit', function(e) {
     localStorage.setItem('records', JSON.stringify(records));
     showRecords();
     generateQR(data);
-    showInfoCard(data);
     form.reset();
     
     const btn = form.querySelector('button[type="submit"]');
@@ -437,7 +454,6 @@ generateBtn.addEventListener('click', function() {
     }
     const last = records[records.length - 1];
     generateQR(last);
-    showInfoCard(last);
     this.textContent = '✅ تم!';
     setTimeout(() => this.textContent = '🔄 إنشاء QR جديد', 2000);
 });
@@ -450,19 +466,54 @@ function deleteRecord(index) {
         showRecords();
         if (records.length > 0) {
             generateQR(records[records.length - 1]);
-            showInfoCard(records[records.length - 1]);
         } else {
             qrContainer.innerHTML = '<p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>';
-            displayArea.innerHTML = '';
         }
     }
 }
 
+// ======== العودة للصفحة الرئيسية ========
+function goBack() {
+    infoPage.classList.remove('active');
+    mainPage.style.display = 'block';
+    window.history.pushState({}, '', window.location.pathname);
+}
+
+// ======== قراءة البيانات من الرابط ========
+function loadDataFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const dataParam = params.get('data');
+    
+    if (dataParam) {
+        try {
+            const data = JSON.parse(decodeURIComponent(dataParam));
+            
+            // إخفاء الصفحة الرئيسية وإظهار صفحة المعلومات
+            mainPage.style.display = 'none';
+            infoPage.classList.add('active');
+            
+            // عرض البيانات
+            viewEmail.textContent = data.email;
+            viewPassword.textContent = data.password;
+            viewPhone.textContent = data.phone;
+            viewBirthdate.textContent = data.birthdate;
+            
+            return true;
+        } catch(e) {
+            console.error('خطأ في قراءة البيانات:', e);
+        }
+    }
+    return false;
+}
+
 // ======== بدء التطبيق ========
-showRecords();
-if (records.length > 0) {
-    generateQR(records[0]);
-    showInfoCard(records[0]);
+const isInfoView = loadDataFromURL();
+
+if (!isInfoView) {
+    showRecords();
+    if (records.length > 0) {
+        generateQR(records[0]);
+    }
 }
 
 console.log('✅ التطبيق يعمل بنجاح!');
