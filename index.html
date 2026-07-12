@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>النسخة التجارية الاحترافية المحمية</title>
+    <title>النسخة التجارية الاحترافية الذكية</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -28,26 +28,25 @@
         .qr-section { margin-top: 25px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
         #qrcode { display: flex; justify-content: center; margin: 15px 0; }
         .share-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .device-id-box { background: #e9ecef; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; font-weight: bold; color: #555; word-break: break-all; }
+        .device-id-box { background: #e9ecef; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; font-weight: bold; color: #333; word-break: break-all; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
-    <!-- 🔐 شاشة قفل الاشتراك المحمية ضد السرقة -->
+    <!-- 🔐 شاشة قفل الاشتراك الذكية بدون تعديل كود -->
     <div id="activationSection">
         <div class="lock-icon">🔐</div>
         <h3>نظام توليد الباركود الذكي</h3>
-        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">يرجى تزويد المطور برمز جهازك التالي لتوليد كود التفعيل الخاص بك:</p>
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">يرجى تزويد المطور برمز جهازك التالي لتفعيل الخدمة:</p>
         
-        <!-- صندوق يعرض رمز بصمة الجهاز الحالي -->
         <div class="device-id-box">
-            رمز جهازك: <span id="displayDeviceId">جاري التوليد...</span>
+            رمز جهازك هو: <span id="displayDeviceId" style="color: #007bff; font-size: 18px;">جاري التوليد...</span>
         </div>
 
         <div class="form-group">
-            <input type="text" id="activationKey" placeholder="أدخل كود التفعيل الخاص بجهازك" style="text-align: center; font-weight: bold;">
+            <input type="text" id="activationKey" placeholder="أدخل كود التفعيل هنا" style="text-align: center; font-weight: bold; font-size: 18px;">
         </div>
         <button type="button" id="activateBtn" class="btn btn-activate">تفعيل الآن</button>
     </div>
@@ -96,13 +95,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-    // 🔐 مصفوفة الأكواد المحمية (تغيرها شهرياً)
-    // طريقة الصياغة: "اسم_المحل-الشهر_والسنة-رمز_الجهاز"
-    const validKeys = [
-        "SHOP1-JULY2026-9874", // مثال لكود مخصص للمحل الأول الذي يحمل جهاز بصمته 9874
-        "TEST-2026-1234"      // كود تجريبي لجهاز بصمته 1234
-    ];
-
     const activationSection = document.getElementById('activationSection');
     const mainAppSection = document.getElementById('mainAppSection');
     const activationKeyInput = document.getElementById('activationKey');
@@ -125,11 +117,9 @@
     let isCustomerMode = false;
     let myDeviceId = "";
 
-    // 📋 توليد بصمة فريدة وثابتة لجهاز المستخدم الحالي تعتمد على المتصفح
     function getOrCreateDeviceId() {
         let id = localStorage.getItem('app_device_fingerprint');
         if (!id) {
-            // توليد رقم عشوائي من 4 أرقام لسهولة التعامل للزبائن والمحلات
             id = Math.floor(1000 + Math.random() * 9000).toString();
             localStorage.setItem('app_device_fingerprint', id);
         }
@@ -138,12 +128,11 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         myDeviceId = getOrCreateDeviceId();
-        displayDeviceId.innerText = myDeviceId; // عرض البصمة في شاشة القفل
+        displayDeviceId.innerText = myDeviceId;
 
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get('e');
 
-        // واجهة الزبون
         if (emailParam) {
             isCustomerMode = true;
             activationSection.style.display = 'none';
@@ -170,16 +159,14 @@
             inputs.forEach(input => input.disabled = true);
             editBtn.style.display = 'block';
             customerSaveBtn.style.display = 'none';
-        } 
-        // واجهة صاحب المحل
-        else {
+        } else {
             isCustomerMode = false;
             generateQrBtn.style.display = 'block';
             
             const savedKey = localStorage.getItem('shop_active_key');
             
-            // يجب أن يكون الكود المحفوظ صحيحاً ومطابقاً لبصمة هذا الجهاز الحالي
-            if (savedKey && validKeys.includes(savedKey) && savedKey.endsWith(myDeviceId)) {
+            // التحقق من الكود المحفوظ بالاعتماد على المعادلة السرية
+            if (savedKey && parseInt(savedKey) === (parseInt(myDeviceId) + 2026)) {
                 activationSection.style.display = 'none';
                 mainAppSection.style.display = 'block';
             } else {
@@ -189,22 +176,21 @@
         }
     });
 
-    // تفعيل الحساب يدوياً
+    // زر تفعيل الحساب لصاحب المحل بالمعادلة السرية
     activateBtn.addEventListener('click', () => {
         const userKey = activationKeyInput.value.trim();
         
-        // الشرط الصارم: يجب أن يكون الكود في القائمة + ينتهي برمز هذا الجهاز تحديداً!
-        if (validKeys.includes(userKey) && userKey.endsWith(myDeviceId)) {
+        // المعادلة السرية: يجب أن يكون كود التفعيل يساوي (رقم الجهاز الحالي + 2026)
+        if (parseInt(userKey) === (parseInt(myDeviceId) + 2026)) {
             localStorage.setItem('shop_active_key', userKey);
-            alert("✅ تم التفعيل بنجاح! هذا الجهاز أصبح مرخصاً الآن.");
+            alert("✅ تم التفعيل بنجاح! تم ترخيص هذا الجهاز.");
             activationSection.style.display = 'none';
             mainAppSection.style.display = 'block';
         } else {
-            alert("❌ كود التفعيل غير صحيح، أو أنه مخصص لجهاز هاتف آخر!");
+            alert("❌ كود التفعيل غير صحيح لهذا الجهاز!");
         }
     });
 
-    // بقية الأكواد للعمليات بدون تغيير...
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (isCustomerMode) return;
