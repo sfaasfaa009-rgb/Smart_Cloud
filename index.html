@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدخال بيانات الزبون</title>
-    <!-- مكتبة توليد الـ QR Code -->
+    <!-- مكتبة توليد الـ QR Code الموثوقة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
@@ -60,7 +60,7 @@
             letter-spacing: 2px;
         }
 
-        /* حاوية المحتوى الرئيسي للموقع (مخفية افتراضياً) */
+        /* حاوية المحتوى الرئيسي للموقع */
         .container {
             background-color: #12131a;
             border: 1px solid #1f222f;
@@ -176,7 +176,7 @@
             background-color: #4b5563;
         }
 
-        /* حاوية الـ QR Code */
+        /* حاوية الـ QR Code المحدثة */
         #qrcode-container {
             margin-top: 25px;
             display: none;
@@ -185,7 +185,7 @@
             background: #ffffff;
             padding: 15px;
             border-radius: 16px;
-            max-width: 200px;
+            max-width: 220px;
             margin-left: auto;
             margin-right: auto;
             box-shadow: 0 0 15px rgba(212, 163, 89, 0.3);
@@ -248,7 +248,7 @@
             <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
             <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
 
-            <!-- مكان ظهور الباركود -->
+            <!-- مكان ظهور الباركود المعياري الدائم -->
             <div id="qrcode-container">
                 <div id="qrcode"></div>
             </div>
@@ -264,7 +264,6 @@
             if (isActivated === 'true') {
                 document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
-                // عند إدخال رابط الموقع مجدداً، نضمن عدم استرجاع بيانات قديمة وعرض حقول فارغة
                 localStorage.removeItem('savedCustomerData'); 
                 return;
             }
@@ -286,13 +285,12 @@
                 localStorage.setItem('siteActivated', 'true');
                 document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
-                localStorage.removeItem('savedCustomerData'); // التأكيد على إفراغ الحقول عند أول فتح للموقع
+                localStorage.removeItem('savedCustomerData');
             } else {
                 alert("الرمز السري غير صحيح!");
             }
         }
 
-        // حفظ البيانات مؤقتاً أثناء الجلسة الحالية فقط
         function saveData() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -306,10 +304,10 @@
 
             const data = { email, password, phone, date };
             localStorage.setItem('savedCustomerData', JSON.stringify(data));
-            alert("تم حفظ بيانات الزبون مؤقتاً بنجاح!");
+            alert("تم حفظ بيانات الزبون بنجاح لتوليد الكود!");
         }
 
-        // إنشاء الباركود ومسح الكاش فوراً للزبون القادم
+        // دالة إنشاء باركود معياري بصيغة vCard تقرأه كاميرات الموبايل فوراً كـ جهة اتصال
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -321,22 +319,31 @@
                 return;
             }
 
-            const qrText = `Email: ${email}\nPassword: ${password}\nPhone: ${phone}\nBirthdate: ${date}`;
+            // بناء نص الكود بصيغة vCard العالمية ليتعرف عليه الموبايل كملف بيانات رسمي
+            const vCardText = `BEGIN:VCARD\r\n` +
+                              `VERSION:3.0\r\n` +
+                              `FN:${email}\r\n` +
+                              `TEL:${phone}\r\n` +
+                              `BDAY:${date.replace(/-/g, '')}\r\n` +
+                              `NOTE:Password: ${password}\r\n` +
+                              `END:VCARD`;
 
             document.getElementById("qrcode").innerHTML = "";
             document.getElementById("qrcode-container").style.display = "flex";
 
+            // توليد الـ QR Code بالصيغة القياسية وبأعلى دقة تصحيح أخطاء H ليُقرأ سريعاً من شاشات الموبايل
             new QRCode(document.getElementById("qrcode"), {
-                text: qrText,
-                width: 170,
-                height: 170,
+                text: vCardText,
+                width: 180,
+                height: 180,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
 
-            // بمجرد توليد الباركود بنجاح، نحذف البيانات من الذاكرة المحلية 
-            // لكي تظهر الحقول فارغة تماماً عند فتح الرابط المرة القادمة لزبون جديد
+            alert("تم حفظ بيانات الزبون وتوليد الباركود الدائم بنجاح!");
+            
+            // تصفير البيانات المحلية لتجهيز الحقول فارغة تماماً للزبون التالي
             localStorage.removeItem('savedCustomerData');
         }
     </script>
