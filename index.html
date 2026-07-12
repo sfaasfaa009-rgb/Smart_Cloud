@@ -230,6 +230,7 @@
 
     let generatedUrl = "";
     let systemRandomCode = 0;
+    let isCustomerMode = false; // متغير لمعرفة هل تصفح الصفحة حالياً هو زبون أم صاحب محل
 
     // --- نظام فحص صلاحية اشتراك صاحب المحل (30 يوم) ---
     function checkSystemAccess() {
@@ -242,7 +243,6 @@
 
         // إذا لم يكن هناك تاريخ مسجل مسبقاً أو انتهت الـ 30 يوماً، يظهر القفل فوراً
         if (!expiryKey || today > expiryKey) {
-            // توليد رقم عشوائي من 4 أرقام لصاحب المحل
             systemRandomCode = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('randomCodeDisplay').innerText = systemRandomCode;
             document.getElementById('lockOverlay').style.display = 'flex';
@@ -255,7 +255,6 @@
         const correctAnswer = systemRandomCode + 2026;
 
         if (userInput === correctAnswer) {
-            // تمديد الصلاحية لـ 30 يوماً إضافية وحفظها في ذاكرة المتصفح
             const newExpiry = new Date();
             newExpiry.setDate(newExpiry.getDate() + 30);
             localStorage.setItem('owner_expiry_date', newExpiry.toISOString().split('T')[0]);
@@ -267,10 +266,19 @@
         }
     }
 
+    // دالة مخصصة لتحديث وتوليد الـ QR Code مباشرة على الشاشة دون الحاجة لضغط زر توليد
+    function refreshQRCode(url) {
+        qrcodeDiv.innerHTML = ""; 
+        new QRCode(qrcodeDiv, {
+            text: url,
+            width: 180,
+            height: 180
+        });
+        qrSection.style.display = 'block';
+    }
 
     // جلب البيانات تلقائياً شاملة رقم الهاتف إذا تم فتح الصفحة عن طريق مسح الباركود للزبون
     window.addEventListener('DOMContentLoaded', () => {
-        // تشغيل فحص اشتراك صاحب المحل أولاً
         checkSystemAccess();
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -280,6 +288,8 @@
         const dateParam = urlParams.get('d');
 
         if (emailParam && passParam && phoneParam && dateParam) {
+            isCustomerMode = true; // تفعيل وضع الزبون
+
             // فك التشفير وعرض بيانات صاحب الكود فوراً
             document.getElementById('email').value = atob(emailParam);
             document.getElementById('password').value = atob(passParam);
@@ -290,7 +300,13 @@
             inputs.forEach(input => input.disabled = true);
             saveBtn.style.display = 'none';
             editBtn.style.display = 'block';
-            generateQrBtn.disabled = false;
+            
+            // إخفاء زر إنشاء باركود QR تماماً للزبون بناءً على طلبك
+            generateQrBtn.style.display = 'none';
+
+            // عرض الباركود الحالي للزبون تلقائياً في الأسفل لكي يتم تحديثه فوراً عند أي تعديل لاحق
+            generatedUrl = window.location.href;
+            refreshQRCode(generatedUrl);
         }
     });
 
@@ -318,47 +334,37 @@
         saveBtn.style.display = 'none';
         editBtn.style.display = 'block';
 
-        // تفعيل زر الباركود
-        generateQrBtn.disabled = false;
-        
-        // تحديث شريط المتصفح بالبيانات الجديدة لثبات التعديلات للزبون فوراً عند التعديل والحفظ
+        // تحديث شريط المتصفح بالبيانات والرابط الجديد فوراً لضمان ثبات التعديلات للزبون
         window.history.pushState({}, '', generatedUrl);
 
-        if (qrSection.style.display === 'block') {
-            qrcodeDiv.innerHTML = ""; 
-            new QRCode(qrcodeDiv, {
-                text: generatedUrl,
-                width: 180,
-                height: 180
-            });
+        // إذا كنا في وضع الزبون، نقوم بتحديث الباركود تلقائياً على الشاشة دون الحاجة لزر التوليد المفتعل
+        if (isCustomerMode) {
+            refreshQRCode(generatedUrl);
+            alert('✅ تم حفظ تعديلاتك وتحديث الباركود الخاص بك بنجاح!');
+        } else {
+            // إذا كان صاحب المحل هو من ينشئ الكود أول مرة، نفعّل له زر إنشاء باركود
+            generateQrBtn.disabled = false;
+            alert('تم حفظ البيانات محلياً! اضغط الآن على زر "إنشاء باركود QR" لتوليد الكود الجديد الخاص بك.');
         }
-        
-        alert('تم حفظ البيانات محلياً! اضغط الآن على زر "إنشاء باركود QR" لتوليد الكود الجديد الخاص بك.');
     });
 
-    // عند الضغط على زر "إنشاء باركود QR"
+    // عند الضغط على زر "إنشاء باركود QR" (خاص بصاحب المحل فقط عند الإنشاء الأول)
     generateQrBtn.addEventListener('click', function() {
         if (!generatedUrl) return;
-
         window.history.pushState({}, '', generatedUrl);
-
-        qrcodeDiv.innerHTML = ""; 
-        new QRCode(qrcodeDiv, {
-            text: generatedUrl,
-            width: 180,
-            height: 180
-        });
-
-        qrSection.style.display = 'block';
+        refreshQRCode(generatedUrl);
     });
 
-    // عند رغبة المستخدم في تعديل المعلومات
+    // عند رغبة المستخدم أو الزبون في تعديل المعلومات
     editBtn.addEventListener('click', function() {
         inputs.forEach(input => input.disabled = false);
         editBtn.style.display = 'none';
         saveBtn.style.display = 'block';
-        generateQrBtn.disabled = true; 
-        qrSection.style.display = 'none'; 
+        
+        if (!isCustomerMode) {
+            generateQrBtn.disabled = true; 
+            qrSection.style.display = 'none'; 
+        }
     });
 </script>
 
