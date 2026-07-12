@@ -38,7 +38,7 @@
 
         .lock-title {
             font-size: 18px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             color: #d4a359;
         }
 
@@ -194,7 +194,7 @@
 </head>
 <body>
 
-    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي (كود الجهاز + 2026) -->
+    <!-- شاشة القفل المحمية بنظام التفعيل الرياضي -->
     <div id="lock-screen">
         <div class="lock-title">الموقع مقفل، يرجى تفعيل الجهاز</div>
         <div class="device-code-box">كود جهازك الحالي: <span id="displayDeviceCode">0000</span></div>
@@ -204,7 +204,7 @@
         <button type="button" class="btn btn-submit" onclick="checkAccessCode()" style="margin-top: 10px;">فتح الموقع</button>
     </div>
 
-    <!-- حاوية الموقع الرئيسية (تظهر بعد إدخال المجموع الصحيح) -->
+    <!-- حاوية الموقع الرئيسية -->
     <div class="container" id="main-content">
         <!-- قسم الشعارات -->
         <div class="brands-header">
@@ -248,7 +248,7 @@
             <button type="button" class="btn btn-submit" onclick="saveData()">حفظ بيانات الزبون</button>
             <button type="button" class="btn btn-qr" onclick="generateQR()">إنشاء باركود QR للزبون</button>
 
-            <!-- مكان ظهور الباركود الفعلي -->
+            <!-- مكان ظهور الباركود -->
             <div id="qrcode-container">
                 <div id="qrcode"></div>
             </div>
@@ -259,49 +259,40 @@
     <script>
         let generatedDeviceCode = "";
 
-        // دالة يتم تشغيلها فور تحميل الصفحة لإنشاء كود عشوائي فريد وثابت للجهاز
         window.onload = function() {
-            // التحقق مما إذا كان الموقع قد تم تفعيله مسبقاً على هذا الجهاز لكي لا يسأله في كل تحديث
             const isActivated = localStorage.getItem('siteActivated');
             if (isActivated === 'true') {
                 document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
-                loadSavedData();
+                // عند إدخال رابط الموقع مجدداً، نضمن عدم استرجاع بيانات قديمة وعرض حقول فارغة
+                localStorage.removeItem('savedCustomerData'); 
                 return;
             }
 
-            // إذا لم يكن مفعلاً، نتحقق من وجود كود جهاز محفوظ أو نولد واحداً جديداً من 4 أرقام
             let deviceCode = localStorage.getItem('deviceCode');
             if (!deviceCode) {
-                deviceCode = Math.floor(1000 + Math.random() * 9000).toString(); // يولد رقم عشوائي بين 1000 و 9999
+                deviceCode = Math.floor(1000 + Math.random() * 9000).toString();
                 localStorage.setItem('deviceCode', deviceCode);
             }
             generatedDeviceCode = deviceCode;
             document.getElementById('displayDeviceCode').innerText = generatedDeviceCode;
         }
 
-        // دالة التحقق من الرمز السري المعتمدة على نظرية الجمع (كود الجهاز + 2026)
         function checkAccessCode() {
             const enteredCode = document.getElementById('sitePassword').value.trim();
-            
-            // حساب المجموع الصحيح المطلوب
             const correctSum = Number(generatedDeviceCode) + 2026;
 
             if (Number(enteredCode) === correctSum) {
-                // حفظ حالة التفعيل حتى لا يغلق الموقع عند تحديث الصفحة
                 localStorage.setItem('siteActivated', 'true');
-                
-                // الانتقال للموقع الرئيسي
                 document.getElementById('lock-screen').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
-                
-                loadSavedData();
+                localStorage.removeItem('savedCustomerData'); // التأكيد على إفراغ الحقول عند أول فتح للموقع
             } else {
-                alert("الرمز السري غير صحيح! تأكد من جمع كود جهازك مع الرقم 2026.");
+                alert("الرمز السري غير صحيح!");
             }
         }
 
-        // دالة حفظ البيانات محلياً في ذاكرة المتصفح لمنع اختفائها
+        // حفظ البيانات مؤقتاً أثناء الجلسة الحالية فقط
         function saveData() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -315,22 +306,10 @@
 
             const data = { email, password, phone, date };
             localStorage.setItem('savedCustomerData', JSON.stringify(data));
-            alert("تم حفظ بيانات الزبون بنجاح وثبات في المتصفح!");
+            alert("تم حفظ بيانات الزبون مؤقتاً بنجاح!");
         }
 
-        // دالة استرجاع البيانات المكتوبة تلقائياً
-        function loadSavedData() {
-            const savedData = localStorage.getItem('savedCustomerData');
-            if(savedData) {
-                const data = JSON.parse(savedData);
-                document.getElementById('customerEmail').value = data.email || '';
-                document.getElementById('customerPassword').value = data.password || '';
-                document.getElementById('customerPhone').value = data.phone || '';
-                document.getElementById('customerDate').value = data.date || '';
-            }
-        }
-
-        // دالة إنشاء الباركود الفعلي لتقرأه الكاميرا بدقة
+        // إنشاء الباركود ومسح الكاش فوراً للزبون القادم
         function generateQR() {
             const email = document.getElementById('customerEmail').value;
             const password = document.getElementById('customerPassword').value;
@@ -338,7 +317,7 @@
             const date = document.getElementById('customerDate').value;
 
             if(!email || !password || !phone || !date) {
-                alert("يرجى ملأ جميع الحقول لتوليد الباركود الخاص بالزبون.");
+                alert("يرجى ملأ جميع الحقول لتوليد الباركود.");
                 return;
             }
 
@@ -355,6 +334,10 @@
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
+
+            // بمجرد توليد الباركود بنجاح، نحذف البيانات من الذاكرة المحلية 
+            // لكي تظهر الحقول فارغة تماماً عند فتح الرابط المرة القادمة لزبون جديد
+            localStorage.removeItem('savedCustomerData');
         }
     </script>
 
