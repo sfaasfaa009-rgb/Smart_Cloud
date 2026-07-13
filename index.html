@@ -28,6 +28,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none; /* تبدأ مخفية حتى يتم فحص الاشتراك */
         }
 
         h1 {
@@ -37,9 +38,9 @@
             font-size: 28px;
         }
 
-        /* ======== الصفحة الرئيسية (تبدأ مخفية إجبارياً لضمان الحماية) ======== */
+        /* ======== الأقسام الأساسية داخل الحاوية ======== */
         .main-page {
-            display: none;
+            display: block;
         }
 
         .field {
@@ -278,28 +279,15 @@
             display: block;
         }
 
-        /* ======== شاشة قفل الاشتراك ======== */
+        /* ======== شاشة قفل الاشتراك منفصلة ومستقلة تماماً ======== */
         #lockScreen {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            z-index: 99999;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .lock-card {
-            background: white;
             max-width: 450px;
-            width: 100%;
+            background: white;
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
             text-align: center;
         }
 
@@ -379,28 +367,27 @@
 
 <!-- ======== شاشة قفل الاشتراك الشهري ======== -->
 <div id="lockScreen">
-    <div class="lock-card">
-        <div class="lock-icon">🔒</div>
-        <div class="lock-title">تطبيق غير مفعّل</div>
-        <div class="lock-desc">يرجى الاشتراك أو تجديد اشتراكك الشهري لتتمكن من استخدام الخدمة وإنشاء أكواد QR لزبائنك.</div>
-        
-        <div class="lock-field">
-            <label style="text-align: center;">رمز الطلب (أرسله للمطور):</label>
-            <div class="code-display-box" id="deviceRequestCode">----</div>
-        </div>
-
-        <div class="lock-field">
-            <label>أدخل كود التفعيل هنا:</label>
-            <input type="text" id="activationInput" placeholder="0000" maxlength="8">
-        </div>
-
-        <button class="btn-green" id="activateBtn">🔓 تفعيل الاشتراك الآن</button>
-        
-        <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">تطبيق غير مفعّل</div>
+    <div class="lock-desc">يرجى الاشتراك أو تجديد اشتراكك الشهري لتتمكن من استخدام الخدمة وإنشاء أكواد QR لزبائنك.</div>
+    
+    <div class="lock-field">
+        <label style="text-align: center;">رمز الطلب (أرسله للمطور):</label>
+        <div class="code-display-box" id="deviceRequestCode">----</div>
     </div>
+
+    <div class="lock-field">
+        <label>أدخل كود التفعيل هنا:</label>
+        <input type="text" id="activationInput" placeholder="0000" maxlength="8">
+    </div>
+
+    <button class="btn-green" id="activateBtn">🔓 تفعيل الاشتراك الآن</button>
+    
+    <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
 </div>
 
-<div class="container">
+<!-- ======== الحاوية الأساسية للصفحات الداخلية ======== -->
+<div class="container" id="appContainer">
 
     <!-- ======== الصفحة الرئيسية ======== -->
     <div class="main-page" id="mainPage">
@@ -482,6 +469,7 @@ const REFERENCE_NUMBER = 2026;
 const SUBSCRIPTION_DAYS = 30; 
 
 // ======== العناصر ========
+const appContainer = document.getElementById('appContainer');
 const form = document.getElementById('infoForm');
 const email = document.getElementById('email');
 const password = document.getElementById('password');
@@ -522,10 +510,12 @@ function checkSubscription() {
     const params = new URLSearchParams(window.location.search);
     const hasData = params.get('data');
 
-    // 1. إذا كان الرابط مخصصاً لزبون لمسح الـ QR وعرض البيانات، تخطى القفل فوراً
+    // 1. إذا كان الرابط مخصصاً لزبون لمسح الـ QR وعرض البيانات، تخطى القفل فوراً واعرض صفحة البيانات
     if (hasData && hasData.trim() !== "") {
         lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
         mainPage.style.display = 'none';
+        infoPage.classList.add('active');
         return;
     }
 
@@ -536,13 +526,14 @@ function checkSubscription() {
     const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
 
     if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-        // الاشتراك فعال، اخف شاشة القفل واظهر الصفحة الرئيسية
+        // الاشتراك فعال، اخفِ شاشة القفل واظهر الحاوية والصفحة الرئيسية
         lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
         mainPage.style.display = 'block';
+        infoPage.classList.remove('active');
     } else {
-        // غير مفعّل أو منتهي، اظهر شاشة القفل بالكامل واخف بقية الواجهات لمنع الاستخدام
-        mainPage.style.display = 'none';
-        infoPage.style.display = 'none';
+        // غير مفعّل أو منتهي، اظهر شاشة القفل بالكامل واخفِ الحاوية تماماً لمنع الاستخدام
+        appContainer.style.display = 'none';
         
         let salt = localStorage.getItem('device_salt');
         if (!salt) {
@@ -553,7 +544,7 @@ function checkSubscription() {
         localStorage.removeItem('sub_status');
         
         deviceRequestCode.textContent = salt;
-        lockScreen.style.display = 'flex';
+        lockScreen.style.display = 'block';
     }
 }
 
@@ -568,6 +559,7 @@ activateBtn.addEventListener('click', function() {
         localStorage.setItem('sub_date', Date.now().toString());
         alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
         lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
         mainPage.style.display = 'block'; 
     } else {
         alert('❌ كود التفعيل غير صحيح! تأكد من الكود الممنوح لك من المطور.');
@@ -640,4 +632,4 @@ form.addEventListener('submit', function(e) {
     
     records = records.filter(r => r.email !== data.email);
     records.push(data);
-    localStorage.setItem('
+    localStorage.setItem('records', JSON.stringify
