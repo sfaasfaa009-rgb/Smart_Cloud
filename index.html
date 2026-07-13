@@ -21,7 +21,19 @@
             padding: 20px;
         }
 
-        /* حاوية التطبيق الأساسية */
+        /* 1. شاشة القفل تظهر افتراضياً دائماً كأول خط دفاع للأمان */
+        #lockScreen {
+            display: block; 
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        /* 2. حاوية التطبيق مخفية افتراضياً بالكامل ولا يمكن فتحها إلا برمجياً */
         .container {
             max-width: 700px;
             width: 100%;
@@ -29,7 +41,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: block; /* نتركها ظاهرة بشكل افتراضي والتحكم بها عبر الـ JS */
+            display: none; 
         }
 
         h1 {
@@ -280,18 +292,6 @@
             display: block;
         }
 
-        /* ======== شاشة قفل الاشتراك ======== */
-        #lockScreen {
-            display: none; 
-            width: 100%;
-            max-width: 450px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
         .lock-icon {
             font-size: 50px;
             margin-bottom: 15px;
@@ -357,6 +357,20 @@
             font-size: 14px;
         }
 
+        .reset-test-btn {
+            background: #e53e3e;
+            margin-top: 20px;
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 8px;
+            opacity: 0.6;
+        }
+        .reset-test-btn:hover {
+            opacity: 1;
+            box-shadow: none;
+            transform: none;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 18px; }
             .info-card { padding: 20px; }
@@ -367,7 +381,7 @@
 </head>
 <body>
 
-<!-- ======== شاشة قفل الاشتراك الشهري ======== -->
+<!-- ======== شاشة قفل الاشتراك الشهري (تظهر أولاً بشكل افتراضي) ======== -->
 <div id="lockScreen">
     <div class="lock-icon">🔒</div>
     <div class="lock-title">تطبيق غير مفعّل</div>
@@ -388,7 +402,7 @@
     <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
 </div>
 
-<!-- ======== حاوية التطبيق الأساسية ======== -->
+<!-- ======== حاوية التطبيق الأساسية (مخفية بشكل افتراضي بالكامل) ======== -->
 <div class="container" id="appContainer">
 
     <!-- ======== الصفحة الرئيسية ======== -->
@@ -427,6 +441,8 @@
             <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
             <p class="qr-note">📸 هذا الكود ينقل البيانات تلقائياً لأي جهاز يقوم بمسحه دون الحاجة لإنترنت أو قاعدة بيانات!</p>
         </div>
+
+        <button class="reset-test-btn" id="resetTestBtn">⚙️ مسح التفعيل الحالي (لغرض الاختبار)</button>
     </div>
 
     <!-- ======== صفحة عرض المعلومات ======== -->
@@ -498,6 +514,7 @@ const generateBtn = document.getElementById('generateQrBtn');
 const saveBtn = document.getElementById('saveBtn');
 const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
+const resetTestBtn = document.getElementById('resetTestBtn');
 
 // عناصر صفحة العرض
 const mainPage = document.getElementById('mainPage');
@@ -550,6 +567,7 @@ function checkSubscriptionAndShow() {
         mainPage.style.display = 'block';
         infoPage.classList.remove('active');
     } else {
+        // إذا كان الاشتراك تالفاً أو غير مفعل، نقفل الشاشة بصرامة
         appContainer.style.display = 'none';
         lockScreen.style.display = 'block';
         localStorage.removeItem('sub_status'); // تنظيف الاشتراك منتهي الصلاحية
@@ -565,12 +583,18 @@ activateBtn.addEventListener('click', function() {
         localStorage.setItem('sub_status', 'active');
         localStorage.setItem('sub_date', Date.now().toString());
         alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-        lockScreen.style.display = 'none';
-        appContainer.style.display = 'block';
-        mainPage.style.display = 'block';
+        checkSubscriptionAndShow();
     } else {
         alert('❌ كود التفعيل غير صحيح!');
     }
+});
+
+// زر لاختبار شاشة القفل وإزالة التفعيل يدوياً
+resetTestBtn.addEventListener('click', function() {
+    localStorage.removeItem('sub_status');
+    localStorage.removeItem('sub_date');
+    alert('🔄 تم إزالة التفعيل بنجاح! سيتم إعادة تحميل الصفحة الآن لتجربة شاشة القفل.');
+    window.location.reload();
 });
 
 // ======== إخفاء وإظهار الباسورد في الرئيسية ========
@@ -589,7 +613,6 @@ function safeBtoa(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
 
-// تعديل فك التشفير ليتعامل مع أي مشاكل في الرموز الغريبة
 function safeAtob(str) {
     try {
         return decodeURIComponent(escape(atob(str)));
@@ -613,32 +636,4 @@ function createShareableLink(dataObject) {
 function generateDynamicQR(dataObject) {
     const url = createShareableLink(dataObject);
     const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-    
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR...</p>`;
-    
-    const img = document.createElement('img');
-    img.src = apiUrl;
-    img.alt = 'Universal QR Code';
-    
-    img.onload = function() {
-        qrContainer.innerHTML = '';
-        qrContainer.appendChild(img);
-    };
-    
-    img.onerror = function() {
-        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
-    };
-}
-
-// ======== حفظ الاستمارة الرئيسية ========
-form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const data = {
-        email: email.value.trim(),
-        password: password.value,
-        phone: phone.value.trim(),
-        birthdate: birthdate.value
-    };
-   
+    const apiUrl = `https://api.qrserver.com/v1/cre
