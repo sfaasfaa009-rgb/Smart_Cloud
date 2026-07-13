@@ -451,115 +451,155 @@
 
 </div>
 
-<!-- وضع السكريبت بالأسفل لضمان تحميل العناصر بالكامل قبل بدء البرمجة -->
+<!-- السكريبت الآن معزول بالكامل عن أي مشاكل حظر متصفحات -->
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    
-    // نظام الذاكرة المرن والآمن لمنع أي تجميد
-    const safeStorage = {
-        getItem: function(key) {
-            try { return localStorage.getItem(key); } catch (e) { return window['__fallback_' + key] || null; }
-        },
-        setItem: function(key, val) {
-            try { localStorage.setItem(key, val); } catch (e) { window['__fallback_' + key] = val; }
-        },
-        removeItem: function(key) {
-            try { localStorage.removeItem(key); } catch (e) { delete window['__fallback_' + key]; }
-        }
-    };
-
-    window.onerror = function(message, source, lineno, colno, error) {
-        alert("حدث خطأ تقني في هاتفك: " + message + " في السطر " + lineno);
-        return false;
-    };
-
-    const REFERENCE_NUMBER = 2026; 
-    const SUBSCRIPTION_DAYS = 30; 
-
-    // جلب العناصر بعد اكتمال الـ DOM
-    const appContainer = document.getElementById('appContainer');
-    const form = document.getElementById('infoForm');
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-    const phone = document.getElementById('phone');
-    const birthdate = document.getElementById('birthdate');
-    const qrContainer = document.getElementById('qrCodeContainer');
-    const generateBtn = document.getElementById('generateQrBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const successMsg = document.getElementById('successMsg');
-    const toggleMainPassword = document.getElementById('toggleMainPassword');
-
-    const mainPage = document.getElementById('mainPage');
-    const infoPage = document.getElementById('infoPage');
-    const viewEmail = document.getElementById('viewEmail');
-    const viewPassword = document.getElementById('viewPassword');
-    const viewPhone = document.getElementById('viewPhone');
-    const viewBirthdate = document.getElementById('viewBirthdate');
-    const editBtn = document.getElementById('editBtn');
-    const saveEditBtn = document.getElementById('saveEditBtn');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const editBadge = document.getElementById('editBadge');
-
-    const lockScreen = document.getElementById('lockScreen');
-    const deviceRequestCode = document.getElementById('deviceRequestCode');
-    const activationInput = document.getElementById('activationInput');
-    const activateBtn = document.getElementById('activateBtn');
-
-    let records = [];
+// دالة تحقق ذكية للغاية؛ لا تشير إلى localStorage إلا بعد التأكد الكامل لتفادي انهيار الكود في أندرويد وآيفون
+function getLocalStorageSafe() {
     try {
-        const saved = safeStorage.getItem('records');
-        if (saved) records = JSON.parse(saved);
-    } catch(e) {
-        records = [];
-    }
-
-    let currentData = null;
-    let isEditMode = false;
-
-    // الفحص والتشغيل
-    function checkSubscription() {
-        const params = new URLSearchParams(window.location.search);
-        const hasData = params.get('data');
-
-        if (hasData && hasData.trim() !== "") {
-            lockScreen.style.display = 'none';
-            appContainer.style.display = 'block';
-            mainPage.style.display = 'none';
-            infoPage.classList.add('active');
-            return;
+        if (typeof window !== 'undefined' && ('localStorage' in window) && window.localStorage !== null) {
+            return window.localStorage;
         }
+    } catch (e) {
+        // إذا كان هناك حظر حماية من المتصفح، سنرجع null لتفادي الانهيار
+    }
+    return null;
+}
 
-        const subStatus = safeStorage.getItem('sub_status');
-        const subDate = safeStorage.getItem('sub_date');
-        const now = Date.now();
-        const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
-
-        if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-            lockScreen.style.display = 'none';
-            appContainer.style.display = 'block';
-            mainPage.style.display = 'block';
-            infoPage.classList.remove('active');
-        } else {
-            appContainer.style.display = 'none';
-            
-            let salt = safeStorage.getItem('device_salt');
-            if (!salt) {
-                salt = Math.floor(1000 + Math.random() * 9000).toString(); 
-                safeStorage.setItem('device_salt', salt);
+const safeStorage = {
+    getItem: function(key) {
+        try {
+            const storage = getLocalStorageSafe();
+            return storage ? storage.getItem(key) : (window['__fallback_' + key] || null);
+        } catch (e) {
+            return window['__fallback_' + key] || null;
+        }
+    },
+    setItem: function(key, val) {
+        try {
+            const storage = getLocalStorageSafe();
+            if (storage) {
+                storage.setItem(key, val);
+            } else {
+                window['__fallback_' + key] = val;
             }
-            
-            safeStorage.removeItem('sub_status');
-            
-            // هنا تم التأكيد على إظهار الرقم فوراً في صندوق الطلب
-            if (deviceRequestCode) {
-                deviceRequestCode.textContent = salt;
+        } catch (e) {
+            window['__fallback_' + key] = val;
+        }
+    },
+    removeItem: function(key) {
+        try {
+            const storage = getLocalStorageSafe();
+            if (storage) {
+                storage.removeItem(key);
+            } else {
+                delete window['__fallback_' + key];
             }
-            lockScreen.style.display = 'block';
+        } catch (e) {
+            delete window['__fallback_' + key];
         }
     }
+};
 
+// كاشف الأخطاء الشامل
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error("خطأ تقني:", message, "في السطر", lineno);
+    return true; // منع إظهار نافذة خطأ مزعجة للمستخدمين
+};
+
+const REFERENCE_NUMBER = 2026; 
+const SUBSCRIPTION_DAYS = 30; 
+
+// جلب العناصر فوراً وبشكل مباشر
+const appContainer = document.getElementById('appContainer');
+const form = document.getElementById('infoForm');
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const phone = document.getElementById('phone');
+const birthdate = document.getElementById('birthdate');
+const qrContainer = document.getElementById('qrCodeContainer');
+const generateBtn = document.getElementById('generateQrBtn');
+const saveBtn = document.getElementById('saveBtn');
+const successMsg = document.getElementById('successMsg');
+const toggleMainPassword = document.getElementById('toggleMainPassword');
+
+const mainPage = document.getElementById('mainPage');
+const infoPage = document.getElementById('infoPage');
+const viewEmail = document.getElementById('viewEmail');
+const viewPassword = document.getElementById('viewPassword');
+const viewPhone = document.getElementById('viewPhone');
+const viewBirthdate = document.getElementById('viewBirthdate');
+const editBtn = document.getElementById('editBtn');
+const saveEditBtn = document.getElementById('saveEditBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const editBadge = document.getElementById('editBadge');
+
+const lockScreen = document.getElementById('lockScreen');
+const deviceRequestCode = document.getElementById('deviceRequestCode');
+const activationInput = document.getElementById('activationInput');
+const activateBtn = document.getElementById('activateBtn');
+
+let records = [];
+try {
+    const saved = safeStorage.getItem('records');
+    if (saved) records = JSON.parse(saved);
+} catch(e) {
+    records = [];
+}
+
+let currentData = null;
+let isEditMode = false;
+
+// ==========================================
+//          نظام فحص الاشتراك والتوليد
+// ==========================================
+function checkSubscription() {
+    const params = new URLSearchParams(window.location.search);
+    const hasData = params.get('data');
+
+    if (hasData && hasData.trim() !== "") {
+        if (lockScreen) lockScreen.style.display = 'none';
+        if (appContainer) appContainer.style.display = 'block';
+        if (mainPage) mainPage.style.display = 'none';
+        if (infoPage) infoPage.classList.add('active');
+        return;
+    }
+
+    const subStatus = safeStorage.getItem('sub_status');
+    const subDate = safeStorage.getItem('sub_date');
+    const now = Date.now();
+    const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
+
+    if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
+        if (lockScreen) lockScreen.style.display = 'none';
+        if (appContainer) appContainer.style.display = 'block';
+        if (mainPage) mainPage.style.display = 'block';
+        if (infoPage) infoPage.classList.remove('active');
+    } else {
+        if (appContainer) appContainer.style.display = 'none';
+        
+        // التحقق من توليد الملح (Salt) بشكل آمن تماماً وبشكل مستقل
+        let salt = safeStorage.getItem('device_salt');
+        if (!salt || isNaN(salt) || salt.length !== 4) {
+            salt = Math.floor(1000 + Math.random() * 9000).toString(); 
+            safeStorage.setItem('device_salt', salt);
+        }
+        
+        safeStorage.removeItem('sub_status');
+        
+        // فرض حقن الكود فورا في واجهة المستخدم
+        if (deviceRequestCode) {
+            deviceRequestCode.textContent = salt;
+        }
+        if (lockScreen) lockScreen.style.display = 'block';
+    }
+}
+
+// زر التفعيل المباشر
+if (activateBtn) {
     activateBtn.addEventListener('click', function() {
-        const salt = safeStorage.getItem('device_salt');
+        let salt = safeStorage.getItem('device_salt');
+        if (!salt) salt = "1000"; // قيمة افتراضية احتياطية قصوى
+        
         const userEnteredCode = parseInt(activationInput.value.trim());
         const expectedCode = parseInt(salt) + REFERENCE_NUMBER;
 
@@ -567,14 +607,16 @@ document.addEventListener("DOMContentLoaded", function() {
             safeStorage.setItem('sub_status', 'active');
             safeStorage.setItem('sub_date', Date.now().toString());
             alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-            lockScreen.style.display = 'none';
-            appContainer.style.display = 'block';
-            mainPage.style.display = 'block'; 
+            if (lockScreen) lockScreen.style.display = 'none';
+            if (appContainer) appContainer.style.display = 'block';
+            if (mainPage) mainPage.style.display = 'block'; 
         } else {
             alert('❌ كود التفعيل غير صحيح!');
         }
     });
+}
 
+if (toggleMainPassword) {
     toggleMainPassword.addEventListener('click', function() {
         if(password.type === 'password') {
             password.type = 'text';
@@ -584,44 +626,18 @@ document.addEventListener("DOMContentLoaded", function() {
             this.textContent = '👁️';
         }
     });
+}
 
-    function safeBtoa(str) {
-        return btoa(unescape(encodeURIComponent(str)));
+function safeBtoa(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
+function safeAtob(str) {
+    try {
+        return decodeURIComponent(escape(atob(str)));
+    } catch(e) {
+        return null;
     }
+}
 
-    function safeAtob(str) {
-        try {
-            return decodeURIComponent(escape(atob(str)));
-        } catch(e) {
-            return null;
-        }
-    }
-
-    function createShareableLink(dataObject) {
-        const rawString = JSON.stringify(dataObject);
-        const encryptedData = safeBtoa(rawString);
-        return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
-    }
-
-    function generateDynamicQR(dataObject) {
-        const url = createShareableLink(dataObject);
-        const encodedUrl = encodeURIComponent(url);
-        const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-        
-        qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
-        
-        const img = document.createElement('img');
-        img.src = apiUrl;
-        img.alt = 'Universal QR Code';
-        
-        img.onload = function() {
-            qrContainer.innerHTML = '';
-            qrContainer.appendChild(img);
-        };
-        
-        img.onerror = function() {
-            qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
-        };
-    }
-
-    form.addEventLis
+function createShareableLink(data
