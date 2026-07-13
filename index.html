@@ -21,7 +21,7 @@
             padding: 20px;
         }
 
-        /* حاوية التطبيق الأساسية (مخفية حتى يتم التفعيل) */
+        /* حاوية التطبيق الأساسية */
         .container {
             max-width: 700px;
             width: 100%;
@@ -29,7 +29,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none; 
+            display: block; /* نتركها ظاهرة بشكل افتراضي والتحكم بها عبر الـ JS */
         }
 
         h1 {
@@ -282,7 +282,7 @@
 
         /* ======== شاشة قفل الاشتراك ======== */
         #lockScreen {
-            display: none; /* يتم إظهارها برمجياً فقط إذا لم يكن الحساب مفعلاً */
+            display: none; 
             width: 100%;
             max-width: 450px;
             background: white;
@@ -589,11 +589,16 @@ function safeBtoa(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
 
+// تعديل فك التشفير ليتعامل مع أي مشاكل في الرموز الغريبة
 function safeAtob(str) {
     try {
         return decodeURIComponent(escape(atob(str)));
     } catch(e) {
-        return null;
+        try {
+            return atob(str);
+        } catch(err) {
+            return null;
+        }
     }
 }
 
@@ -610,7 +615,7 @@ function generateDynamicQR(dataObject) {
     const encodedUrl = encodeURIComponent(url);
     const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
     
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
+    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR...</p>`;
     
     const img = document.createElement('img');
     img.src = apiUrl;
@@ -636,7 +641,4 @@ form.addEventListener('submit', function(e) {
         phone: phone.value.trim(),
         birthdate: birthdate.value
     };
-    
-    // تحديث السجلات محلياً في جهازك
-    records = records.filter(r => r.email !== data.email);
    
