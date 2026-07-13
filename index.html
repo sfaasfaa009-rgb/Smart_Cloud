@@ -3,7 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدونة المعلومات</title>
+    <title>مدونة المعلومات - Firebase</title>
+    
+    <!-- إضافة Firebase SDK -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase": "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js"
+            }
+        }
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -37,7 +48,6 @@
             font-size: 28px;
         }
 
-        /* ======== الصفحة الرئيسية ======== */
         .main-page {
             display: block;
         }
@@ -106,6 +116,12 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-pink {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
@@ -167,7 +183,6 @@
             font-weight: 600;
         }
 
-        /* ======== صفحة عرض المعلومات ======== */
         .info-page {
             display: none;
         }
@@ -278,6 +293,21 @@
             display: block;
         }
 
+        .error-msg {
+            background: #fed7d7;
+            color: #9b2c2c;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 18px; }
             .info-card { padding: 20px; }
@@ -290,13 +320,13 @@
 
 <div class="container">
 
-    <!-- ======== الصفحة الرئيسية ======== -->
+    <!-- الصفحة الرئيسية -->
     <div class="main-page" id="mainPage">
         <h1>📝 مدونة المعلومات</h1>
         
         <form id="infoForm">
             <div class="field">
-                <label>📧 البريد الإلكتروني</label>
+                <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
                 <input type="email" id="email" placeholder="example@mail.com" required>
             </div>
             <div class="field">
@@ -316,6 +346,7 @@
             </div>
             <button type="submit" id="saveBtn">💾 حفظ المعلومات</button>
             <div class="success-msg" id="successMsg">✅ تم حفظ المعلومات بنجاح!</div>
+            <div class="error-msg" id="errorMsg">❌ حدث خطأ، يرجى المحاولة مرة أخرى</div>
         </form>
 
         <div class="qr-section-box" id="qrSection">
@@ -328,7 +359,7 @@
         </div>
     </div>
 
-    <!-- ======== صفحة عرض المعلومات ======== -->
+    <!-- صفحة عرض المعلومات -->
     <div class="info-page" id="infoPage">
         <div class="info-card">
             <div class="card-title">📇 معلومات السجل</div>
@@ -358,254 +389,239 @@
                 <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
             </div>
 
-            <button class="back-btn" onclick="goBack()">🔙 العودة للصفحة الرئيسية</button>
+            <button class="back-btn" id="backBtn">🔙 العودة للصفحة الرئيسية</button>
         </div>
     </div>
 
 </div>
 
-<script>
-// ======== العناصر ========
-const form = document.getElementById('infoForm');
-const email = document.getElementById('email');
-const password = document.getElementById('password');
-const phone = document.getElementById('phone');
-const birthdate = document.getElementById('birthdate');
-const qrContainer = document.getElementById('qrCodeContainer');
-const generateBtn = document.getElementById('generateQrBtn');
-const saveBtn = document.getElementById('saveBtn');
-const successMsg = document.getElementById('successMsg');
-const toggleMainPassword = document.getElementById('toggleMainPassword');
+<script type="module">
+    // ======== استيراد Firebase ========
+    import { initializeApp } from 'firebase';
+    import { getDatabase, ref, set, get, update, remove, child } from 'firebase/database';
 
-// عناصر صفحة العرض
-const mainPage = document.getElementById('mainPage');
-const infoPage = document.getElementById('infoPage');
-const viewEmail = document.getElementById('viewEmail');
-const viewPassword = document.getElementById('viewPassword');
-const viewPhone = document.getElementById('viewPhone');
-const viewBirthdate = document.getElementById('viewBirthdate');
-const editBtn = document.getElementById('editBtn');
-const saveEditBtn = document.getElementById('saveEditBtn');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-const editBadge = document.getElementById('editBadge');
+    // ======== إعدادات Firebase (استبدلها بإعداداتك) ========
+    const firebaseConfig = {
+        apiKey: "AIzaSyExampleYourApiKeyHere",
+        authDomain: "your-project-id.firebaseapp.com",
+        databaseURL: "https://your-project-id-default-rtdb.firebaseio.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project-id.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef123456"
+    };
 
-let records = JSON.parse(localStorage.getItem('records')) || [];
-let currentData = null;
-let isEditMode = false;
+    // تهيئة Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-// ======== إخفاء وإظهار الباسورد في الرئيسية ========
-toggleMainPassword.addEventListener('click', function() {
-    if(password.type === 'password') {
-        password.type = 'text';
-        this.textContent = '🔒';
-    } else {
-        password.type = 'password';
-        this.textContent = '👁️';
+    // ======== العناصر ========
+    const form = document.getElementById('infoForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const phone = document.getElementById('phone');
+    const birthdate = document.getElementById('birthdate');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const generateBtn = document.getElementById('generateQrBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const successMsg = document.getElementById('successMsg');
+    const errorMsg = document.getElementById('errorMsg');
+    const toggleMainPassword = document.getElementById('toggleMainPassword');
+
+    const mainPage = document.getElementById('mainPage');
+    const infoPage = document.getElementById('infoPage');
+    const viewEmail = document.getElementById('viewEmail');
+    const viewPassword = document.getElementById('viewPassword');
+    const viewPhone = document.getElementById('viewPhone');
+    const viewBirthdate = document.getElementById('viewBirthdate');
+    const editBtn = document.getElementById('editBtn');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editBadge = document.getElementById('editBadge');
+    const backBtn = document.getElementById('backBtn');
+
+    let currentData = null;
+    let isEditMode = false;
+
+    // ======== دوال مساعدة ========
+    function sanitizeEmail(email) {
+        // Firebase لا يسمح بالنقاط في أسماء المسارات
+        return email.replace(/\./g, '_').replace(/@/g, '_at_');
     }
-});
 
-// ======== الحل السحري: ربط الرابط بالبريد فقط لثبات الكود نهائياً ========
-function createStaticShareableLink(userEmail) {
-    return window.location.origin + window.location.pathname + '?user=' + encodeURIComponent(userEmail);
-}
-
-// ======== توليد الـ QR الثابت ========
-function generateStaticQR(userEmail) {
-    const url = createStaticShareableLink(userEmail);
-    const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-    
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض QR الثابت...</p>`;
-    
-    const img = document.createElement('img');
-    img.src = apiUrl;
-    img.alt = 'Static QR Code';
-    
-    img.onload = function() {
-        qrContainer.innerHTML = '';
-        qrContainer.appendChild(img);
-    };
-    
-    img.onerror = function() {
-        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
-    };
-}
-
-// ======== حفظ الاستمارة الرئيسية ========
-form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const data = {
-        email: email.value.trim(),
-        password: password.value,
-        phone: phone.value.trim(),
-        birthdate: birthdate.value
-    };
-    
-    // تحديث البيانات أو إضافتها بداخل الجهاز
-    records = records.filter(r => r.email !== data.email);
-    records.push(data);
-    localStorage.setItem('records', JSON.stringify(records));
-    
-    // الـ QR يعتمد فقط على الإيميل ليبقى ثابتاً للأبد
-    generateStaticQR(data.email);
-    
-    successMsg.classList.add('show');
-    setTimeout(() => successMsg.classList.remove('show'), 3000);
-    
-    saveBtn.textContent = '✅ تم الحفظ!';
-    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
-    
-    form.reset();
-});
-
-// ======== زر توليد QR من السجلات ========
-generateBtn.addEventListener('click', function() {
-    if (records.length === 0) {
-        alert('⚠️ لا توجد سجلات محفوظة حالياً.');
-        return;
+    function showSuccess(msg) {
+        successMsg.textContent = msg || '✅ تمت العملية بنجاح!';
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 3000);
     }
-    generateStaticQR(records[records.length - 1].email);
-});
 
-// ======== تفعيل وضع التعديل ========
-function enableEditMode() {
-    isEditMode = true;
-    editBadge.classList.add('active');
-    
-    viewPassword.contentEditable = 'true';
-    viewPhone.contentEditable = 'true';
-    viewBirthdate.contentEditable = 'true';
-    
-    viewPassword.classList.add('editable');
-    viewPhone.classList.add('editable');
-    viewBirthdate.classList.add('editable');
-    
-    viewPassword.textContent = currentData.password;
-    
-    editBtn.style.display = 'none';
-    saveEditBtn.style.display = 'block';
-    cancelEditBtn.style.display = 'block';
-}
+    function showError(msg) {
+        errorMsg.textContent = msg || '❌ حدث خطأ، يرجى المحاولة مرة أخرى';
+        errorMsg.classList.add('show');
+        setTimeout(() => errorMsg.classList.remove('show'), 3000);
+    }
 
-// ======== إلغاء التعديل ========
-function disableEditMode() {
-    isEditMode = false;
-    editBadge.classList.remove('active');
-    
-    viewPassword.contentEditable = 'false';
-    viewPhone.contentEditable = 'false';
-    viewBirthdate.contentEditable = 'false';
-    
-    viewPassword.classList.remove('editable');
-    viewPhone.classList.remove('editable');
-    viewBirthdate.classList.remove('editable');
-    
-    renderProtectedData();
-    
-    editBtn.style.display = 'block';
-    saveEditBtn.style.display = 'none';
-    cancelEditBtn.style.display = 'none';
-}
-
-// ======== حماية وعرض البيانات بشكل آمن ========
-function renderProtectedData() {
-    if (currentData) {
-        viewEmail.textContent = currentData.email;
-        viewPhone.textContent = currentData.phone;
-        viewBirthdate.textContent = currentData.birthdate;
-        
-        viewPassword.innerHTML = `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
-        
-        document.getElementById('viewPassEye').addEventListener('click', function(e) {
-            e.stopPropagation();
-            if(viewPassword.textContent.includes('👁️')) {
-                viewPassword.innerHTML = `${currentData.password} <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">🔒 إخفاء</span>`;
-                renderProtectedDataEyeListener(true);
-            } else {
-                renderProtectedData();
-            }
+    // ======== دوال Firebase ========
+    async function saveToFirebase(email, data) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = ref(database, 'users/' + sanitized);
+        await set(userRef, {
+            email: email,
+            password: data.password,
+            phone: data.phone,
+            birthdate: data.birthdate,
+            lastUpdated: new Date().toISOString()
         });
     }
-}
 
-function renderProtectedDataEyeListener(isShown) {
-    document.getElementById('viewPassEye').addEventListener('click', function(e) {
-        e.stopPropagation();
-        if(isShown) {
-            renderProtectedData();
+    async function readFromFirebase(email) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = ref(database, 'users/' + sanitized);
+        const snapshot = await get(userRef);
+        return snapshot.val();
+    }
+
+    async function updateInFirebase(email, data) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = ref(database, 'users/' + sanitized);
+        await update(userRef, {
+            password: data.password,
+            phone: data.phone,
+            birthdate: data.birthdate,
+            lastUpdated: new Date().toISOString()
+        });
+    }
+
+    // ======== توليد QR ثابت ========
+    function createStaticShareableLink(userEmail) {
+        return window.location.origin + window.location.pathname + '?user=' + encodeURIComponent(userEmail);
+    }
+
+    function generateStaticQR(userEmail) {
+        if (!userEmail) {
+            qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ الرجاء إدخال بريد إلكتروني أولاً</p>';
+            return;
+        }
+
+        const url = createStaticShareableLink(userEmail);
+        const encodedUrl = encodeURIComponent(url);
+        const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
+        
+        qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض QR الثابت...</p>`;
+        
+        const img = document.createElement('img');
+        img.src = apiUrl;
+        img.alt = 'Static QR Code';
+        
+        img.onload = function() {
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(img);
+        };
+        
+        img.onerror = function() {
+            qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
+        };
+    }
+
+    // ======== حفظ البيانات ========
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = {
+            email: email.value.trim(),
+            password: password.value,
+            phone: phone.value.trim(),
+            birthdate: birthdate.value
+        };
+
+        try {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ جاري الحفظ...';
+
+            // حفظ في Firebase
+            await saveToFirebase(data.email, data);
+            
+            showSuccess('✅ تم حفظ المعلومات بنجاح في السحابة!');
+            
+            // توليد QR
+            generateStaticQR(data.email);
+            
+            form.reset();
+        } catch (error) {
+            console.error('خطأ في الحفظ:', error);
+            showError('❌ فشل الحفظ: ' + error.message);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 حفظ المعلومات';
         }
     });
-}
 
-editBtn.addEventListener('click', enableEditMode);
-cancelEditBtn.addEventListener('click', disableEditMode);
-
-// ======== حفظ التعديل دون تغيير الـ QR (مطلبك الأساسي) ========
-saveEditBtn.addEventListener('click', function() {
-    const newData = {
-        email: viewEmail.textContent.trim(),
-        password: viewPassword.textContent.replace(' 🔒 إخفاء', '').trim(),
-        phone: viewPhone.textContent.trim(),
-        birthdate: viewBirthdate.textContent.trim()
-    };
-    
-    if (!newData.password || !newData.phone || !newData.birthdate) {
-        alert('⚠️ الحقول لا يمكن أن تكون فارغة');
-        return;
-    }
-    
-    // تحديث ذاكرة الجهاز بالأكواد الجديدة
-    let index = records.findIndex(r => r.email === newData.email);
-    if (index !== -1) {
-        records[index] = newData;
-    } else {
-        records.push(newData);
-    }
-    localStorage.setItem('records', JSON.stringify(records));
-    
-    currentData = newData;
-    disableEditMode();
-    
-    alert('✅ تم حفظ التعديلات بنجاح! كود الـ QR الخاص بك ثابت ولم يتغير، وسيقرأ التحديثات الجديدة تلقائياً عند مسحه.');
-});
-
-// ======== العودة للرئيسية ========
-function goBack() {
-    infoPage.classList.remove('active');
-    mainPage.style.display = 'block';
-    window.history.pushState({}, '', window.location.pathname);
-    disableEditMode();
-}
-
-// ======== قراءة البيانات المحدثة بناءً على الإيميل المرفق بالرابط ========
-function loadDataFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const userEmail = params.get('user'); // قراءة الإيميل من الـ QR
-    
-    if (userEmail) {
-        const localData = records.find(r => r.email === decodeURIComponent(userEmail));
-        
-        if (localData) {
-            currentData = localData;
-            mainPage.style.display = 'none';
-            infoPage.classList.add('active');
-            renderProtectedData();
-            disableEditMode();
-            return true;
-        } else {
-            alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا الحساب في هذا الجهاز.');
+    // ======== زر توليد QR ========
+    generateBtn.addEventListener('click', function() {
+        const emailInput = document.getElementById('email').value.trim();
+        if (!emailInput) {
+            alert('⚠️ الرجاء إدخال بريد إلكتروني أولاً في الحقل أعلاه');
+            return;
         }
+        generateStaticQR(emailInput);
+    });
+
+    // ======== إظهار/إخفاء كلمة المرور ========
+    toggleMainPassword.addEventListener('click', function() {
+        if(password.type === 'password') {
+            password.type = 'text';
+            this.textContent = '🔒';
+        } else {
+            password.type = 'password';
+            this.textContent = '👁️';
+        }
+    });
+
+    // ======== عرض البيانات من Firebase ========
+    async function loadDataFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const userEmail = params.get('user');
+        
+        if (userEmail) {
+            const decodedEmail = decodeURIComponent(userEmail);
+            
+            try {
+                const data = await readFromFirebase(decodedEmail);
+                
+                if (data) {
+                    currentData = data;
+                    mainPage.style.display = 'none';
+                    infoPage.classList.add('active');
+                    renderProtectedData(data);
+                    disableEditMode();
+                    
+                    // إضافة زر العودة
+                    return true;
+                } else {
+                    alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا البريد في السحابة.');
+                    // العودة للرئيسية
+                    goBack();
+                }
+            } catch (error) {
+                console.error('خطأ في القراءة:', error);
+                alert('❌ حدث خطأ في الاتصال بقاعدة البيانات');
+                goBack();
+            }
+        }
+        return false;
     }
-    return false;
-}
 
-// ======== بدء العمل الحقيقي ========
-const isInfoView = loadDataFromURL();
-if (!isInfoView && records.length > 0) {
-    generateStaticQR(records[records.length - 1].email);
-}
-</script>
-
-</body>
-</html>
+    // ======== عرض البيانات بشكل آمن ========
+    function renderProtectedData(data) {
+        if (data) {
+            viewEmail.textContent = data.email;
+            viewPhone.textContent = data.phone;
+            viewBirthdate.textContent = data.birthdate;
+            
+            viewPassword.innerHTML = `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
+            
+            // إضافة حدث إظهار كلمة المرور
+            setTimeout(() => {
+                const eyeSpan = document.getElementById('viewPassEye');
+                if (eyeSpan) {
+                    eyeSpan.addEventLis
