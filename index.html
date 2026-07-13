@@ -3,554 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدونة المعلومات - Firebase</title>
-    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js">
-    </script>
+    <title>مدونة المعلومات</title>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 700px;
-            width: 100%;
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            text-align: center;
-            color: #1a202c;
-            margin-bottom: 25px;
-            font-size: 28px;
-        }
-        .main-page {
-            display: block;
-        }
-        .field {
-            margin-bottom: 18px;
-            position: relative;
-        }
-        .field label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #2d3748;
-            font-size: 14px;
-        }
-        .field input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            background: #f7fafc;
-            transition: 0.3s;
-        }
-        .field input:focus {
-            border-color: #667eea;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-        .password-container {
-            position: relative;
-        }
-        .toggle-password {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #718096;
-            font-size: 18px;
-            user-select: none;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: 0.3s;
-        }
-        button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .btn-pink {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .btn-pink:hover {
-            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
-        }
-        .btn-green {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        }
-        .btn-green:hover {
-            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
-        }
-        .btn-orange {
-            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-        }
-        .btn-orange:hover {
-            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
-        }
-        .qr-section-box {
-            margin: 25px 0;
-            padding: 20px;
-            background: #f7fafc;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px dashed #cbd5e0;
-        }
-        .qr-code-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px 0;
-            min-height: 200px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-        }
-        .qr-code-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-        .qr-note {
-            color: #718096;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        .loading {
-            color: #667eea;
-            font-weight: 600;
-        }
-        .info-page {
-            display: none;
-        }
-        .info-page.active {
-            display: block;
-        }
-        .info-card {
-            background: white;
-            border-radius: 20px;
-            padding: 35px;
-            border: 3px solid #667eea;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-        }
-        .info-card .card-title {
-            text-align: center;
-            color: #1a202c;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-        }
-        .info-card .info-field {
-            margin-bottom: 20px;
-        }
-        .info-card .info-field label {
-            display: block;
-            font-weight: 700;
-            color: #4a5568;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-        .info-card .info-field .value-box {
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            font-size: 16px;
-            color: #2d3748;
-            font-weight: 500;
-            word-break: break-all;
-            background: #f7fafc;
-            transition: 0.3s;
-        }
-        .info-card .info-field .value-box.email-box {
-            border-color: #667eea;
-            background: #ebf4ff;
-            color: #2b6cb0;
-        }
-        .info-card .info-field .value-box.password-box {
-            border-color: #9f7aea;
-            background: #faf5ff;
-            color: #6b46c1;
-        }
-        .info-card .info-field .value-box.phone-box {
-            border-color: #48bb78;
-            background: #f0fff4;
-            color: #276749;
-        }
-        .info-card .info-field .value-box.birthdate-box {
-            border-color: #ed8936;
-            background: #fffaf0;
-            color: #c05621;
-        }
-        .info-card .info-field .value-box.editable {
-            background: white;
-            border-color: #e53e3e;
-            border-width: 2px;
-            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2);
-        }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        .action-buttons button {
-            flex: 1;
-            min-width: 120px;
-        }
-        .back-btn {
-            margin-top: 10px;
-            background: #718096;
-        }
-        .edit-mode-badge {
-            text-align: center;
-            background: #fefcbf;
-            color: #975a16;
-            padding: 8px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            border: 2px solid #f6c23e;
-            display: none;
-        }
-        .edit-mode-badge.active {
-            display: block;
-        }
-        .success-msg {
-            background: #c6f6d5;
-            color: #22543d;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            text-align: center;
-            font-weight: 600;
-            display: none;
-        }
-        .success-msg.show {
-            display: block;
-        }
-        .error-msg {
-            background: #fed7d7;
-            color: #9b2c2c;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            text-align: center;
-            font-weight: 600;
-            display: none;
-        }
-        .error-msg.show {
-            display: block;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 18px;
-            }
-            .info-card {
-                padding: 20px;
-            }
-            .action-buttons {
-                flex-direction: column;
-            }
-            .action-buttons button {
-                min-width: auto;
-            }
-        }
+        /* نفس الـ CSS السابق مع إزالة أي ذكر لزر الحفظ */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { max-width: 700px; width: 100%; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { text-align: center; color: #1a202c; margin-bottom: 25px; }
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-weight: 600; color: #2d3748; margin-bottom: 6px; }
+        .field input { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; background: #f7fafc; }
+        .field input:focus { border-color: #667eea; outline: none; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 5px; }
+        .btn-pink { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .qr-section-box { margin: 25px 0; padding: 20px; background: #f7fafc; border-radius: 16px; text-align: center; border: 2px dashed #cbd5e0; }
+        .qr-code-container { display: flex; justify-content: center; align-items: center; min-height: 200px; background: white; border-radius: 12px; padding: 15px; }
+        .qr-code-container img { max-width: 100%; height: auto; }
+        .success-msg { background: #c6f6d5; color: #22543d; padding: 10px; border-radius: 10px; margin-top: 10px; text-align: center; font-weight: 600; display: none; }
+        .success-msg.show { display: block; }
+        .error-msg { background: #fed7d7; color: #9b2c2c; padding: 10px; border-radius: 10px; margin-top: 10px; text-align: center; font-weight: 600; display: none; }
+        .error-msg.show { display: block; }
+        .info-page { display: none; }
+        .info-page.active { display: block; }
+        .info-card { background: white; border-radius: 20px; padding: 35px; border: 3px solid #667eea; box-shadow: 0 8px 30px rgba(102,126,234,0.2); }
+        .info-card .card-title { text-align: center; color: #1a202c; font-size: 24px; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #667eea; }
+        .info-card .info-field { margin-bottom: 20px; }
+        .info-card .info-field label { display: block; font-weight: 700; color: #4a5568; font-size: 14px; margin-bottom: 6px; }
+        .info-card .info-field .value-box { padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; color: #2d3748; font-weight: 500; word-break: break-all; background: #f7fafc; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .action-buttons button { flex: 1; min-width: 120px; }
+        .back-btn { margin-top: 10px; background: #718096; }
+        .btn-green { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .btn-orange { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .edit-mode-badge { text-align: center; background: #fefcbf; color: #975a16; padding: 8px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; border: 2px solid #f6c23e; display: none; }
+        .edit-mode-badge.active { display: block; }
+        .password-container { position: relative; }
+        .toggle-password { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #718096; font-size: 18px; user-select: none; }
+        .qr-note { color: #718096; font-size: 12px; margin-top: 10px; }
+        .loading { color: #667eea; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- الصفحة الرئيسية -->
-        <div class="main-page" id="mainPage">
-            <h1>📝 مدونة المعلومات</h1>
-            <form id="infoForm">
-                <div class="field">
-                    <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
-                    <input type="email" id="email" placeholder="example@mail.com" required>
-                </div>
-                <div class="field">
-                    <label>🔑 كلمة المرور</label>
-                    <div class="password-container">
-                        <input type="password" id="password" placeholder="********" required>
-                        <span class="toggle-password" id="toggleMainPassword">👁️</span>
-                    </div>
-                </div>
-                <div class="field">
-                    <label>📞 رقم الهاتف</label>
-                    <input type="tel" id="phone" placeholder="05xxxxxxxx" required>
-                </div>
-                <div class="field">
-                    <label>🎂 تاريخ الميلاد</label>
-                    <input type="date" id="birthdate" required>
-                </div>
-                <button type="submit" id="saveBtn">💾 حفظ المعلومات</button>
-                <div class="success-msg" id="successMsg">✅ تم حفظ المعلومات بنجاح!</div>
-                <div class="error-msg" id="errorMsg">❌ حدث خطأ، يرجى المحاولة مرة أخرى</div>
-            </form>
-            <div class="qr-section-box" id="qrSection">
-                <h3>📱 رمز QR الثابت والدائم</h3>
-                <div class="qr-code-container" id="qrCodeContainer">
-                    <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
-                </div>
-                <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
-                <p class="qr-note">📸 هذا الكود ثابت تماماً لن يتغير شكله أبداً حتى لو قمت بتعديل بياناتك لاحقاً</p>
+<div class="container">
+    <!-- الصفحة الرئيسية -->
+    <div class="main-page" id="mainPage">
+        <h1>📝 مدونة المعلومات</h1>
+        <form id="infoForm">
+            <div class="field">
+                <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
             </div>
-        </div>
-
-        <!-- صفحة عرض المعلومات -->
-        <div class="info-page" id="infoPage">
-            <div class="info-card">
-                <div class="card-title">📇 معلومات السجل</div>
-                <div class="edit-mode-badge" id="editBadge">✏️ وضع التعديل نشط</div>
-                <div class="info-field">
-                    <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
-                    <div class="value-box email-box" id="viewEmail">-</div>
+            <div class="field">
+                <label>🔑 كلمة المرور</label>
+                <div class="password-container">
+                    <input type="password" id="password" placeholder="********" required>
+                    <span class="toggle-password" id="toggleMainPassword">👁️</span>
                 </div>
-                <div class="info-field">
-                    <label>🔑 كلمة المرور</label>
-                    <div class="value-box password-box" id="viewPassword">-</div>
-                </div>
-                <div class="info-field">
-                    <label>📞 رقم الهاتف</label>
-                    <div class="value-box phone-box" id="viewPhone">-</div>
-                </div>
-                <div class="info-field">
-                    <label>🎂 تاريخ الميلاد</label>
-                    <div class="value-box birthdate-box" id="viewBirthdate">-</div>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات</button>
-                    <button class="btn-green" id="saveEditBtn" style="display:none;">💾 حفظ التعديلات</button>
-                    <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
-                </div>
-                <button class="back-btn" id="backBtn">🔙 العودة للصفحة الرئيسية</button>
             </div>
+            <div class="field">
+                <label>📞 رقم الهاتف</label>
+                <input type="tel" id="phone" placeholder="05xxxxxxxx" required>
+            </div>
+            <div class="field">
+                <label>🎂 تاريخ الميلاد</label>
+                <input type="date" id="birthdate" required>
+            </div>
+            <button type="submit" id="saveBtn">💾 حفظ المعلومات</button>
+            <div class="success-msg" id="successMsg">✅ تم حفظ المعلومات بنجاح!</div>
+            <div class="error-msg" id="errorMsg">❌ حدث خطأ، يرجى المحاولة مرة أخرى</div>
+        </form>
+        <div class="qr-section-box">
+            <h3>📱 رمز QR الثابت والدائم</h3>
+            <div class="qr-code-container" id="qrCodeContainer">
+                <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
+            </div>
+            <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
+            <p class="qr-note">📸 هذا الكود ثابت تماماً لن يتغير شكله أبداً حتى لو قمت بتعديل بياناتك لاحقاً</p>
         </div>
     </div>
 
-    <script>
-        // ======== إعدادات Firebase ========
-        const firebaseConfig = {
-            apiKey: "AIzaSyA4lriXrmqYd7QSFx2SNSSGzHgEwN4GA3k",
-            authDomain: "smart-cloud-72bf4.firebaseapp.com",
-            projectId: "smart-cloud-72bf4",
-            storageBucket: "smart-cloud-72bf4.firebasestorage.app",
-            messagingSenderId: "144954324296",
-            appId: "1:144954324296:web:78e16c729a2865ad32af7d",
-            measurementId: "G-S9F3E7NK56"
+    <!-- صفحة عرض المعلومات -->
+    <div class="info-page" id="infoPage">
+        <div class="info-card">
+            <div class="card-title">📇 معلومات السجل</div>
+            <div class="edit-mode-badge" id="editBadge">✏️ وضع التعديل نشط</div>
+            <div class="info-field">
+                <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
+                <div class="value-box email-box" id="viewEmail" style="border-color:#667eea; background:#ebf4ff; color:#2b6cb0;">-</div>
+            </div>
+            <div class="info-field">
+                <label>🔑 كلمة المرور</label>
+                <div class="value-box password-box" id="viewPassword" style="border-color:#9f7aea; background:#faf5ff; color:#6b46c1;">-</div>
+            </div>
+            <div class="info-field">
+                <label>📞 رقم الهاتف</label>
+                <div class="value-box phone-box" id="viewPhone" style="border-color:#48bb78; background:#f0fff4; color:#276749;">-</div>
+            </div>
+            <div class="info-field">
+                <label>🎂 تاريخ الميلاد</label>
+                <div class="value-box birthdate-box" id="viewBirthdate" style="border-color:#ed8936; background:#fffaf0; color:#c05621;">-</div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات</button>
+                <button class="btn-green" id="saveEditBtn" style="display:none;">💾 حفظ التعديلات</button>
+                <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
+            </div>
+            <button class="back-btn" id="backBtn">🔙 العودة للصفحة الرئيسية</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // إعدادات Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4lriXrmqYd7QSFx2SNSSGzHgEwN4GA3k",
+        authDomain: "smart-cloud-72bf4.firebaseapp.com",
+        projectId: "smart-cloud-72bf4",
+        storageBucket: "smart-cloud-72bf4.firebasestorage.app",
+        messagingSenderId: "144954324296",
+        appId: "1:144954324296:web:78e16c729a2865ad32af7d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // العناصر
+    const form = document.getElementById('infoForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const phone = document.getElementById('phone');
+    const birthdate = document.getElementById('birthdate');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const generateBtn = document.getElementById('generateQrBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const successMsg = document.getElementById('successMsg');
+    const errorMsg = document.getElementById('errorMsg');
+    const toggleMainPassword = document.getElementById('toggleMainPassword');
+
+    const mainPage = document.getElementById('mainPage');
+    const infoPage = document.getElementById('infoPage');
+    const viewEmail = document.getElementById('viewEmail');
+    const viewPassword = document.getElementById('viewPassword');
+    const viewPhone = document.getElementById('viewPhone');
+    const viewBirthdate = document.getElementById('viewBirthdate');
+    const editBtn = document.getElementById('editBtn');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editBadge = document.getElementById('editBadge');
+    const backBtn = document.getElementById('backBtn');
+
+    let currentData = null;
+    let isEditMode = false;
+
+    function sanitizeEmail(email) {
+        return email.replace(/\./g, '_').replace(/@/g, '_at_');
+    }
+
+    function showSuccess(msg) {
+        successMsg.textContent = msg || '✅ تمت العملية بنجاح!';
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 3000);
+    }
+
+    function showError(msg) {
+        errorMsg.textContent = msg || '❌ حدث خطأ، يرجى المحاولة مرة أخرى';
+        errorMsg.classList.add('show');
+        setTimeout(() => errorMsg.classList.remove('show'), 3000);
+    }
+
+    async function saveToFirebase(email, data) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = database.ref('users/' + sanitized);
+        await userRef.set({
+            email: email,
+            password: data.password,
+            phone: data.phone,
+            birthdate: data.birthdate,
+            lastUpdated: new Date().toISOString()
+        });
+    }
+
+    async function readFromFirebase(email) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = database.ref('users/' + sanitized);
+        const snapshot = await userRef.once('value');
+        return snapshot.val();
+    }
+
+    async function updateInFirebase(email, data) {
+        const sanitized = sanitizeEmail(email);
+        const userRef = database.ref('users/' + sanitized);
+        await userRef.update({
+            password: data.password,
+            phone: data.phone,
+            birthdate: data.birthdate,
+            lastUpdated: new Date().toISOString()
+        });
+    }
+
+    function createStaticShareableLink(userEmail) {
+        return window.location.origin + window.location.pathname + '?user=' + encodeURIComponent(userEmail);
+    }
+
+    function generateStaticQR(userEmail) {
+        if (!userEmail) {
+            qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ الرجاء إدخال بريد إلكتروني أولاً</p>';
+            return;
+        }
+        const url = createStaticShareableLink(userEmail);
+        const encodedUrl = encodeURIComponent(url);
+        const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
+        qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض QR الثابت...</p>`;
+        const img = document.createElement('img');
+        img.src = apiUrl;
+        img.alt = 'Static QR Code';
+        img.onload = function() {
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(img);
         };
+        img.onerror = function() {
+            qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
+        };
+    }
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // ======== العناصر ========
-        const form = document.getElementById('infoForm');
-        const email = document.getElementById('email');
-        const password = document.getElementById('password');
-        const phone = document.getElementById('phone');
-        const birthdate = document.getElementById('birthdate');
-        const qrContainer = document.getElementById('qrCodeContainer');
-        const generateBtn = document.getElementById('generateQrBtn');
-        const saveBtn = document.getElementById('saveBtn');
-        const successMsg = document.getElementById('successMsg');
-        const errorMsg = document.getElementById('errorMsg');
-        const toggleMainPassword = document.getElementById('toggleMainPassword');
-
-        const mainPage = document.getElementById('mainPage');
-        const infoPage = document.getElementById('infoPage');
-        const viewEmail = document.getElementById('viewEmail');
-        const viewPassword = document.getElementById('viewPassword');
-        const viewPhone = document.getElementById('viewPhone');
-        const viewBirthdate = document.getElementById('viewBirthdate');
-        const editBtn = document.getElementById('editBtn');
-        const saveEditBtn = document.getElementById('saveEditBtn');
-        const cancelEditBtn = document.getElementById('cancelEditBtn');
-        const editBadge = document.getElementById('editBadge');
-        const backBtn = document.getElementById('backBtn');
-
-        let currentData = null;
-        let isEditMode = false;
-
-        function sanitizeEmail(email) {
-            return email.replace(/\./g, '_').replace(/@/g, '_at_');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = {
+            email: email.value.trim(),
+            password: password.value,
+            phone: phone.value.trim(),
+            birthdate: birthdate.value
+        };
+        try {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ جاري الحفظ...';
+            await saveToFirebase(data.email, data);
+            showSuccess('✅ تم حفظ المعلومات بنجاح في السحابة!');
+            generateStaticQR(data.email);
+            form.reset();
+        } catch (error) {
+            console.error('خطأ في الحفظ:', error);
+            showError('❌ فشل الحفظ: ' + error.message);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 حفظ المعلومات';
         }
+    });
 
-        function showSuccess(msg) {
-            successMsg.textContent = msg || '✅ تمت العملية بنجاح!';
-            successMsg.classList.add('show');
-            setTimeout(() => successMsg.classList.remove('show'), 3000);
+    generateBtn.addEventListener('click', function() {
+        const emailInput = document.getElementById('email').value.trim();
+        if (!emailInput) {
+            alert('⚠️ الرجاء إدخال بريد إلكتروني أولاً في الحقل أعلاه');
+            return;
         }
+        generateStaticQR(emailInput);
+    });
 
-        function showError(msg) {
-            errorMsg.textContent = msg || '❌ حدث خطأ، يرجى المحاولة مرة أخرى';
-            errorMsg.classList.add('show');
-            setTimeout(() => errorMsg.classList.remove('show'), 3000);
+    toggleMainPassword.addEventListener('click', function() {
+        if (password.type === 'password') {
+            password.type = 'text';
+            this.textContent = '🔒';
+        } else {
+            password.type = 'password';
+            this.textContent = '👁️';
         }
+    });
 
-        async function saveToFirebase(email, data) {
-            const sanitized = sanitizeEmail(email);
-            const userRef = database.ref('users/' + sanitized);
-            await userRef.set({
-                email: email,
-                password: data.password,
-                phone: data.phone,
-                birthdate: data.birthdate,
-                lastUpdated: new Date().toISOString()
-            });
-        }
-
-        async function readFromFirebase(email) {
-            const sanitized = sanitizeEmail(email);
-            const userRef = database.ref('users/' + sanitized);
-            const snapshot = await userRef.once('value');
-            return snapshot.val();
-        }
-
-        async function updateInFirebase(email, data) {
-            const sanitized = sanitizeEmail(email);
-            const userRef = database.ref('users/' + sanitized);
-            await userRef.update({
-                password: data.password,
-                phone: data.phone,
-                birthdate: data.birthdate,
-                lastUpdated: new Date().toISOString()
-            });
-        }
-
-        function createStaticShareableLink(userEmail) {
-            return window.location.origin + window.location.pathname + '?user=' + encodeURIComponent(userEmail);
-        }
-
-        function generateStaticQR(userEmail) {
-            if (!userEmail) {
-                qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ الرجاء إدخال بريد إلكتروني أولاً</p>';
-                return;
-            }
-            const url = createStaticShareableLink(userEmail);
-            const encodedUrl = encodeURIComponent(url);
-            const apiUrl =
-                `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-            qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض QR الثابت...</p>`;
-            const img = document.createElement('img');
-            img.src = apiUrl;
-            img.alt = 'Static QR Code';
-            img.onload = function() {
-                qrContainer.innerHTML = '';
-                qrContainer.appendChild(img);
-            };
-            img.onerror = function() {
-                qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
-            };
-        }
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const data = {
-                email: email.value.trim(),
-                password: password.value,
-                phone: phone.value.trim(),
-                birthdate: birthdate.value
-            };
+    async function loadDataFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const userEmail = params.get('user');
+        if (userEmail) {
+            const decodedEmail = decodeURIComponent(userEmail);
             try {
-                saveBtn.disabled = true;
-                saveBtn.textContent = '⏳ جاري الحفظ...';
-                await saveToFirebase(data.email, data);
-                showSuccess('✅ تم حفظ المعلومات بنجاح في السحابة!');
-                generateStaticQR(data.email);
-                form.reset();
-            } catch (error) {
-                console.error('خطأ في الحفظ:', error);
-                showError('❌ فشل الحفظ: ' + error.message);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 حفظ المعلومات';
-            }
-        });
-
-        generateBtn.addEventListener('click', function() {
-            const emailInput = document.getElementById('email').value.trim();
-            if (!emailInput) {
-                alert('⚠️ الرجاء إدخال بريد إلكتروني أولاً في الحقل أعلاه');
-                return;
-            }
-            generateStaticQR(emailInput);
-        });
-
-        toggleMainPassword.addEventListener('click', function() {
-            if (password.type === 'password') {
-                password.type = 'text';
-                this.textContent = '🔒';
-            } else {
-                password.type = 'password';
-                this.textContent = '👁️';
-            }
-        });
-
-        async function loadDataFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const userEmail = params.get('user');
-            if (userEmail) {
-                const decodedEmail = decodeURIComponent(userEmail);
-                try {
-                    const data = await readFromFirebase(decodedEmail);
-                    if (data) {
-                        currentData = data;
-                        mainPage.style.display = 'none';
-                        infoPage.classList.add('active');
-                        renderProtectedData(data);
-                        disableEditMode();
-                        return true;
-                    } else {
-                        alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا البريد في السحابة.');
-                        goBack();
-                    }
-                } catch (error) {
-                    console.error('خطأ في القراءة:', error);
-                    alert('❌ حدث خطأ في الاتصال بقاعدة البيانات');
+                const data = await readFromFirebase(decodedEmail);
+                if (data) {
+                    currentData = data;
+                    mainPage.style.display = 'none';
+                    infoPage.classList.add('active');
+                    renderProtectedData(data);
+                    disableEditMode();
+                    return true;
+                } else {
+                    alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا البريد في السحابة.');
                     goBack();
                 }
+            } catch (error) {
+                console.error('خطأ في القراءة:', error);
+                alert('❌ حدث خطأ في الاتصال بقاعدة البيانات');
+                goBack();
             }
-            return false;
         }
+        return false;
+    }
 
-        function renderProtectedData(data) {
-            if (data) {
-                viewEmail.textContent = data.email;
-                viewPhone.textContent = data.phone;
-                viewBirthdate.textContent = data.birthdate;
-                viewPassword.innerHTML =
-                    `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
-                setTimeout(() => {
-                    cons
+    function renderProtectedData(data) {
+        if (data) {
+            viewEmail.textContent = data.email;
+            viewPhone.textContent = data.phone;
+            viewBirthdate.textContent = data.birthdate;
+            viewPassword.innerHTML = `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
+            setTimeout(() => {
+                const eyeSpan = document.getElementById('viewPassEye');
+                if (eyeSpan) {
+                    eyeSpan.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (viewPassword.textContent.includes('👁️')) {
+                            viewPassword.innerHTML = `${data.password} <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">🔒 إخفاء</span>`;
+                            const newEye = document.getElementById('viewPassEye');
+                            if (newEye) {
+                                newEye.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    renderProtectedData(data);
+                                });
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        }
+    }
+
+    function enableEditMode() {
+        isEditMode = true;
+        editBadge.classList.add('active');
+        viewPassword.contentEditable = 'true';
+        viewPhone.contentEditable = 'true';
+        viewBirthdate.contentEditable = 'true';
+        viewPassword.classList.add('editable');
+        viewPhone.classList.add('editable');
+        viewBirthdate.classList.add('editable');
+        viewPassword.textContent = currentData.password;
+        editBtn.style.display = 'none';
+        saveEditBtn.style.display = 'block';
+        cancelEditBtn.style.display = 'block';
+    }
+
+    function disableEditMode() {
+        isEditMode = false;
+        editBadge.classList.remove('active');
+        viewPassword.contentEditable = 'false';
+        viewPhone.contentEditable = 'false';
+        viewBirthdate.contentEditable = 'false';
+        viewPassword.classList.remove('editable');
+        viewPhone.classList.remove('editable');
+        viewBirthdate.classList.remove('editable');
+        if (currentData) {
+            renderProtectedData(currentData);
+        }
+        editBtn.style.display = 'block';
+        saveEditBtn.style.display = 'none';
+        cancelEditBtn.style.display = 'none';
+    }
+
+    editBtn.addEventListener('click', enableEditMode);
+    cancelEditBtn.addEventListener('click', disableEditMode);
+
+    saveEditBtn.addEventListener('click', async function() {
+        const passwordText = viewPassword.textContent.replace(' 🔒 إخفاء', '').trim();
+        const phoneText = viewPhone.textContent.trim();
+        const birthdateText = viewBirthdate.textContent.trim();
+        if (!passwordText || !phoneText || !birthdateText) {
+            alert('⚠️ الحقول لا يمكن أن تكون فارغة');
+            return;
+        }
+        const newData = {
+            email: viewEmail.textContent.trim(),
+            password: passwordText,
+            phone: phoneText,
+            birthdate: birthdateText
+        };
+        try {
+            saveEditBtn.disabled = true;
+            saveEditBtn.textContent = '⏳ جاري الحفظ...';
+            await updateInFirebase(newData.email, newData);
+            currentData = newData;
+            disableEditMode();
+            showSuccess('✅ تم حفظ التعديلات في السحابة بنجاح!');
+            alert('✅ تم حفظ التعديلات بنجاح! كود الـ QR الخاص بك ثابت ولم يتغير.');
+        } catch (error) {
+            console.error('خطأ في التحديث:', error);
+            showError('❌ فشل تحديث البيانات: ' + error.message);
+        } finally {
+            saveEditBtn.disabled = false;
+            saveEditBtn.textContent = '💾 حفظ التعديلات';
+        }
+    });
+
+    function goBack() {
+        infoPage.classList.remove('active');
+        mainPage.style.display = 'block';
+        window.history.pushState({}, '', window.location.pathname);
+        disableEditMode();
+    }
+
+    backBtn.addEventListener('click', goBack);
+    loadDataFromURL();
+    console.log('✅ التطبيق جاهز مع Firebase!');
+</script>
+</body>
+</html>
