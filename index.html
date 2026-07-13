@@ -21,19 +21,6 @@
             padding: 20px;
         }
 
-        /* 1. شاشة القفل تظهر افتراضياً دائماً كأول خط دفاع للأمان */
-        #lockScreen {
-            display: block; 
-            width: 100%;
-            max-width: 450px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        /* 2. حاوية التطبيق مخفية افتراضياً بالكامل ولا يمكن فتحها إلا برمجياً */
         .container {
             max-width: 700px;
             width: 100%;
@@ -41,7 +28,6 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none; 
         }
 
         h1 {
@@ -51,9 +37,119 @@
             font-size: 28px;
         }
 
+        /* ======== شاشة القفل ======== */
+        .lock-screen {
+            display: block;
+            text-align: center;
+        }
+
+        .lock-screen.hidden {
+            display: none;
+        }
+
+        .lock-icon {
+            font-size: 70px;
+            margin: 20px 0;
+        }
+
+        .lock-screen h2 {
+            color: #e53e3e;
+            margin-bottom: 20px;
+        }
+
+        .random-number-box {
+            background: #1a202c;
+            color: #48bb78;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 15px;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            user-select: all;
+        }
+
+        .lock-screen .info-text {
+            color: #4a5568;
+            margin: 15px 0;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .lock-screen .field {
+            margin: 20px 0;
+        }
+
+        .lock-screen .field input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 22px;
+            text-align: center;
+            letter-spacing: 8px;
+            font-weight: 700;
+            background: #f7fafc;
+            transition: 0.3s;
+        }
+
+        .lock-screen .field input:focus {
+            border-color: #667eea;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .lock-screen button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: 0.3s;
+        }
+
+        .lock-screen button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-msg {
+            color: #e53e3e;
+            font-weight: 600;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .days-left {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
         /* ======== الصفحة الرئيسية ======== */
         .main-page {
             display: block;
+        }
+
+        .main-page.hidden {
+            display: none;
         }
 
         .field {
@@ -292,122 +388,54 @@
             display: block;
         }
 
-        .lock-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-
-        .lock-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #e53e3e;
-            margin-bottom: 10px;
-        }
-
-        .lock-desc {
-            font-size: 14px;
-            color: #4a5568;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .code-display-box {
-            background: #edf2f7;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #2d3748;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            border: 2px dashed #cbd5e0;
-        }
-
-        .lock-field {
-            margin-bottom: 15px;
-            text-align: right;
-        }
-
-        .lock-field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-
-        .lock-field input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #cbd5e0;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: 2px;
-        }
-
-        .whatsapp-contact {
-            display: inline-block;
-            margin-top: 15px;
-            color: #38a169;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .reset-test-btn {
-            background: #e53e3e;
-            margin-top: 20px;
-            font-size: 12px;
-            padding: 8px;
-            border-radius: 8px;
-            opacity: 0.6;
-        }
-        .reset-test-btn:hover {
-            opacity: 1;
-            box-shadow: none;
-            transform: none;
-        }
-
         @media (max-width: 600px) {
             .container { padding: 18px; }
             .info-card { padding: 20px; }
             .action-buttons { flex-direction: column; }
             .action-buttons button { min-width: auto; }
+            .random-number-box { font-size: 36px; letter-spacing: 8px; }
         }
     </style>
 </head>
 <body>
 
-<!-- ======== شاشة قفل الاشتراك الشهري (تظهر أولاً بشكل افتراضي) ======== -->
-<div id="lockScreen">
-    <div class="lock-icon">🔒</div>
-    <div class="lock-title">تطبيق غير مفعّل</div>
-    <div class="lock-desc">يرجى الاشتراك أو تجديد اشتراكك الشهري لتتمكن من استخدام الخدمة وإنشاء أكواد QR لزبائنك.</div>
-    
-    <div class="lock-field">
-        <label>رمز الطلب (أرسله للمطور):</label>
-        <div class="code-display-box" id="deviceRequestCode">----</div>
+<div class="container">
+
+    <!-- ======== شاشة القفل ======== -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-icon">🔒</div>
+        <h2>التطبيق مقفل</h2>
+        
+        <div class="random-number-box" id="randomNumberDisplay">----</div>
+        
+        <p class="info-text">
+            📌 <strong>للحصول على رمز الدخول:</strong><br>
+            ١. أرسل الرقم الظاهر أعلاه إلى مدير النظام<br>
+            ٢. سيتم تزويدك برمز الدخول<br>
+            ٣. الرمز صالح لمدة 30 يومًا
+        </p>
+        
+        <div id="daysLeftInfo" style="display:none;">
+            <span class="days-left">✅ متبقي <span id="daysRemaining">0</span> يوم</span>
+        </div>
+        
+        <div class="field">
+            <label>🔑 أدخل رمز الدخول</label>
+            <input type="text" id="unlockCode" placeholder="----" maxlength="10" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        
+        <button id="unlockBtn">🔓 فتح التطبيق</button>
+        <div class="error-msg" id="errorMsg">❌ رمز الدخول غير صحيح، تأكد من الرقم وحاول مجددًا</div>
     </div>
-
-    <div class="lock-field">
-        <label>أدخل كود التفعيل هنا:</label>
-        <input type="text" id="activationInput" placeholder="0000" maxlength="8">
-    </div>
-
-    <button class="btn-green" id="activateBtn">🔓 تفعيل الاشتراك الآن</button>
-    
-    <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
-</div>
-
-<!-- ======== حاوية التطبيق الأساسية (مخفية بشكل افتراضي بالكامل) ======== -->
-<div class="container" id="appContainer">
 
     <!-- ======== الصفحة الرئيسية ======== -->
-    <div class="main-page" id="mainPage">
+    <div class="main-page hidden" id="mainPage">
         <h1>📝 مدونة المعلومات</h1>
+        
+        <!-- مؤقت الأيام المتبقية -->
+        <div style="text-align:center; margin-bottom:20px;">
+            <span class="days-left">⏳ متبقي <span id="daysLeftTop">0</span> يوم حتى انتهاء الصلاحية</span>
+        </div>
         
         <form id="infoForm">
             <div class="field">
@@ -441,8 +469,6 @@
             <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
             <p class="qr-note">📸 هذا الكود ينقل البيانات تلقائياً لأي جهاز يقوم بمسحه دون الحاجة لإنترنت أو قاعدة بيانات!</p>
         </div>
-
-        <button class="reset-test-btn" id="resetTestBtn">⚙️ مسح التفعيل الحالي (لغرض الاختبار)</button>
     </div>
 
     <!-- ======== صفحة عرض المعلومات ======== -->
@@ -482,27 +508,20 @@
 </div>
 
 <script>
-// تأمين توليد رمز الطلب فوراً ومباشرة دون انتظار أي عملية أخرى
-let currentSalt = "5042"; // القيمة الافتراضية الاحتياطية
-try {
-    let savedSalt = localStorage.getItem('device_salt');
-    if (!savedSalt || isNaN(savedSalt) || savedSalt.length !== 4) {
-        savedSalt = Math.floor(1000 + Math.random() * 9000).toString();
-        localStorage.setItem('device_salt', savedSalt);
-    }
-    currentSalt = savedSalt;
-} catch (e) {
-    currentSalt = "5042";
-}
-
-// حقن الرمز مباشرة في شاشة القفل لمنع ظهور الخطوط "----" مطلقاً
-document.getElementById('deviceRequestCode').textContent = currentSalt;
+// ======== الإعدادات الأساسية ========
+const SECRET_KEY = 2026; // الرقم السري الذي تجمع به
+const LOCK_DURATION_DAYS = 30; // مدة القفل 30 يوم
 
 // ======== العناصر ========
-const appContainer = document.getElementById('appContainer');
 const lockScreen = document.getElementById('lockScreen');
-const activationInput = document.getElementById('activationInput');
-const activateBtn = document.getElementById('activateBtn');
+const mainPage = document.getElementById('mainPage');
+const randomNumberDisplay = document.getElementById('randomNumberDisplay');
+const unlockCode = document.getElementById('unlockCode');
+const unlockBtn = document.getElementById('unlockBtn');
+const errorMsg = document.getElementById('errorMsg');
+const daysLeftInfo = document.getElementById('daysLeftInfo');
+const daysRemaining = document.getElementById('daysRemaining');
+const daysLeftTop = document.getElementById('daysLeftTop');
 
 const form = document.getElementById('infoForm');
 const email = document.getElementById('email');
@@ -514,10 +533,8 @@ const generateBtn = document.getElementById('generateQrBtn');
 const saveBtn = document.getElementById('saveBtn');
 const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
-const resetTestBtn = document.getElementById('resetTestBtn');
 
 // عناصر صفحة العرض
-const mainPage = document.getElementById('mainPage');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
@@ -528,112 +545,119 @@ const saveEditBtn = document.getElementById('saveEditBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const editBadge = document.getElementById('editBadge');
 
-let records = [];
-try {
-    records = JSON.parse(localStorage.getItem('records')) || [];
-} catch(e) {
-    records = [];
-}
+let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
 
-// الثوابت الحسابية لعملية التحقق والتفعيل
-const REFERENCE_NUMBER = 2026;
-const SUBSCRIPTION_DAYS = 30;
+// ======== دوال نظام الحماية ========
 
-// ======== نظام التحقق من الاشتراك الحقيقي لصفحات الهواتف والـ QR ========
-function checkSubscriptionAndShow() {
-    const params = new URLSearchParams(window.location.search);
-    const hasData = params.get('data');
+// توليد رقم عشوائي من 4 أرقام
+function generateRandom4Digit() {
+    return Math.floor(1000 + Math.random() * 9000);
+}
 
-    // 1. إذا كان المستخدم يفتح رابط QR لمشاهدة معلومات، نظهرها مباشرة دون شاشة قفل
-    if (hasData && hasData.trim() !== "") {
-        lockScreen.style.display = 'none';
-        appContainer.style.display = 'block';
-        mainPage.style.display = 'none';
-        infoPage.classList.add('active');
+// حساب رمز الدخول الصحيح
+function calculateUnlockCode(randomNum) {
+    return randomNum + SECRET_KEY;
+}
+
+// التحقق من صلاحية القفل
+function checkLockStatus() {
+    const lockData = JSON.parse(localStorage.getItem('lockData'));
+    
+    if (!lockData) {
+        // أول استخدام - إنشاء قفل جديد
+        createNewLock();
+        return false;
+    }
+    
+    const now = new Date().getTime();
+    const expiryTime = lockData.expiryTime;
+    
+    if (now >= expiryTime) {
+        // انتهت الصلاحية - إنشاء قفل جديد
+        createNewLock();
+        return false;
+    }
+    
+    // ما زال صالحًا - عرض التطبيق
+    const daysLeft = Math.ceil((expiryTime - now) / (1000 * 60 * 60 * 24));
+    updateDaysDisplay(daysLeft);
+    showMainApp();
+    return true;
+}
+
+// إنشاء قفل جديد
+function createNewLock() {
+    const randomNum = generateRandom4Digit();
+    const expiryTime = new Date().getTime() + (LOCK_DURATION_DAYS * 24 * 60 * 60 * 1000);
+    
+    localStorage.setItem('lockData', JSON.stringify({
+        randomNumber: randomNum,
+        expiryTime: expiryTime,
+        isLocked: true
+    }));
+    
+    randomNumberDisplay.textContent = randomNum;
+    daysLeftInfo.style.display = 'none';
+    lockScreen.classList.remove('hidden');
+    mainPage.classList.add('hidden');
+}
+
+// تحديث عرض الأيام المتبقية
+function updateDaysDisplay(daysLeft) {
+    daysLeftTop.textContent = daysLeft;
+    daysRemaining.textContent = daysLeft;
+}
+
+// عرض التطبيق الرئيسي
+function showMainApp() {
+    lockScreen.classList.add('hidden');
+    mainPage.classList.remove('hidden');
+    
+    const lockData = JSON.parse(localStorage.getItem('lockData'));
+    if (lockData) {
+        const now = new Date().getTime();
+        const daysLeft = Math.ceil((lockData.expiryTime - now) / (1000 * 24 * 60 * 60));
+        updateDaysDisplay(daysLeft);
+    }
+}
+
+// محاولة فتح القفل
+unlockBtn.addEventListener('click', function() {
+    const code = unlockCode.value.trim();
+    const lockData = JSON.parse(localStorage.getItem('lockData'));
+    
+    if (!lockData) {
+        errorMsg.classList.add('show');
         return;
     }
-
-    // 2. إذا كان يدخل للتطبيق الأساسي، نتحقق من حالة الاشتراك المخزن محلياً
-    const subStatus = localStorage.getItem('sub_status');
-    const subDate = localStorage.getItem('sub_date');
-    const now = Date.now();
-    const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
-
-    if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-        lockScreen.style.display = 'none';
-        appContainer.style.display = 'block';
-        mainPage.style.display = 'block';
-        infoPage.classList.remove('active');
+    
+    const correctCode = calculateUnlockCode(lockData.randomNumber);
+    
+    if (parseInt(code) === correctCode) {
+        // تم الفتح بنجاح
+        errorMsg.classList.remove('show');
+        lockData.isLocked = false;
+        localStorage.setItem('lockData', JSON.stringify(lockData));
+        showMainApp();
+        updateDaysDisplay(LOCK_DURATION_DAYS);
     } else {
-        // إذا كان الاشتراك تالفاً أو غير مفعل، نقفل الشاشة بصرامة
-        appContainer.style.display = 'none';
-        lockScreen.style.display = 'block';
-        localStorage.removeItem('sub_status'); // تنظيف الاشتراك منتهي الصلاحية
+        errorMsg.classList.add('show');
+        unlockCode.value = '';
+        setTimeout(() => errorMsg.classList.remove('show'), 4000);
+    }
+});
+
+// إظهار مؤقت الأيام عند وجود قفل سابق منتهي
+function showDaysIfExpired() {
+    const lockData = JSON.parse(localStorage.getItem('lockData'));
+    if (lockData && new Date().getTime() < lockData.expiryTime) {
+        const daysLeft = Math.ceil((lockData.expiryTime - new Date().getTime()) / (1000 * 24 * 60 * 60));
+        daysRemaining.textContent = daysLeft;
+        daysLeftInfo.style.display = 'block';
     }
 }
-
-// ======== تشغيل زر التفعيل الجديد بذكاء ========
-activateBtn.addEventListener('click', function() {
-    const userEnteredCode = parseInt(activationInput.value.trim());
-    const expectedCode = parseInt(currentSalt) + REFERENCE_NUMBER;
-
-    if (userEnteredCode === expectedCode) {
-        localStorage.setItem('sub_status', 'active');
-        localStorage.setItem('sub_date', Date.now().toString());
-        alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-        checkSubscriptionAndShow();
-    } else {
-        alert('❌ كود التفعيل غير صحيح!');
-    }
-});
-
-// زر لاختبار شاشة القفل وإزالة التفعيل يدوياً
-resetTestBtn.addEventListener('click', function() {
-    localStorage.removeItem('sub_status');
-    localStorage.removeItem('sub_date');
-    alert('🔄 تم إزالة التفعيل بنجاح! سيتم إعادة تحميل الصفحة الآن لتجربة شاشة القفل.');
-    window.location.reload();
-});
 
 // ======== إخفاء وإظهار الباسورد في الرئيسية ========
-toggleMainPassword.addEventListener('click', function() {
-    if(password.type === 'password') {
-        password.type = 'text';
-        this.textContent = '🔒';
-    } else {
-        password.type = 'password';
-        this.textContent = '👁️';
-    }
-});
-
-// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
-function safeBtoa(str) {
-    return btoa(unescape(encodeURIComponent(str)));
-}
-
-function safeAtob(str) {
-    try {
-        return decodeURIComponent(escape(atob(str)));
-    } catch(e) {
-        try {
-            return atob(str);
-        } catch(err) {
-            return null;
-        }
-    }
-}
-
-// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
-function createShareableLink(dataObject) {
-    const rawString = JSON.stringify(dataObject);
-    const encryptedData = safeBtoa(rawString);
-    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
-}
-
-// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
-function generateDynamicQR(dataObject) {
-    const url = createShareableLink(dataObject);
-    const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://api.qrserver.com/v1/cre
+toggleMainPassword.addEventLis
