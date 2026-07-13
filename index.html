@@ -278,6 +278,95 @@
             display: block;
         }
 
+        /* ======== شاشة قفل الاشتراك ======== */
+        #lockScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .lock-card {
+            background: white;
+            max-width: 450px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .lock-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .lock-desc {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .code-display-box {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .lock-field {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .lock-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .lock-field input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .whatsapp-contact {
+            display: inline-block;
+            margin-top: 15px;
+            color: #38a169;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 18px; }
             .info-card { padding: 20px; }
@@ -287,6 +376,30 @@
     </style>
 </head>
 <body>
+
+<!-- ======== شاشة قفل الاشتراك الشهري ======== -->
+<div id="lockScreen">
+    <div class="lock-card">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">تطبيق غير مفعّل</div>
+        <div class="lock-desc">يرجى الاشتراك أو تجديد اشتراكك الشهري لتتمكن من استخدام الخدمة وإنشاء أكواد QR لزبائنك.</div>
+        
+        <div class="lock-field">
+            <label style="text-align: center;">رمز الطلب (أرسله للمطور):</label>
+            <div class="code-display-box" id="deviceRequestCode">----</div>
+        </div>
+
+        <div class="lock-field">
+            <label>أدخل كود التفعيل هنا:</label>
+            <input type="text" id="activationInput" placeholder="0000" maxlength="8">
+        </div>
+
+        <button class="btn-green" id="activateBtn">🔓 تفعيل الاشتراك الآن</button>
+        
+        <!-- يمكنك تعديل هذا الرابط ووضع رقمك المباشر لتسهيل تواصلهم معك -->
+        <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
+    </div>
+</div>
 
 <div class="container">
 
@@ -365,6 +478,10 @@
 </div>
 
 <script>
+// ======== إعدادات الاشتراك والمفاتيح السرية ========
+const REFERENCE_NUMBER = 2026; // الرقم المرجعي للمعادلة
+const SUBSCRIPTION_DAYS = 30; // مدة الاشتراك باليوم
+
 // ======== العناصر ========
 const form = document.getElementById('infoForm');
 const email = document.getElementById('email');
@@ -389,9 +506,76 @@ const saveEditBtn = document.getElementById('saveEditBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const editBadge = document.getElementById('editBadge');
 
+// عناصر شاشة القفل
+const lockScreen = document.getElementById('lockScreen');
+const deviceRequestCode = document.getElementById('deviceRequestCode');
+const activationInput = document.getElementById('activationInput');
+const activateBtn = document.getElementById('activateBtn');
+
 let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
+
+// ==========================================
+//    نظــام حمايـة واشتـراك صـاحب المحـل
+// ==========================================
+function checkSubscription() {
+    const params = new URLSearchParams(window.location.search);
+    const hasData = params.get('data');
+
+    // إذا كان الرابط يخص زبون يقرأ البيانات، تخطى الحماية تماماً
+    if (hasData) {
+        lockScreen.style.display = 'none';
+        return;
+    }
+
+    // التحقق من حالة الاشتراك المخزن محلياً
+    const subStatus = localStorage.getItem('sub_status');
+    const subDate = localStorage.getItem('sub_date');
+    const now = Date.now();
+
+    // حساب الـ 30 يوم بالملي ثانية
+    const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
+
+    if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
+        // الاشتراك فعال ومستمر
+        lockScreen.style.display = 'none';
+    } else {
+        // غير مفعّل أو منتهي، نقوم بإنتاج كود عشوائي ثابت للجهاز إذا لم يكن موجوداً
+        let salt = localStorage.getItem('device_salt');
+        if (!salt) {
+            salt = Math.floor(1000 + Math.random() * 9000).toString(); // إنتاج 4 أرقام عشوائية
+            localStorage.setItem('device_salt', salt);
+        }
+        
+        // مسح أي قيم اشتراك منتهية لضمان الحماية
+        localStorage.removeItem('sub_status');
+        
+        deviceRequestCode.textContent = salt;
+        lockScreen.style.display = 'flex';
+    }
+}
+
+// تفعيل الكود عبر المعادلة المحددة
+activateBtn.addEventListener('click', function() {
+    const salt = localStorage.getItem('device_salt');
+    const userEnteredCode = parseInt(activationInput.value.trim());
+    
+    // حساب كود التفعيل المتوقع: الرمز العشوائي للجهاز + 2026
+    const expectedCode = parseInt(salt) + REFERENCE_NUMBER;
+
+    if (userEnteredCode === expectedCode) {
+        localStorage.setItem('sub_status', 'active');
+        localStorage.setItem('sub_date', Date.now().toString());
+        alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
+        lockScreen.style.display = 'none';
+    } else {
+        alert('❌ كود التفعيل غير صحيح! تأكد من الكود الممنوح لك من المطور.');
+    }
+});
+
+// تشغيل فحص الاشتراك فوراً
+checkSubscription();
 
 // ======== إخفاء وإظهار الباسورد في الرئيسية ========
 toggleMainPassword.addEventListener('click', function() {
@@ -457,174 +641,6 @@ form.addEventListener('submit', function(e) {
         birthdate: birthdate.value
     };
     
-    // تحديث السجلات محلياً في جهازك
     records = records.filter(r => r.email !== data.email);
     records.push(data);
-    localStorage.setItem('records', JSON.stringify(records));
-    
-    // توليد كود الـ QR شامل البيانات ليتمكن أي جهاز من قراءته مباشرة
-    generateDynamicQR(data);
-    
-    successMsg.classList.add('show');
-    setTimeout(() => successMsg.classList.remove('show'), 3000);
-    
-    saveBtn.textContent = '✅ تم الحفظ!';
-    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
-    
-    form.reset();
-});
-
-// ======== زر توليد QR من السجلات المخزنة ========
-generateBtn.addEventListener('click', function() {
-    if (records.length === 0) {
-        alert('⚠️ لا توجد سجلات محفوظة حالياً في هذا الجهاز.');
-        return;
-    }
-    generateDynamicQR(records[records.length - 1]);
-});
-
-// ======== تفعيل وضع التعديل ========
-function enableEditMode() {
-    isEditMode = true;
-    editBadge.classList.add('active');
-    
-    viewPassword.contentEditable = 'true';
-    viewPhone.contentEditable = 'true';
-    viewBirthdate.contentEditable = 'true';
-    
-    viewPassword.classList.add('editable');
-    viewPhone.classList.add('editable');
-    viewBirthdate.classList.add('editable');
-    
-    viewPassword.textContent = currentData.password;
-    
-    editBtn.style.display = 'none';
-    saveEditBtn.style.display = 'block';
-    cancelEditBtn.style.display = 'block';
-}
-
-// ======== إلغاء التعديل ========
-function disableEditMode() {
-    isEditMode = false;
-    editBadge.classList.remove('active');
-    
-    viewPassword.contentEditable = 'false';
-    viewPhone.contentEditable = 'false';
-    viewBirthdate.contentEditable = 'false';
-    
-    viewPassword.classList.remove('editable');
-    viewPhone.classList.remove('editable');
-    viewBirthdate.classList.remove('editable');
-    
-    renderProtectedData();
-    
-    editBtn.style.display = 'block';
-    saveEditBtn.style.display = 'none';
-    cancelEditBtn.style.display = 'none';
-}
-
-// ======== حماية وعرض البيانات بشكل آمن ========
-function renderProtectedData() {
-    if (currentData) {
-        viewEmail.textContent = currentData.email;
-        viewPhone.textContent = currentData.phone;
-        viewBirthdate.textContent = currentData.birthdate;
-        
-        viewPassword.innerHTML = `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
-        
-        document.getElementById('viewPassEye').addEventListener('click', function(e) {
-            e.stopPropagation();
-            if(viewPassword.textContent.includes('👁️')) {
-                viewPassword.innerHTML = `${currentData.password} <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">🔒 إخفاء</span>`;
-                renderProtectedDataEyeListener(true);
-            } else {
-                renderProtectedData();
-            }
-        });
-    }
-}
-
-function renderProtectedDataEyeListener(isShown) {
-    document.getElementById('viewPassEye').addEventListener('click', function(e) {
-        e.stopPropagation();
-        if(isShown) {
-            renderProtectedData();
-        }
-    });
-}
-
-editBtn.addEventListener('click', enableEditMode);
-cancelEditBtn.addEventListener('click', disableEditMode);
-
-// ======== حفظ التعديل محلياً وتوليد QR محدث بالبيانات الجديدة ========
-saveEditBtn.addEventListener('click', function() {
-    const newData = {
-        email: viewEmail.textContent.trim(),
-        password: viewPassword.textContent.replace(' 🔒 إخفاء', '').trim(),
-        phone: viewPhone.textContent.trim(),
-        birthdate: viewBirthdate.textContent.trim()
-    };
-    
-    if (!newData.password || !newData.phone || !newData.birthdate) {
-        alert('⚠️ الحقول لا يمكن أن تكون فارغة');
-        return;
-    }
-    
-    // حفظ التعديل محلياً في الذاكرة لتسهيل إدارة حساباتك
-    let index = records.findIndex(r => r.email === newData.email);
-    if (index !== -1) {
-        records[index] = newData;
-    } else {
-        records.push(newData);
-    }
-    localStorage.setItem('records', JSON.stringify(records));
-    
-    currentData = newData;
-    disableEditMode();
-    
-    alert('✅ تم حفظ التعديلات محلياً! يرجى إعادة توليد كود الـ QR الجديد وإعطائه للزبون ليعرض معلوماته المعدلة.');
-});
-
-// ======== العودة للرئيسية ========
-function goBack() {
-    infoPage.classList.remove('active');
-    mainPage.style.display = 'block';
-    window.history.pushState({}, '', window.location.pathname);
-    disableEditMode();
-}
-
-// ======== قراءة وفك تشفير البيانات من الرابط مباشرة ليعمل على أي هاتف ========
-function loadDataFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const encryptedData = params.get('data'); // البحث عن البيانات المشفرة بالكامل
-    
-    if (encryptedData) {
-        const decryptedString = safeAtob(decodeURIComponent(encryptedData));
-        
-        if (decryptedString) {
-            try {
-                currentData = JSON.parse(decryptedString);
-                mainPage.style.display = 'none';
-                infoPage.classList.add('active');
-                renderProtectedData();
-                disableEditMode();
-                return true;
-            } catch (err) {
-                alert('⚠️ عذراً، الرابط غير صالح أو تالف.');
-            }
-        } else {
-            alert('⚠️ عذراً، تعذر فك تشفير البيانات المرفقة بالرابط.');
-        }
-    }
-    return false;
-}
-
-// ======== بدء العمل الحقيقي عند تحميل الصفحة ========
-const isInfoView = loadDataFromURL();
-if (!isInfoView && records.length > 0) {
-    generateDynamicQR(records[records.length - 1]);
-}
-</script>
-
-</body>
-</html>
+    localStorage.setItem('re
