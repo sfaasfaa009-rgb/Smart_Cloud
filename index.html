@@ -451,193 +451,181 @@
 
 </div>
 
-<!-- السكريبت الآن معزول بالكامل عن أي مشاكل حظر متصفحات -->
+<!-- السكريبت المطور بالكامل والمحمي ضد أي حظر أو انهيار -->
 <script>
-// دالة تحقق ذكية للغاية؛ لا تشير إلى localStorage إلا بعد التأكد الكامل لتفادي انهيار الكود في أندرويد وآيفون
-function getLocalStorageSafe() {
+(function() {
+    // 1. توليد وعرض رمز الطلب فوراً كأول خطوة لمنع بقاء (----) تحت أي ظرف
+    let currentSalt = "1234";
     try {
-        if (typeof window !== 'undefined' && ('localStorage' in window) && window.localStorage !== null) {
-            return window.localStorage;
-        }
-    } catch (e) {
-        // إذا كان هناك حظر حماية من المتصفح، سنرجع null لتفادي الانهيار
-    }
-    return null;
-}
-
-const safeStorage = {
-    getItem: function(key) {
+        let storedSalt = null;
         try {
-            const storage = getLocalStorageSafe();
-            return storage ? storage.getItem(key) : (window['__fallback_' + key] || null);
-        } catch (e) {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                storedSalt = window.localStorage.getItem('device_salt');
+            }
+        } catch(e) {}
+        
+        if (!storedSalt || isNaN(storedSalt) || storedSalt.length !== 4) {
+            storedSalt = Math.floor(1000 + Math.random() * 9000).toString();
+            try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                    window.localStorage.setItem('device_salt', storedSalt);
+                }
+            } catch(e) {}
+        }
+        currentSalt = storedSalt;
+    } catch(err) {
+        currentSalt = "5482"; // قيمة احتياطية آمنة جداً في حال الانهيار الشامل
+    }
+
+    // كتابة الرمز فوراً في الواجهة
+    const reqCodeElement = document.getElementById('deviceRequestCode');
+    if (reqCodeElement) {
+        reqCodeElement.textContent = currentSalt;
+    }
+
+    // 2. دالة آمنة للتعامل مع التخزين المحلي
+    function safeGetItem(key) {
+        try {
+            return window.localStorage.getItem(key);
+        } catch(e) {
             return window['__fallback_' + key] || null;
         }
-    },
-    setItem: function(key, val) {
+    }
+
+    function safeSetItem(key, val) {
         try {
-            const storage = getLocalStorageSafe();
-            if (storage) {
-                storage.setItem(key, val);
-            } else {
-                window['__fallback_' + key] = val;
-            }
-        } catch (e) {
+            window.localStorage.setItem(key, val);
+        } catch(e) {
             window['__fallback_' + key] = val;
         }
-    },
-    removeItem: function(key) {
+    }
+
+    function safeRemoveItem(key) {
         try {
-            const storage = getLocalStorageSafe();
-            if (storage) {
-                storage.removeItem(key);
-            } else {
-                delete window['__fallback_' + key];
-            }
-        } catch (e) {
+            window.localStorage.removeItem(key);
+        } catch(e) {
             delete window['__fallback_' + key];
         }
     }
-};
 
-// كاشف الأخطاء الشامل
-window.onerror = function(message, source, lineno, colno, error) {
-    console.error("خطأ تقني:", message, "في السطر", lineno);
-    return true; // منع إظهار نافذة خطأ مزعجة للمستخدمين
-};
+    // 3. تعريف العناصر والتحقق من وجودها
+    const appContainer = document.getElementById('appContainer');
+    const form = document.getElementById('infoForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const phone = document.getElementById('phone');
+    const birthdate = document.getElementById('birthdate');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const generateBtn = document.getElementById('generateQrBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const successMsg = document.getElementById('successMsg');
+    const toggleMainPassword = document.getElementById('toggleMainPassword');
 
-const REFERENCE_NUMBER = 2026; 
-const SUBSCRIPTION_DAYS = 30; 
+    const mainPage = document.getElementById('mainPage');
+    const infoPage = document.getElementById('infoPage');
+    const viewEmail = document.getElementById('viewEmail');
+    const viewPassword = document.getElementById('viewPassword');
+    const viewPhone = document.getElementById('viewPhone');
+    const viewBirthdate = document.getElementById('viewBirthdate');
+    const editBtn = document.getElementById('editBtn');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editBadge = document.getElementById('editBadge');
 
-// جلب العناصر فوراً وبشكل مباشر
-const appContainer = document.getElementById('appContainer');
-const form = document.getElementById('infoForm');
-const email = document.getElementById('email');
-const password = document.getElementById('password');
-const phone = document.getElementById('phone');
-const birthdate = document.getElementById('birthdate');
-const qrContainer = document.getElementById('qrCodeContainer');
-const generateBtn = document.getElementById('generateQrBtn');
-const saveBtn = document.getElementById('saveBtn');
-const successMsg = document.getElementById('successMsg');
-const toggleMainPassword = document.getElementById('toggleMainPassword');
+    const lockScreen = document.getElementById('lockScreen');
+    const activationInput = document.getElementById('activationInput');
+    const activateBtn = document.getElementById('activateBtn');
 
-const mainPage = document.getElementById('mainPage');
-const infoPage = document.getElementById('infoPage');
-const viewEmail = document.getElementById('viewEmail');
-const viewPassword = document.getElementById('viewPassword');
-const viewPhone = document.getElementById('viewPhone');
-const viewBirthdate = document.getElementById('viewBirthdate');
-const editBtn = document.getElementById('editBtn');
-const saveEditBtn = document.getElementById('saveEditBtn');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-const editBadge = document.getElementById('editBadge');
+    const REFERENCE_NUMBER = 2026;
+    const SUBSCRIPTION_DAYS = 30;
 
-const lockScreen = document.getElementById('lockScreen');
-const deviceRequestCode = document.getElementById('deviceRequestCode');
-const activationInput = document.getElementById('activationInput');
-const activateBtn = document.getElementById('activateBtn');
-
-let records = [];
-try {
-    const saved = safeStorage.getItem('records');
-    if (saved) records = JSON.parse(saved);
-} catch(e) {
-    records = [];
-}
-
-let currentData = null;
-let isEditMode = false;
-
-// ==========================================
-//          نظام فحص الاشتراك والتوليد
-// ==========================================
-function checkSubscription() {
-    const params = new URLSearchParams(window.location.search);
-    const hasData = params.get('data');
-
-    if (hasData && hasData.trim() !== "") {
-        if (lockScreen) lockScreen.style.display = 'none';
-        if (appContainer) appContainer.style.display = 'block';
-        if (mainPage) mainPage.style.display = 'none';
-        if (infoPage) infoPage.classList.add('active');
-        return;
-    }
-
-    const subStatus = safeStorage.getItem('sub_status');
-    const subDate = safeStorage.getItem('sub_date');
-    const now = Date.now();
-    const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
-
-    if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-        if (lockScreen) lockScreen.style.display = 'none';
-        if (appContainer) appContainer.style.display = 'block';
-        if (mainPage) mainPage.style.display = 'block';
-        if (infoPage) infoPage.classList.remove('active');
-    } else {
-        if (appContainer) appContainer.style.display = 'none';
-        
-        // التحقق من توليد الملح (Salt) بشكل آمن تماماً وبشكل مستقل
-        let salt = safeStorage.getItem('device_salt');
-        if (!salt || isNaN(salt) || salt.length !== 4) {
-            salt = Math.floor(1000 + Math.random() * 9000).toString(); 
-            safeStorage.setItem('device_salt', salt);
-        }
-        
-        safeStorage.removeItem('sub_status');
-        
-        // فرض حقن الكود فورا في واجهة المستخدم
-        if (deviceRequestCode) {
-            deviceRequestCode.textContent = salt;
-        }
-        if (lockScreen) lockScreen.style.display = 'block';
-    }
-}
-
-// زر التفعيل المباشر
-if (activateBtn) {
-    activateBtn.addEventListener('click', function() {
-        let salt = safeStorage.getItem('device_salt');
-        if (!salt) salt = "1000"; // قيمة افتراضية احتياطية قصوى
-        
-        const userEnteredCode = parseInt(activationInput.value.trim());
-        const expectedCode = parseInt(salt) + REFERENCE_NUMBER;
-
-        if (userEnteredCode === expectedCode) {
-            safeStorage.setItem('sub_status', 'active');
-            safeStorage.setItem('sub_date', Date.now().toString());
-            alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-            if (lockScreen) lockScreen.style.display = 'none';
-            if (appContainer) appContainer.style.display = 'block';
-            if (mainPage) mainPage.style.display = 'block'; 
-        } else {
-            alert('❌ كود التفعيل غير صحيح!');
-        }
-    });
-}
-
-if (toggleMainPassword) {
-    toggleMainPassword.addEventListener('click', function() {
-        if(password.type === 'password') {
-            password.type = 'text';
-            this.textContent = '🔒';
-        } else {
-            password.type = 'password';
-            this.textContent = '👁️';
-        }
-    });
-}
-
-function safeBtoa(str) {
-    return btoa(unescape(encodeURIComponent(str)));
-}
-
-function safeAtob(str) {
+    let records = [];
     try {
-        return decodeURIComponent(escape(atob(str)));
+        const saved = safeGetItem('records');
+        if (saved) records = JSON.parse(saved);
     } catch(e) {
-        return null;
+        records = [];
     }
-}
 
-function createShareableLink(data
+    let currentData = null;
+    let isEditMode = false;
+
+    // 4. نظام فحص الاشتراك
+    function checkSubscription() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const hasData = params.get('data');
+
+            if (hasData && hasData.trim() !== "") {
+                if (lockScreen) lockScreen.style.display = 'none';
+                if (appContainer) appContainer.style.display = 'block';
+                if (mainPage) mainPage.style.display = 'none';
+                if (infoPage) infoPage.classList.add('active');
+                return;
+            }
+
+            const subStatus = safeGetItem('sub_status');
+            const subDate = safeGetItem('sub_date');
+            const now = Date.now();
+            const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
+
+            if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
+                if (lockScreen) lockScreen.style.display = 'none';
+                if (appContainer) appContainer.style.display = 'block';
+                if (mainPage) mainPage.style.display = 'block';
+                if (infoPage) infoPage.classList.remove('active');
+            } else {
+                if (appContainer) appContainer.style.display = 'none';
+                if (lockScreen) lockScreen.style.display = 'block';
+                safeRemoveItem('sub_status');
+            }
+        } catch(err) {
+            // في حال حدوث أي خطأ، نبقي واجهة القفل مستقرة
+        }
+    }
+
+    // 5. زر تفعيل الاشتراك
+    if (activateBtn) {
+        activateBtn.addEventListener('click', function() {
+            try {
+                const userEnteredCode = parseInt(activationInput.value.trim());
+                const expectedCode = parseInt(currentSalt) + REFERENCE_NUMBER;
+
+                if (userEnteredCode === expectedCode) {
+                    safeSetItem('sub_status', 'active');
+                    safeSetItem('sub_date', Date.now().toString());
+                    alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
+                    if (lockScreen) lockScreen.style.display = 'none';
+                    if (appContainer) appContainer.style.display = 'block';
+                    if (mainPage) mainPage.style.display = 'block';
+                } else {
+                    alert('❌ كود التفعيل غير صحيح!');
+                }
+            } catch(e) {
+                alert('⚠️ حدث خطأ في معالجة الكود.');
+            }
+        });
+    }
+
+    // بقية الخصائص المساعدة الآمنة
+    if (toggleMainPassword && password) {
+        toggleMainPassword.addEventListener('click', function() {
+            if(password.type === 'password') {
+                password.type = 'text';
+                this.textContent = '🔒';
+            } else {
+                password.type = 'password';
+                this.textContent = '👁️';
+            }
+        });
+    }
+
+    function safeBtoa(str) {
+        try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return ""; }
+    }
+
+    function safeAtob(str) {
+        try {
+            return decodeURIComponent(escape(atob(str)));
+        } catch(e) {
+          
