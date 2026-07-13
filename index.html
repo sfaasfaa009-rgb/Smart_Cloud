@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -325,7 +324,7 @@
                 <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
             </div>
             <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
-            <p class="qr-note">📸 هذا الكود ثابت تماماً لن يتغير شكله أبداً حتى لو قمت بتعديل بياناتك لاحقاً</p>
+            <p class="qr-note">📸 هذا الكود ينقل البيانات تلقائياً لأي جهاز يقوم بمسحه دون الحاجة لإنترنت أو قاعدة بيانات!</p>
         </div>
     </div>
 
@@ -337,7 +336,7 @@
             <div class="edit-mode-badge" id="editBadge">✏️ وضع التعديل نشط</div>
 
             <div class="info-field">
-                <label>📧 البريد الإلكتروني (المعرّف الثابت)</label>
+                <label>📧 البريد الإلكتروني</label>
                 <div class="value-box email-box" id="viewEmail">-</div>
             </div>
             <div class="info-field">
@@ -354,7 +353,7 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات</button>
+                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات وحفظها محلياً</button>
                 <button class="btn-green" id="saveEditBtn" style="display:none;">💾 حفظ التعديلات</button>
                 <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
             </div>
@@ -405,22 +404,37 @@ toggleMainPassword.addEventListener('click', function() {
     }
 });
 
-// ======== الحل السحري: ربط الرابط بالبريد فقط لثبات الكود نهائياً ========
-function createStaticShareableLink(userEmail) {
-    return window.location.origin + window.location.pathname + '?user=' + encodeURIComponent(userEmail);
+// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
+function safeBtoa(str) {
+    return btoa(unescape(encodeURIComponent(str)));
 }
 
-// ======== توليد الـ QR الثابت ========
-function generateStaticQR(userEmail) {
-    const url = createStaticShareableLink(userEmail);
+function safeAtob(str) {
+    try {
+        return decodeURIComponent(escape(atob(str)));
+    } catch(e) {
+        return null;
+    }
+}
+
+// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
+function createShareableLink(dataObject) {
+    const rawString = JSON.stringify(dataObject);
+    const encryptedData = safeBtoa(rawString);
+    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
+}
+
+// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
+function generateDynamicQR(dataObject) {
+    const url = createShareableLink(dataObject);
     const encodedUrl = encodeURIComponent(url);
     const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
     
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض QR الثابت...</p>`;
+    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
     
     const img = document.createElement('img');
     img.src = apiUrl;
-    img.alt = 'Static QR Code';
+    img.alt = 'Universal QR Code';
     
     img.onload = function() {
         qrContainer.innerHTML = '';
@@ -443,13 +457,13 @@ form.addEventListener('submit', function(e) {
         birthdate: birthdate.value
     };
     
-    // تحديث البيانات أو إضافتها بداخل الجهاز
+    // تحديث السجلات محلياً في جهازك
     records = records.filter(r => r.email !== data.email);
     records.push(data);
     localStorage.setItem('records', JSON.stringify(records));
     
-    // الـ QR يعتمد فقط على الإيميل ليبقى ثابتاً للأبد
-    generateStaticQR(data.email);
+    // توليد كود الـ QR شامل البيانات ليتمكن أي جهاز من قراءته مباشرة
+    generateDynamicQR(data);
     
     successMsg.classList.add('show');
     setTimeout(() => successMsg.classList.remove('show'), 3000);
@@ -460,13 +474,13 @@ form.addEventListener('submit', function(e) {
     form.reset();
 });
 
-// ======== زر توليد QR من السجلات ========
+// ======== زر توليد QR من السجلات المخزنة ========
 generateBtn.addEventListener('click', function() {
     if (records.length === 0) {
-        alert('⚠️ لا توجد سجلات محفوظة حالياً.');
+        alert('⚠️ لا توجد سجلات محفوظة حالياً في هذا الجهاز.');
         return;
     }
-    generateStaticQR(records[records.length - 1].email);
+    generateDynamicQR(records[records.length - 1]);
 });
 
 // ======== تفعيل وضع التعديل ========
@@ -542,7 +556,7 @@ function renderProtectedDataEyeListener(isShown) {
 editBtn.addEventListener('click', enableEditMode);
 cancelEditBtn.addEventListener('click', disableEditMode);
 
-// ======== حفظ التعديل دون تغيير الـ QR (مطلبك الأساسي) ========
+// ======== حفظ التعديل محلياً وتوليد QR محدث بالبيانات الجديدة ========
 saveEditBtn.addEventListener('click', function() {
     const newData = {
         email: viewEmail.textContent.trim(),
@@ -556,7 +570,7 @@ saveEditBtn.addEventListener('click', function() {
         return;
     }
     
-    // تحديث ذاكرة الجهاز بالأكواد الجديدة
+    // حفظ التعديل محلياً في الذاكرة لتسهيل إدارة حساباتك
     let index = records.findIndex(r => r.email === newData.email);
     if (index !== -1) {
         records[index] = newData;
@@ -568,7 +582,7 @@ saveEditBtn.addEventListener('click', function() {
     currentData = newData;
     disableEditMode();
     
-    alert('✅ تم حفظ التعديلات بنجاح! كود الـ QR الخاص بك ثابت ولم يتغير، وسيقرأ التحديثات الجديدة تلقائياً عند مسحه.');
+    alert('✅ تم حفظ التعديلات محلياً! يرجى إعادة توليد كود الـ QR الجديد وإعطائه للزبون ليعرض معلوماته المعدلة.');
 });
 
 // ======== العودة للرئيسية ========
@@ -579,32 +593,36 @@ function goBack() {
     disableEditMode();
 }
 
-// ======== قراءة البيانات المحدثة بناءً على الإيميل المرفق بالرابط ========
+// ======== قراءة وفك تشفير البيانات من الرابط مباشرة ليعمل على أي هاتف ========
 function loadDataFromURL() {
     const params = new URLSearchParams(window.location.search);
-    const userEmail = params.get('user'); // قراءة الإيميل من الـ QR
+    const encryptedData = params.get('data'); // البحث عن البيانات المشفرة بالكامل
     
-    if (userEmail) {
-        const localData = records.find(r => r.email === decodeURIComponent(userEmail));
+    if (encryptedData) {
+        const decryptedString = safeAtob(decodeURIComponent(encryptedData));
         
-        if (localData) {
-            currentData = localData;
-            mainPage.style.display = 'none';
-            infoPage.classList.add('active');
-            renderProtectedData();
-            disableEditMode();
-            return true;
+        if (decryptedString) {
+            try {
+                currentData = JSON.parse(decryptedString);
+                mainPage.style.display = 'none';
+                infoPage.classList.add('active');
+                renderProtectedData();
+                disableEditMode();
+                return true;
+            } catch (err) {
+                alert('⚠️ عذراً، الرابط غير صالح أو تالف.');
+            }
         } else {
-            alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا الحساب في هذا الجهاز.');
+            alert('⚠️ عذراً، تعذر فك تشفير البيانات المرفقة بالرابط.');
         }
     }
     return false;
 }
 
-// ======== بدء العمل الحقيقي ========
+// ======== بدء العمل الحقيقي عند تحميل الصفحة ========
 const isInfoView = loadDataFromURL();
 if (!isInfoView && records.length > 0) {
-    generateStaticQR(records[records.length - 1].email);
+    generateDynamicQR(records[records.length - 1]);
 }
 </script>
 
