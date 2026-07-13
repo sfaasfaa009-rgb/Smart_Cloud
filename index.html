@@ -9,8 +9,8 @@
     <script type="importmap">
         {
             "imports": {
-                "firebase": "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js"
+                "firebase": "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js"
             }
         }
     </script>
@@ -397,18 +397,18 @@
 
 <script type="module">
     // ======== استيراد Firebase ========
-    import { initializeApp } from 'firebase';
-    import { getDatabase, ref, set, get, update, remove, child } from 'firebase/database';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-    // ======== إعدادات Firebase (استبدلها بإعداداتك) ========
+    // ======== إعدادات Firebase الخاصة بك ========
     const firebaseConfig = {
-        apiKey: "AIzaSyExampleYourApiKeyHere",
-        authDomain: "your-project-id.firebaseapp.com",
-        databaseURL: "https://your-project-id-default-rtdb.firebaseio.com",
-        projectId: "your-project-id",
-        storageBucket: "your-project-id.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
+        apiKey: "AIzaSyA4lriXrmqYd7QSFx2SNSSGzHgEwN4GA3k",
+        authDomain: "smart-cloud-72bf4.firebaseapp.com",
+        projectId: "smart-cloud-72bf4",
+        storageBucket: "smart-cloud-72bf4.firebasestorage.app",
+        messagingSenderId: "144954324296",
+        appId: "1:144954324296:web:78e16c729a2865ad32af7d",
+        measurementId: "G-S9F3E7NK56"
     };
 
     // تهيئة Firebase
@@ -445,7 +445,6 @@
 
     // ======== دوال مساعدة ========
     function sanitizeEmail(email) {
-        // Firebase لا يسمح بالنقاط في أسماء المسارات
         return email.replace(/\./g, '_').replace(/@/g, '_at_');
     }
 
@@ -538,12 +537,10 @@
             saveBtn.disabled = true;
             saveBtn.textContent = '⏳ جاري الحفظ...';
 
-            // حفظ في Firebase
             await saveToFirebase(data.email, data);
             
             showSuccess('✅ تم حفظ المعلومات بنجاح في السحابة!');
             
-            // توليد QR
             generateStaticQR(data.email);
             
             form.reset();
@@ -594,12 +591,9 @@
                     infoPage.classList.add('active');
                     renderProtectedData(data);
                     disableEditMode();
-                    
-                    // إضافة زر العودة
                     return true;
                 } else {
                     alert('⚠️ لم يتم العثور على بيانات محفوظة لهذا البريد في السحابة.');
-                    // العودة للرئيسية
                     goBack();
                 }
             } catch (error) {
@@ -620,8 +614,10 @@
             
             viewPassword.innerHTML = `•••••••• <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">👁️ إظهار</span>`;
             
-            // إضافة حدث إظهار كلمة المرور
             setTimeout(() => {
                 const eyeSpan = document.getElementById('viewPassEye');
                 if (eyeSpan) {
-                    eyeSpan.addEventLis
+                    eyeSpan.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if(viewPassword.textContent.includes('👁️')) {
+                        
