@@ -5,15 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدونة المعلومات - Firebase</title>
     
-    <!-- إضافة Firebase SDK -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase": "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js"
-            }
-        }
-    </script>
+    <!-- إضافة Firebase SDK بطريقة تقليدية (آمنة) -->
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
     
     <style>
         * {
@@ -395,11 +389,7 @@
 
 </div>
 
-<script type="module">
-    // ======== استيراد Firebase ========
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
-
+<script>
     // ======== إعدادات Firebase الخاصة بك ========
     const firebaseConfig = {
         apiKey: "AIzaSyA4lriXrmqYd7QSFx2SNSSGzHgEwN4GA3k",
@@ -412,8 +402,8 @@
     };
 
     // تهيئة Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     // ======== العناصر ========
     const form = document.getElementById('infoForm');
@@ -463,8 +453,8 @@
     // ======== دوال Firebase ========
     async function saveToFirebase(email, data) {
         const sanitized = sanitizeEmail(email);
-        const userRef = ref(database, 'users/' + sanitized);
-        await set(userRef, {
+        const userRef = database.ref('users/' + sanitized);
+        await userRef.set({
             email: email,
             password: data.password,
             phone: data.phone,
@@ -475,15 +465,15 @@
 
     async function readFromFirebase(email) {
         const sanitized = sanitizeEmail(email);
-        const userRef = ref(database, 'users/' + sanitized);
-        const snapshot = await get(userRef);
+        const userRef = database.ref('users/' + sanitized);
+        const snapshot = await userRef.once('value');
         return snapshot.val();
     }
 
     async function updateInFirebase(email, data) {
         const sanitized = sanitizeEmail(email);
-        const userRef = ref(database, 'users/' + sanitized);
-        await update(userRef, {
+        const userRef = database.ref('users/' + sanitized);
+        await userRef.update({
             password: data.password,
             phone: data.phone,
             birthdate: data.birthdate,
@@ -620,4 +610,8 @@
                     eyeSpan.addEventListener('click', function(e) {
                         e.stopPropagation();
                         if(viewPassword.textContent.includes('👁️')) {
-                        
+                            viewPassword.innerHTML = `${data.password} <span id="viewPassEye" style="cursor:pointer; margin-right:15px; font-size:14px;">🔒 إخفاء</span>`;
+                            const newEye = document.getElementById('viewPassEye');
+                            if (newEye) {
+                                newEye.addEventListener('click', function(e) {
+        
