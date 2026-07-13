@@ -29,7 +29,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none; /* تظهر فقط بعد نجاح الفحص */
+            display: none; /* تظهر فقط بعد نجاح التفعيل */
         }
 
         h1 {
@@ -267,9 +267,9 @@
             display: block;
         }
 
-        /* ======== شاشة قفل الاشتراك (تظهر افتراضياً كأمان) ======== */
+        /* ======== شاشة قفل الاشتراك ======== */
         #lockScreen {
-            display: block; /* تبدأ ظاهرة تلقائياً لحماية الكود */
+            display: block; 
             width: 100%;
             max-width: 450px;
             background: white;
@@ -302,7 +302,7 @@
             background: #edf2f7;
             padding: 15px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             color: #2d3748;
             letter-spacing: 2px;
@@ -451,64 +451,32 @@
 
 </div>
 
-<!-- السكريبت المطور بالكامل والمحمي ضد أي حظر أو انهيار -->
+<!-- السكريبت الرئيسي المصلح تماماً -->
 <script>
-(function() {
-    // 1. توليد وعرض رمز الطلب فوراً كأول خطوة لمنع بقاء (----) تحت أي ظرف
-    let currentSalt = "1234";
+// تأمين تنفيذ الكود بالكامل فور تحميل مستند الصفحة بالكامل
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. توليد وعرض رمز الطلب فوراً دون شروط لمنع ظهور "----"
+    let currentSalt = "4839"; // القيمة الافتراضية كشبكة أمان
     try {
-        let storedSalt = null;
-        try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-                storedSalt = window.localStorage.getItem('device_salt');
-            }
-        } catch(e) {}
-        
-        if (!storedSalt || isNaN(storedSalt) || storedSalt.length !== 4) {
-            storedSalt = Math.floor(1000 + Math.random() * 9000).toString();
-            try {
-                if (typeof window !== 'undefined' && window.localStorage) {
-                    window.localStorage.setItem('device_salt', storedSalt);
-                }
-            } catch(e) {}
+        let tempSalt = localStorage.getItem('device_salt');
+        if (!tempSalt || isNaN(tempSalt) || tempSalt.length !== 4) {
+            tempSalt = Math.floor(1000 + Math.random() * 9000).toString();
+            localStorage.setItem('device_salt', tempSalt);
         }
-        currentSalt = storedSalt;
-    } catch(err) {
-        currentSalt = "5482"; // قيمة احتياطية آمنة جداً في حال الانهيار الشامل
+        currentSalt = tempSalt;
+    } catch(e) {
+        // في حال تم حظر التخزين المحلي في المتصفح نستخدم قيمة ثابتة آمنة
+        currentSalt = "5192";
+    }
+    
+    // حقن القيمة داخل المربع مباشرة بعد تحميل الصفحة
+    const deviceBox = document.getElementById('deviceRequestCode');
+    if (deviceBox) {
+        deviceBox.textContent = currentSalt;
     }
 
-    // كتابة الرمز فوراً في الواجهة
-    const reqCodeElement = document.getElementById('deviceRequestCode');
-    if (reqCodeElement) {
-        reqCodeElement.textContent = currentSalt;
-    }
-
-    // 2. دالة آمنة للتعامل مع التخزين المحلي
-    function safeGetItem(key) {
-        try {
-            return window.localStorage.getItem(key);
-        } catch(e) {
-            return window['__fallback_' + key] || null;
-        }
-    }
-
-    function safeSetItem(key, val) {
-        try {
-            window.localStorage.setItem(key, val);
-        } catch(e) {
-            window['__fallback_' + key] = val;
-        }
-    }
-
-    function safeRemoveItem(key) {
-        try {
-            window.localStorage.removeItem(key);
-        } catch(e) {
-            delete window['__fallback_' + key];
-        }
-    }
-
-    // 3. تعريف العناصر والتحقق من وجودها
+    // بقية أكواد التحكم بالبرنامج
     const appContainer = document.getElementById('appContainer');
     const form = document.getElementById('infoForm');
     const email = document.getElementById('email');
@@ -541,7 +509,7 @@
 
     let records = [];
     try {
-        const saved = safeGetItem('records');
+        const saved = localStorage.getItem('records');
         if (saved) records = JSON.parse(saved);
     } catch(e) {
         records = [];
@@ -550,7 +518,6 @@
     let currentData = null;
     let isEditMode = false;
 
-    // 4. نظام فحص الاشتراك
     function checkSubscription() {
         try {
             const params = new URLSearchParams(window.location.search);
@@ -564,8 +531,8 @@
                 return;
             }
 
-            const subStatus = safeGetItem('sub_status');
-            const subDate = safeGetItem('sub_date');
+            const subStatus = localStorage.getItem('sub_status');
+            const subDate = localStorage.getItem('sub_date');
             const now = Date.now();
             const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
 
@@ -577,14 +544,11 @@
             } else {
                 if (appContainer) appContainer.style.display = 'none';
                 if (lockScreen) lockScreen.style.display = 'block';
-                safeRemoveItem('sub_status');
+                localStorage.removeItem('sub_status');
             }
-        } catch(err) {
-            // في حال حدوث أي خطأ، نبقي واجهة القفل مستقرة
-        }
+        } catch(err) {}
     }
 
-    // 5. زر تفعيل الاشتراك
     if (activateBtn) {
         activateBtn.addEventListener('click', function() {
             try {
@@ -592,8 +556,8 @@
                 const expectedCode = parseInt(currentSalt) + REFERENCE_NUMBER;
 
                 if (userEnteredCode === expectedCode) {
-                    safeSetItem('sub_status', 'active');
-                    safeSetItem('sub_date', Date.now().toString());
+                    localStorage.setItem('sub_status', 'active');
+                    localStorage.setItem('sub_date', Date.now().toString());
                     alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
                     if (lockScreen) lockScreen.style.display = 'none';
                     if (appContainer) appContainer.style.display = 'block';
@@ -607,7 +571,6 @@
         });
     }
 
-    // بقية الخصائص المساعدة الآمنة
     if (toggleMainPassword && password) {
         toggleMainPassword.addEventListener('click', function() {
             if(password.type === 'password') {
@@ -625,7 +588,26 @@
     }
 
     function safeAtob(str) {
+        try { return decodeURIComponent(escape(atob(str))); } catch(e) { return null; }
+    }
+
+    function createShareableLink(dataObject) {
+        const rawString = JSON.stringify(dataObject);
+        const encryptedData = safeBtoa(rawString);
+        return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
+    }
+
+    function generateDynamicQR(dataObject) {
         try {
-            return decodeURIComponent(escape(atob(str)));
-        } catch(e) {
-          
+            const url = createShareableLink(dataObject);
+            const encodedUrl = encodeURIComponent(url);
+            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
+            
+            if (qrContainer) {
+                qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
+                const img = document.createElement('img');
+                img.src = apiUrl;
+                img.alt = 'Universal QR Code';
+                img.onload = function() {
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(i
