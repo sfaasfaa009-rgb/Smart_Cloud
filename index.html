@@ -21,6 +21,7 @@
             padding: 20px;
         }
 
+        /* الحاوية الأساسية */
         .container {
             max-width: 700px;
             width: 100%;
@@ -28,7 +29,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none; /* تبدأ مخفية حتى يتم فحص الاشتراك */
+            display: none; /* تظهر فقط بعد نجاح الفحص */
         }
 
         h1 {
@@ -38,7 +39,6 @@
             font-size: 28px;
         }
 
-        /* ======== الأقسام الأساسية داخل الحاوية ======== */
         .main-page {
             display: block;
         }
@@ -111,24 +111,12 @@
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
-        .btn-pink:hover {
-            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
-        }
-
         .btn-green {
             background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
         }
 
-        .btn-green:hover {
-            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
-        }
-
         .btn-orange {
             background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-        }
-
-        .btn-orange:hover {
-            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
         }
 
         .qr-section-box {
@@ -279,9 +267,9 @@
             display: block;
         }
 
-        /* ======== شاشة قفل الاشتراك منفصلة ومستقلة تماماً ======== */
+        /* ======== شاشة قفل الاشتراك (تظهر افتراضياً كأمان) ======== */
         #lockScreen {
-            display: none;
+            display: block; /* تبدأ ظاهرة تلقائياً لحماية الكود */
             width: 100%;
             max-width: 450px;
             background: white;
@@ -464,6 +452,37 @@
 </div>
 
 <script>
+// تغليف الـ localStorage لحمايته من الانهيار على متصفحات الآيفون والويب فيو
+const safeStorage = {
+    getItem: function(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return window['__fallback_' + key] || null;
+        }
+    },
+    setItem: function(key, val) {
+        try {
+            localStorage.setItem(key, val);
+        } catch (e) {
+            window['__fallback_' + key] = val;
+        }
+    },
+    removeItem: function(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            delete window['__fallback_' + key];
+        }
+    }
+};
+
+// كاشف أخطاء برمجي مباشر لعدم شلل الصفحة
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("حدث خطأ تقني في هاتفك: " + message + " في السطر " + lineno);
+    return false;
+};
+
 // ======== إعدادات الاشتراك والمفاتيح السرية ========
 const REFERENCE_NUMBER = 2026; 
 const SUBSCRIPTION_DAYS = 30; 
@@ -499,7 +518,14 @@ const deviceRequestCode = document.getElementById('deviceRequestCode');
 const activationInput = document.getElementById('activationInput');
 const activateBtn = document.getElementById('activateBtn');
 
-let records = JSON.parse(localStorage.getItem('records')) || [];
+let records = [];
+try {
+    const saved = safeStorage.getItem('records');
+    if (saved) records = JSON.parse(saved);
+} catch(e) {
+    records = [];
+}
+
 let currentData = null;
 let isEditMode = false;
 
@@ -510,7 +536,7 @@ function checkSubscription() {
     const params = new URLSearchParams(window.location.search);
     const hasData = params.get('data');
 
-    // 1. إذا كان الرابط مخصصاً لزبون لمسح الـ QR وعرض البيانات، تخطى القفل فوراً واعرض صفحة البيانات
+    // 1. رابط الزبون
     if (hasData && hasData.trim() !== "") {
         lockScreen.style.display = 'none';
         appContainer.style.display = 'block';
@@ -519,54 +545,52 @@ function checkSubscription() {
         return;
     }
 
-    // 2. إذا كان الرابط هو الرابط الرئيسي (صاحب المحل)، يتم فحص الاشتراك
-    const subStatus = localStorage.getItem('sub_status');
-    const subDate = localStorage.getItem('sub_date');
+    // 2. رابط صاحب المحل
+    const subStatus = safeStorage.getItem('sub_status');
+    const subDate = safeStorage.getItem('sub_date');
     const now = Date.now();
     const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
 
     if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-        // الاشتراك فعال، اخفِ شاشة القفل واظهر الحاوية والصفحة الرئيسية
         lockScreen.style.display = 'none';
         appContainer.style.display = 'block';
         mainPage.style.display = 'block';
         infoPage.classList.remove('active');
     } else {
-        // غير مفعّل أو منتهي، اظهر شاشة القفل بالكامل واخفِ الحاوية تماماً لمنع الاستخدام
         appContainer.style.display = 'none';
         
-        let salt = localStorage.getItem('device_salt');
+        let salt = safeStorage.getItem('device_salt');
         if (!salt) {
             salt = Math.floor(1000 + Math.random() * 9000).toString(); 
-            localStorage.setItem('device_salt', salt);
+            safeStorage.setItem('device_salt', salt);
         }
         
-        localStorage.removeItem('sub_status');
+        safeStorage.removeItem('sub_status');
         
         deviceRequestCode.textContent = salt;
         lockScreen.style.display = 'block';
     }
 }
 
-// زر تفعيل الكود وحساب المعادلة
+// زر التفعيل
 activateBtn.addEventListener('click', function() {
-    const salt = localStorage.getItem('device_salt');
+    const salt = safeStorage.getItem('device_salt');
     const userEnteredCode = parseInt(activationInput.value.trim());
     const expectedCode = parseInt(salt) + REFERENCE_NUMBER;
 
     if (userEnteredCode === expectedCode) {
-        localStorage.setItem('sub_status', 'active');
-        localStorage.setItem('sub_date', Date.now().toString());
+        safeStorage.setItem('sub_status', 'active');
+        safeStorage.setItem('sub_date', Date.now().toString());
         alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
         lockScreen.style.display = 'none';
         appContainer.style.display = 'block';
         mainPage.style.display = 'block'; 
     } else {
-        alert('❌ كود التفعيل غير صحيح! تأكد من الكود الممنوح لك من المطور.');
+        alert('❌ كود التفعيل غير صحيح!');
     }
 });
 
-// ======== إخفاء وإظهار الباسورد في الرئيسية ========
+// إخفاء وإظهار الباسورد
 toggleMainPassword.addEventListener('click', function() {
     if(password.type === 'password') {
         password.type = 'text';
@@ -577,7 +601,7 @@ toggleMainPassword.addEventListener('click', function() {
     }
 });
 
-// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
+// تشفير وفك تشفير النصوص
 function safeBtoa(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
@@ -590,14 +614,12 @@ function safeAtob(str) {
     }
 }
 
-// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
 function createShareableLink(dataObject) {
     const rawString = JSON.stringify(dataObject);
     const encryptedData = safeBtoa(rawString);
     return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
 }
 
-// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
 function generateDynamicQR(dataObject) {
     const url = createShareableLink(dataObject);
     const encodedUrl = encodeURIComponent(url);
@@ -619,7 +641,7 @@ function generateDynamicQR(dataObject) {
     };
 }
 
-// ======== حفظ الاستمارة الرئيسية ========
+// حفظ الاستمارة
 form.addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -631,5 +653,4 @@ form.addEventListener('submit', function(e) {
     };
     
     records = records.filter(r => r.email !== data.email);
-    records.push(data);
-    localStorage.setItem('records', JSON.stringify
+    records.pus
