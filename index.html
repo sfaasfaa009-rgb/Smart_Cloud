@@ -37,9 +37,9 @@
             font-size: 28px;
         }
 
-        /* ======== الصفحة الرئيسية ======== */
+        /* ======== الصفحة الرئيسية (تبدأ مخفية إجبارياً لضمان الحماية) ======== */
         .main-page {
-            display: block;
+            display: none;
         }
 
         .field {
@@ -525,6 +525,7 @@ function checkSubscription() {
     // 1. إذا كان الرابط مخصصاً لزبون لمسح الـ QR وعرض البيانات، تخطى القفل فوراً
     if (hasData && hasData.trim() !== "") {
         lockScreen.style.display = 'none';
+        mainPage.style.display = 'none';
         return;
     }
 
@@ -572,9 +573,6 @@ activateBtn.addEventListener('click', function() {
         alert('❌ كود التفعيل غير صحيح! تأكد من الكود الممنوح لك من المطور.');
     }
 });
-
-// تشغيل الفحص والتحقق فور تحميل شجرة الـ DOM
-window.addEventListener('DOMContentLoaded', checkSubscription);
 
 // ======== إخفاء وإظهار الباسورد في الرئيسية ========
 toggleMainPassword.addEventListener('click', function() {
@@ -641,4 +639,5 @@ form.addEventListener('submit', function(e) {
     };
     
     records = records.filter(r => r.email !== data.email);
-    records.pus
+    records.push(data);
+    localStorage.setItem('
