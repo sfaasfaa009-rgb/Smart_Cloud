@@ -21,7 +21,7 @@
             padding: 20px;
         }
 
-        /* الحاوية الأساسية */
+        /* حاوية التطبيق الأساسية (مخفية حتى يتم التفعيل) */
         .container {
             max-width: 700px;
             width: 100%;
@@ -29,7 +29,7 @@
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none; /* تظهر فقط بعد نجاح التفعيل */
+            display: none; 
         }
 
         h1 {
@@ -39,6 +39,7 @@
             font-size: 28px;
         }
 
+        /* ======== الصفحة الرئيسية ======== */
         .main-page {
             display: block;
         }
@@ -111,12 +112,24 @@
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
+        .btn-pink:hover {
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
+        }
+
         .btn-green {
             background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
         }
 
+        .btn-green:hover {
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+        }
+
         .btn-orange {
             background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+
+        .btn-orange:hover {
+            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
         }
 
         .qr-section-box {
@@ -269,7 +282,7 @@
 
         /* ======== شاشة قفل الاشتراك ======== */
         #lockScreen {
-            display: block; 
+            display: none; /* يتم إظهارها برمجياً فقط إذا لم يكن الحساب مفعلاً */
             width: 100%;
             max-width: 450px;
             background: white;
@@ -321,6 +334,7 @@
             font-weight: 600;
             color: #4a5568;
             margin-bottom: 5px;
+            text-align: center;
         }
 
         .lock-field input {
@@ -360,7 +374,7 @@
     <div class="lock-desc">يرجى الاشتراك أو تجديد اشتراكك الشهري لتتمكن من استخدام الخدمة وإنشاء أكواد QR لزبائنك.</div>
     
     <div class="lock-field">
-        <label style="text-align: center;">رمز الطلب (أرسله للمطور):</label>
+        <label>رمز الطلب (أرسله للمطور):</label>
         <div class="code-display-box" id="deviceRequestCode">----</div>
     </div>
 
@@ -374,7 +388,7 @@
     <a href="https://wa.me/YOUR_PHONE_NUMBER" class="whatsapp-contact" target="_blank">💬 تواصل مع المطور للتفعيل عبر واتساب</a>
 </div>
 
-<!-- ======== الحاوية الأساسية ======== -->
+<!-- ======== حاوية التطبيق الأساسية ======== -->
 <div class="container" id="appContainer">
 
     <!-- ======== الصفحة الرئيسية ======== -->
@@ -451,163 +465,178 @@
 
 </div>
 
-<!-- السكريبت الرئيسي المصلح تماماً -->
 <script>
-// تأمين تنفيذ الكود بالكامل فور تحميل مستند الصفحة بالكامل
-document.addEventListener("DOMContentLoaded", function() {
-    
-    // 1. توليد وعرض رمز الطلب فوراً دون شروط لمنع ظهور "----"
-    let currentSalt = "4839"; // القيمة الافتراضية كشبكة أمان
+// تأمين توليد رمز الطلب فوراً ومباشرة دون انتظار أي عملية أخرى
+let currentSalt = "5042"; // القيمة الافتراضية الاحتياطية
+try {
+    let savedSalt = localStorage.getItem('device_salt');
+    if (!savedSalt || isNaN(savedSalt) || savedSalt.length !== 4) {
+        savedSalt = Math.floor(1000 + Math.random() * 9000).toString();
+        localStorage.setItem('device_salt', savedSalt);
+    }
+    currentSalt = savedSalt;
+} catch (e) {
+    currentSalt = "5042";
+}
+
+// حقن الرمز مباشرة في شاشة القفل لمنع ظهور الخطوط "----" مطلقاً
+document.getElementById('deviceRequestCode').textContent = currentSalt;
+
+// ======== العناصر ========
+const appContainer = document.getElementById('appContainer');
+const lockScreen = document.getElementById('lockScreen');
+const activationInput = document.getElementById('activationInput');
+const activateBtn = document.getElementById('activateBtn');
+
+const form = document.getElementById('infoForm');
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const phone = document.getElementById('phone');
+const birthdate = document.getElementById('birthdate');
+const qrContainer = document.getElementById('qrCodeContainer');
+const generateBtn = document.getElementById('generateQrBtn');
+const saveBtn = document.getElementById('saveBtn');
+const successMsg = document.getElementById('successMsg');
+const toggleMainPassword = document.getElementById('toggleMainPassword');
+
+// عناصر صفحة العرض
+const mainPage = document.getElementById('mainPage');
+const infoPage = document.getElementById('infoPage');
+const viewEmail = document.getElementById('viewEmail');
+const viewPassword = document.getElementById('viewPassword');
+const viewPhone = document.getElementById('viewPhone');
+const viewBirthdate = document.getElementById('viewBirthdate');
+const editBtn = document.getElementById('editBtn');
+const saveEditBtn = document.getElementById('saveEditBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const editBadge = document.getElementById('editBadge');
+
+let records = [];
+try {
+    records = JSON.parse(localStorage.getItem('records')) || [];
+} catch(e) {
+    records = [];
+}
+let currentData = null;
+let isEditMode = false;
+
+// الثوابت الحسابية لعملية التحقق والتفعيل
+const REFERENCE_NUMBER = 2026;
+const SUBSCRIPTION_DAYS = 30;
+
+// ======== نظام التحقق من الاشتراك الحقيقي لصفحات الهواتف والـ QR ========
+function checkSubscriptionAndShow() {
+    const params = new URLSearchParams(window.location.search);
+    const hasData = params.get('data');
+
+    // 1. إذا كان المستخدم يفتح رابط QR لمشاهدة معلومات، نظهرها مباشرة دون شاشة قفل
+    if (hasData && hasData.trim() !== "") {
+        lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
+        mainPage.style.display = 'none';
+        infoPage.classList.add('active');
+        return;
+    }
+
+    // 2. إذا كان يدخل للتطبيق الأساسي، نتحقق من حالة الاشتراك المخزن محلياً
+    const subStatus = localStorage.getItem('sub_status');
+    const subDate = localStorage.getItem('sub_date');
+    const now = Date.now();
+    const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
+
+    if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
+        lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
+        mainPage.style.display = 'block';
+        infoPage.classList.remove('active');
+    } else {
+        appContainer.style.display = 'none';
+        lockScreen.style.display = 'block';
+        localStorage.removeItem('sub_status'); // تنظيف الاشتراك منتهي الصلاحية
+    }
+}
+
+// ======== تشغيل زر التفعيل الجديد بذكاء ========
+activateBtn.addEventListener('click', function() {
+    const userEnteredCode = parseInt(activationInput.value.trim());
+    const expectedCode = parseInt(currentSalt) + REFERENCE_NUMBER;
+
+    if (userEnteredCode === expectedCode) {
+        localStorage.setItem('sub_status', 'active');
+        localStorage.setItem('sub_date', Date.now().toString());
+        alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
+        lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
+        mainPage.style.display = 'block';
+    } else {
+        alert('❌ كود التفعيل غير صحيح!');
+    }
+});
+
+// ======== إخفاء وإظهار الباسورد في الرئيسية ========
+toggleMainPassword.addEventListener('click', function() {
+    if(password.type === 'password') {
+        password.type = 'text';
+        this.textContent = '🔒';
+    } else {
+        password.type = 'password';
+        this.textContent = '👁️';
+    }
+});
+
+// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
+function safeBtoa(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
+function safeAtob(str) {
     try {
-        let tempSalt = localStorage.getItem('device_salt');
-        if (!tempSalt || isNaN(tempSalt) || tempSalt.length !== 4) {
-            tempSalt = Math.floor(1000 + Math.random() * 9000).toString();
-            localStorage.setItem('device_salt', tempSalt);
-        }
-        currentSalt = tempSalt;
+        return decodeURIComponent(escape(atob(str)));
     } catch(e) {
-        // في حال تم حظر التخزين المحلي في المتصفح نستخدم قيمة ثابتة آمنة
-        currentSalt = "5192";
+        return null;
     }
+}
+
+// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
+function createShareableLink(dataObject) {
+    const rawString = JSON.stringify(dataObject);
+    const encryptedData = safeBtoa(rawString);
+    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
+}
+
+// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
+function generateDynamicQR(dataObject) {
+    const url = createShareableLink(dataObject);
+    const encodedUrl = encodeURIComponent(url);
+    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
     
-    // حقن القيمة داخل المربع مباشرة بعد تحميل الصفحة
-    const deviceBox = document.getElementById('deviceRequestCode');
-    if (deviceBox) {
-        deviceBox.textContent = currentSalt;
-    }
+    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
+    
+    const img = document.createElement('img');
+    img.src = apiUrl;
+    img.alt = 'Universal QR Code';
+    
+    img.onload = function() {
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(img);
+    };
+    
+    img.onerror = function() {
+        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
+    };
+}
 
-    // بقية أكواد التحكم بالبرنامج
-    const appContainer = document.getElementById('appContainer');
-    const form = document.getElementById('infoForm');
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-    const phone = document.getElementById('phone');
-    const birthdate = document.getElementById('birthdate');
-    const qrContainer = document.getElementById('qrCodeContainer');
-    const generateBtn = document.getElementById('generateQrBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const successMsg = document.getElementById('successMsg');
-    const toggleMainPassword = document.getElementById('toggleMainPassword');
-
-    const mainPage = document.getElementById('mainPage');
-    const infoPage = document.getElementById('infoPage');
-    const viewEmail = document.getElementById('viewEmail');
-    const viewPassword = document.getElementById('viewPassword');
-    const viewPhone = document.getElementById('viewPhone');
-    const viewBirthdate = document.getElementById('viewBirthdate');
-    const editBtn = document.getElementById('editBtn');
-    const saveEditBtn = document.getElementById('saveEditBtn');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const editBadge = document.getElementById('editBadge');
-
-    const lockScreen = document.getElementById('lockScreen');
-    const activationInput = document.getElementById('activationInput');
-    const activateBtn = document.getElementById('activateBtn');
-
-    const REFERENCE_NUMBER = 2026;
-    const SUBSCRIPTION_DAYS = 30;
-
-    let records = [];
-    try {
-        const saved = localStorage.getItem('records');
-        if (saved) records = JSON.parse(saved);
-    } catch(e) {
-        records = [];
-    }
-
-    let currentData = null;
-    let isEditMode = false;
-
-    function checkSubscription() {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const hasData = params.get('data');
-
-            if (hasData && hasData.trim() !== "") {
-                if (lockScreen) lockScreen.style.display = 'none';
-                if (appContainer) appContainer.style.display = 'block';
-                if (mainPage) mainPage.style.display = 'none';
-                if (infoPage) infoPage.classList.add('active');
-                return;
-            }
-
-            const subStatus = localStorage.getItem('sub_status');
-            const subDate = localStorage.getItem('sub_date');
-            const now = Date.now();
-            const thirtyDaysMs = SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000;
-
-            if (subStatus === 'active' && subDate && (now - parseInt(subDate) < thirtyDaysMs)) {
-                if (lockScreen) lockScreen.style.display = 'none';
-                if (appContainer) appContainer.style.display = 'block';
-                if (mainPage) mainPage.style.display = 'block';
-                if (infoPage) infoPage.classList.remove('active');
-            } else {
-                if (appContainer) appContainer.style.display = 'none';
-                if (lockScreen) lockScreen.style.display = 'block';
-                localStorage.removeItem('sub_status');
-            }
-        } catch(err) {}
-    }
-
-    if (activateBtn) {
-        activateBtn.addEventListener('click', function() {
-            try {
-                const userEnteredCode = parseInt(activationInput.value.trim());
-                const expectedCode = parseInt(currentSalt) + REFERENCE_NUMBER;
-
-                if (userEnteredCode === expectedCode) {
-                    localStorage.setItem('sub_status', 'active');
-                    localStorage.setItem('sub_date', Date.now().toString());
-                    alert('🎉 تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-                    if (lockScreen) lockScreen.style.display = 'none';
-                    if (appContainer) appContainer.style.display = 'block';
-                    if (mainPage) mainPage.style.display = 'block';
-                } else {
-                    alert('❌ كود التفعيل غير صحيح!');
-                }
-            } catch(e) {
-                alert('⚠️ حدث خطأ في معالجة الكود.');
-            }
-        });
-    }
-
-    if (toggleMainPassword && password) {
-        toggleMainPassword.addEventListener('click', function() {
-            if(password.type === 'password') {
-                password.type = 'text';
-                this.textContent = '🔒';
-            } else {
-                password.type = 'password';
-                this.textContent = '👁️';
-            }
-        });
-    }
-
-    function safeBtoa(str) {
-        try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return ""; }
-    }
-
-    function safeAtob(str) {
-        try { return decodeURIComponent(escape(atob(str))); } catch(e) { return null; }
-    }
-
-    function createShareableLink(dataObject) {
-        const rawString = JSON.stringify(dataObject);
-        const encryptedData = safeBtoa(rawString);
-        return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
-    }
-
-    function generateDynamicQR(dataObject) {
-        try {
-            const url = createShareableLink(dataObject);
-            const encodedUrl = encodeURIComponent(url);
-            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-            
-            if (qrContainer) {
-                qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
-                const img = document.createElement('img');
-                img.src = apiUrl;
-                img.alt = 'Universal QR Code';
-                img.onload = function() {
-                    qrContainer.innerHTML = '';
-                    qrContainer.appendChild(i
+// ======== حفظ الاستمارة الرئيسية ========
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const data = {
+        email: email.value.trim(),
+        password: password.value,
+        phone: phone.value.trim(),
+        birthdate: birthdate.value
+    };
+    
+    // تحديث السجلات محلياً في جهازك
+    records = records.filter(r => r.email !== data.email);
+   
