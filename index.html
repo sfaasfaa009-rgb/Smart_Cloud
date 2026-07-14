@@ -3,396 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدونة المعلومات - نسخة محمية</title>
+    <title>مدونة المعلومات</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 700px;
-            width: 100%;
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        /* ===== شاشة القفل ===== */
-        #lockScreen {
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        #lockScreen .lock-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-
-        #lockScreen h1 {
-            color: #1a202c;
-            margin-bottom: 25px;
-            font-size: 28px;
-        }
-
-        #lockScreen .device-code {
-            font-size: 64px;
-            font-weight: 900;
-            color: #667eea;
-            background: #ebf4ff;
-            padding: 15px 40px;
-            border-radius: 16px;
-            display: inline-block;
-            margin: 20px 0;
-            letter-spacing: 8px;
-            border: 3px dashed #667eea;
-        }
-
-        #lockScreen .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        #lockScreen .input-group input {
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 20px;
-            text-align: center;
-            letter-spacing: 4px;
-            background: #f7fafc;
-            transition: 0.3s;
-            direction: ltr;
-        }
-
-        #lockScreen .input-group input:focus {
-            border-color: #667eea;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-
-        #lockScreen .input-group .error-msg {
-            color: #e53e3e;
-            font-weight: 600;
-            font-size: 14px;
-            min-height: 24px;
-        }
-
-        #lockScreen .input-group .success-msg {
-            color: #38a169;
-            font-weight: 600;
-            font-size: 14px;
-            min-height: 24px;
-        }
-
-        .btn-lock {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            padding: 16px;
-            font-size: 20px;
-        }
-
-        .btn-lock:hover {
-            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
-            transform: scale(1.02);
-        }
-
-        /* ===== المحتوى الرئيسي ===== */
-        .main-content {
-            display: none;
-        }
-
-        .main-content.active {
-            display: block;
-        }
-
-        .main-content h1 {
-            text-align: center;
-            color: #1a202c;
-            margin-bottom: 25px;
-            font-size: 28px;
-        }
-
-        .field {
-            margin-bottom: 18px;
-            position: relative;
-        }
-
-        .field label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #2d3748;
-            font-size: 14px;
-        }
-
-        .field input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            background: #f7fafc;
-            transition: 0.3s;
-        }
-
-        .field input:focus {
-            border-color: #667eea;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-
-        .password-container {
-            position: relative;
-        }
-
-        .toggle-password {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #718096;
-            font-size: 18px;
-            user-select: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-pink {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .btn-pink:hover {
-            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
-        }
-
-        .btn-green {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        }
-
-        .btn-green:hover {
-            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
-        }
-
-        .btn-orange {
-            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-        }
-
-        .btn-orange:hover {
-            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
-        }
-
-        .qr-section-box {
-            margin: 25px 0;
-            padding: 20px;
-            background: #f7fafc;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px dashed #cbd5e0;
-        }
-
-        .qr-code-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px 0;
-            min-height: 200px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-        }
-
-        .qr-code-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        .qr-note {
-            color: #718096;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-
-        .loading {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .success-msg {
-            background: #c6f6d5;
-            color: #22543d;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            text-align: center;
-            font-weight: 600;
-            display: none;
-        }
-
-        .success-msg.show {
-            display: block;
-        }
-
-        /* ===== صفحة العرض ===== */
-        .info-page {
-            display: none;
-        }
-
-        .info-page.active {
-            display: block;
-        }
-
-        .info-card {
-            background: white;
-            border-radius: 20px;
-            padding: 35px;
-            border: 3px solid #667eea;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .info-card .card-title {
-            text-align: center;
-            color: #1a202c;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .info-card .info-field {
-            margin-bottom: 20px;
-        }
-
-        .info-card .info-field label {
-            display: block;
-            font-weight: 700;
-            color: #4a5568;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-
-        .info-card .info-field .value-box {
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            font-size: 16px;
-            color: #2d3748;
-            font-weight: 500;
-            word-break: break-all;
-            background: #f7fafc;
-            transition: 0.3s;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { max-width: 700px; width: 100%; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { text-align: center; color: #1a202c; margin-bottom: 25px; font-size: 28px; }
+        .main-page { display: block; }
+        .field { margin-bottom: 18px; position: relative; }
+        .field label { display: block; font-weight: 600; margin-bottom: 6px; color: #2d3748; font-size: 14px; }
+        .field input { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; background: #f7fafc; transition: 0.3s; }
+        .field input:focus { border-color: #667eea; outline: none; background: white; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); }
+        .password-container { position: relative; }
+        .toggle-password { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #718096; font-size: 18px; user-select: none; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 5px; transition: 0.3s; }
+        button:hover { transform: scale(1.02); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+        .btn-pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-pink:hover { box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4); }
+        .btn-green { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+        .btn-green:hover { box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4); }
+        .btn-orange { background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+        .btn-orange:hover { box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4); }
+        .qr-section-box { margin: 25px 0; padding: 20px; background: #f7fafc; border-radius: 16px; text-align: center; border: 2px dashed #cbd5e0; }
+        .qr-code-container { display: flex; justify-content: center; align-items: center; margin: 10px 0; min-height: 200px; background: white; border-radius: 12px; padding: 15px; }
+        .qr-code-container img { max-width: 100%; height: auto; border-radius: 8px; }
+        .qr-note { color: #718096; font-size: 12px; margin-top: 10px; }
+        .loading { color: #667eea; font-weight: 600; }
+        .info-page { display: none; }
+        .info-page.active { display: block; }
+        .info-card { background: white; border-radius: 20px; padding: 35px; border: 3px solid #667eea; box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2); }
+        .info-card .card-title { text-align: center; color: #1a202c; font-size: 24px; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #667eea; }
+        .info-card .info-field { margin-bottom: 20px; }
+        .info-card .info-field label { display: block; font-weight: 700; color: #4a5568; font-size: 14px; margin-bottom: 6px; }
+        .info-card .info-field .value-box { padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; color: #2d3748; font-weight: 500; word-break: break-all; background: #f7fafc; transition: 0.3s; }
         .info-card .info-field .value-box.email-box { border-color: #667eea; background: #ebf4ff; color: #2b6cb0; }
         .info-card .info-field .value-box.password-box { border-color: #9f7aea; background: #faf5ff; color: #6b46c1; }
         .info-card .info-field .value-box.phone-box { border-color: #48bb78; background: #f0fff4; color: #276749; }
         .info-card .info-field .value-box.birthdate-box { border-color: #ed8936; background: #fffaf0; color: #c05621; }
-
-        .info-card .info-field .value-box.editable {
-            background: white;
-            border-color: #e53e3e;
-            border-width: 2px;
-            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .action-buttons button {
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .back-btn {
-            margin-top: 10px;
-            background: #718096;
-        }
-
-        .edit-mode-badge {
-            text-align: center;
-            background: #fefcbf;
-            color: #975a16;
-            padding: 8px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            border: 2px solid #f6c23e;
-            display: none;
-        }
-
-        .edit-mode-badge.active {
-            display: block;
-        }
-
-        @media (max-width: 600px) {
-            .container { padding: 18px; }
-            .info-card { padding: 20px; }
-            .action-buttons { flex-direction: column; }
-            .action-buttons button { min-width: auto; }
-            #lockScreen .device-code { font-size: 48px; padding: 12px 20px; }
-        }
+        .info-card .info-field .value-box.editable { background: white; border-color: #e53e3e; border-width: 2px; box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2); }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .action-buttons button { flex: 1; min-width: 120px; }
+        .back-btn { margin-top: 10px; background: #718096; }
+        .edit-mode-badge { text-align: center; background: #fefcbf; color: #975a16; padding: 8px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; border: 2px solid #f6c23e; display: none; }
+        .edit-mode-badge.active { display: block; }
+        .success-msg { background: #c6f6d5; color: #22543d; padding: 10px; border-radius: 10px; margin-top: 10px; text-align: center; font-weight: 600; display: none; }
+        .success-msg.show { display: block; }
+        .security-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+        .security-box { background: white; padding: 30px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .security-code-display { font-size: 36px; font-weight: 800; letter-spacing: 5px; color: #e53e3e; margin: 20px 0; padding: 10px; background: #fff5f5; border: 2px dashed #feb2b2; border-radius: 10px; }
+        .security-box p { color: #4a5568; font-size: 15px; line-height: 1.6; }
+        @media (max-width: 600px) { .container { padding: 18px; } .info-card { padding: 20px; } .action-buttons { flex-direction: column; } .action-buttons button { min-width: auto; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-
-    <!-- ===== شاشة القفل ===== -->
-    <div id="lockScreen">
-        <div class="lock-icon">🔒</div>
-        <h1>تطبيق محمي</h1>
-        <div class="device-code" id="deviceCode">----</div>
-        <div class="input-group">
-            <input type="text" id="lockCodeInput" placeholder="أدخل رمز الدخول" maxlength="10" inputmode="numeric" dir="ltr">
-            <div id="lockError" class="error-msg"></div>
-            <div id="lockSuccess" class="success-msg"></div>
-            <button class="btn-lock" id="unlockBtn">🔓 فتح التطبيق</button>
-        </div>
+<div id="securityModal" class="security-overlay" style="display: none;">
+    <div class="security-box">
+        <h2>🔐 رمز حماية وتأكيد</h2>
+        <p style="margin-top: 10px;">يرجى حفظ هذا الرمز الناتج للفتح من جهاز جديد.</p>
+        <div id="securityCodeDisplay" class="security-code-display">0000</div>
+        <button id="closeSecurityBtn" class="btn-green">فهمت، واصل فتح الرابط</button>
     </div>
+</div>
 
-    <!-- ===== المحتوى الرئيسي ===== -->
-    <div class="main-content" id="mainContent">
+<div class="container">
+    <div class="main-page" id="mainPage">
         <h1>📝 مدونة المعلومات</h1>
-        
         <form id="infoForm">
             <div class="field">
                 <label>📧 البريد الإلكتروني</label>
@@ -423,170 +99,28 @@
                 <p style="color:#a0aec0;">📭 أدخل معلومات ثم اضغط حفظ</p>
             </div>
             <button class="btn-pink" id="generateQrBtn">🔄 عرض كود QR للحساب الحالي</button>
-            <p class="qr-note">📸 هذا الكود ينقل البيانات تلقائياً لأي جهاز يقوم بمسحه دون الحاجة لإنترنت أو قاعدة بيانات!</p>
         </div>
     </div>
 
-    <!-- ===== صفحة العرض ===== -->
     <div class="info-page" id="infoPage">
         <div class="info-card">
             <div class="card-title">📇 معلومات السجل</div>
-            
             <div class="edit-mode-badge" id="editBadge">✏️ وضع التعديل نشط</div>
-
-            <div class="info-field">
-                <label>📧 البريد الإلكتروني</label>
-                <div class="value-box email-box" id="viewEmail">-</div>
-            </div>
-            <div class="info-field">
-                <label>🔑 كلمة المرور</label>
-                <div class="value-box password-box" id="viewPassword">-</div>
-            </div>
-            <div class="info-field">
-                <label>📞 رقم الهاتف</label>
-                <div class="value-box phone-box" id="viewPhone">-</div>
-            </div>
-            <div class="info-field">
-                <label>🎂 تاريخ الميلاد</label>
-                <div class="value-box birthdate-box" id="viewBirthdate">-</div>
-            </div>
-
+            <div class="info-field"><label>📧 البريد الإلكتروني</label><div class="value-box email-box" id="viewEmail">-</div></div>
+            <div class="info-field"><label>🔑 كلمة المرور</label><div class="value-box password-box" id="viewPassword">-</div></div>
+            <div class="info-field"><label>📞 رقم الهاتف</label><div class="value-box phone-box" id="viewPhone">-</div></div>
+            <div class="info-field"><label>🎂 تاريخ الميلاد</label><div class="value-box birthdate-box" id="viewBirthdate">-</div></div>
             <div class="action-buttons">
-                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات وحفظها محلياً</button>
+                <button class="btn-orange" id="editBtn">✏️ تعديل المعلومات</button>
                 <button class="btn-green" id="saveEditBtn" style="display:none;">💾 حفظ التعديلات</button>
                 <button id="cancelEditBtn" style="display:none; background:#fc8181;">❌ إلغاء</button>
             </div>
-
-            <button class="back-btn" onclick="goBack()">🔙 العودة للصفحة الرئيسية</button>
+            <button class="back-btn" onclick="goBack()">🔙 العودة الرئيسية</button>
         </div>
     </div>
-
 </div>
 
 <script>
-// ================================================================
-// 1. نظام الحماية (شاشة القفل)
-// ================================================================
-
-// توليد رقم عشوائي فريد مكون من 4 أرقام مختلفة
-function generateUniqueDeviceCode() {
-    let digits = [];
-    while (digits.length < 4) {
-        let d = Math.floor(Math.random() * 10);
-        if (!digits.includes(d)) {
-            digits.push(d);
-        }
-    }
-    return digits.join('');
-}
-
-// الحصول على رقم الجهاز (يخزن في localStorage)
-function getDeviceCode() {
-    let stored = localStorage.getItem('deviceCode');
-    if (stored) {
-        return stored;
-    }
-    let newCode = generateUniqueDeviceCode();
-    localStorage.setItem('deviceCode', newCode);
-    return newCode;
-}
-
-// حساب رمز الدخول = رقم الجهاز + 2026
-function calculateAccessCode(deviceCode) {
-    return String(Number(deviceCode) + 2026);
-}
-
-// التحقق من صلاحية 30 يوم
-function isLockExpired() {
-    let activationTime = localStorage.getItem('activationTime');
-    if (!activationTime) return true;
-    let now = Date.now();
-    let diffDays = (now - Number(activationTime)) / (1000 * 60 * 60 * 24);
-    return diffDays >= 30;
-}
-
-// هل تم التفعيل سابقاً؟
-function isAlreadyActivated() {
-    return localStorage.getItem('activationTime') !== null;
-}
-
-// فتح التطبيق
-function unlockApp() {
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('mainContent').classList.add('active');
-}
-
-// معالجة زر فتح التطبيق
-document.getElementById('unlockBtn').addEventListener('click', function() {
-    let inputCode = document.getElementById('lockCodeInput').value.trim();
-    let errorDiv = document.getElementById('lockError');
-    let successDiv = document.getElementById('lockSuccess');
-    
-    errorDiv.textContent = '';
-    successDiv.textContent = '';
-    
-    if (!inputCode) {
-        errorDiv.textContent = '⚠️ الرجاء إدخال رمز الدخول';
-        return;
-    }
-    
-    let deviceCode = getDeviceCode();
-    let correctCode = calculateAccessCode(deviceCode);
-    
-    if (isLockExpired() && isAlreadyActivated()) {
-        errorDiv.textContent = '⛔ انتهت صلاحية الرمز (30 يوم). الرمز الجديد: ' + correctCode;
-        return;
-    }
-    
-    if (inputCode === correctCode) {
-        localStorage.setItem('activationTime', String(Date.now()));
-        successDiv.textContent = '✅ تم فتح التطبيق بنجاح!';
-        setTimeout(function() {
-            unlockApp();
-        }, 500);
-    } else {
-        errorDiv.textContent = '❌ رمز غير صحيح. حاول مرة أخرى';
-        document.getElementById('lockCodeInput').value = '';
-        document.getElementById('lockCodeInput').focus();
-    }
-});
-
-// عرض رقم الجهاز
-document.getElementById('deviceCode').textContent = getDeviceCode();
-
-// التحقق من التفعيل عند تحميل الصفحة
-function checkActivationOnStart() {
-    // يمكن تفعيل السطر التالي لتجاوز القفل في وضع التطوير (DEBUG)
-    // if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    //     unlockApp();
-    //     return;
-    // }
-    if (isAlreadyActivated() && !isLockExpired()) {
-        unlockApp();
-    }
-}
-
-checkActivationOnStart();
-
-// إدخال Enter لفتح التطبيق
-document.getElementById('lockCodeInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        document.getElementById('unlockBtn').click();
-    }
-});
-
-// التركيز على حقل الإدخال
-window.addEventListener('load', function() {
-    if (document.getElementById('lockScreen').style.display !== 'none') {
-        document.getElementById('lockCodeInput').focus();
-    }
-});
-
-// ================================================================
-// 2. باقي الكود (مدونة المعلومات)
-// ================================================================
-
-// العناصر
 const form = document.getElementById('infoForm');
 const email = document.getElementById('email');
 const password = document.getElementById('password');
@@ -597,9 +131,7 @@ const generateBtn = document.getElementById('generateQrBtn');
 const saveBtn = document.getElementById('saveBtn');
 const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
-
-// عناصر صفحة العرض
-const mainPage = document.getElementById('mainContent');
+const mainPage = document.getElementById('mainPage');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
@@ -609,58 +141,143 @@ const editBtn = document.getElementById('editBtn');
 const saveEditBtn = document.getElementById('saveEditBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const editBadge = document.getElementById('editBadge');
+const securityModal = document.getElementById('securityModal');
+const securityCodeDisplay = document.getElementById('securityCodeDisplay');
+const closeSecurityBtn = document.getElementById('closeSecurityBtn');
 
 let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
 
-// إخفاء وإظهار الباسورد
-toggleMainPassword.addEventListener('click', function() {
-    if(password.type === 'password') {
-        password.type = 'text';
-        this.textContent = '🔒';
-    } else {
-        password.type = 'password';
-        this.textContent = '👁️';
+function get30DaySecurityCode() {
+    const periodIndex = Math.floor(Math.floor(Date.now() / 86400000) / 30);
+    let seed = periodIndex + 12345;
+    let x = Math.sin(seed) * 10000;
+    return (Math.floor((x - Math.floor(x)) * 9000) + 1000) + 2026;
+}
+
+function checkSecurityBarrier() {
+    const currentCode = get30DaySecurityCode();
+    if (localStorage.getItem('last_seen_security_code') !== String(currentCode)) {
+        securityCodeDisplay.textContent = currentCode;
+        securityModal.style.display = 'flex';
+        closeSecurityBtn.onclick = function() {
+            localStorage.setItem('last_seen_security_code', currentCode);
+            securityModal.style.display = 'none';
+        };
     }
+}
+
+toggleMainPassword.addEventListener('click', function() {
+    if(password.type === 'password') { password.type = 'text'; this.textContent = '🔒'; }
+    else { password.type = 'password'; this.textContent = '👁️'; }
 });
 
-// تشفير Base64
-function safeBtoa(str) {
-    return btoa(unescape(encodeURIComponent(str)));
+function safeBtoa(str) { return btoa(unescape(encodeURIComponent(str))); }
+function safeAtob(str) { try { return decodeURIComponent(escape(atob(str))); } catch(e) { return null; } }
+
+function createShareableLink(dataObject) {
+    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(safeBtoa(JSON.stringify(dataObject)));
 }
 
-function safeAtob(str) {
-    try {
-        return decodeURIComponent(escape(atob(str)));
-    } catch(e) {
-        return null;
+function generateDynamicQR(dataObject) {
+    const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(createShareableLink(dataObject)) + '&format=png&margin=20';
+    qrContainer.innerHTML = '<p class="loading">⏳ جاري عرض رمز QR...</p>';
+    const img = document.createElement('img');
+    img.src = apiUrl;
+    img.onload = function() { qrContainer.innerHTML = ''; qrContainer.appendChild(img); };
+    img.onerror = function() { qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>'; };
+}
+
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = { email: email.value.trim(), password: password.value, phone: phone.value.trim(), birthdate: birthdate.value };
+    records = records.filter(r => r.email !== data.email);
+    records.push(data);
+    localStorage.setItem('records', JSON.stringify(records));
+    generateDynamicQR(data);
+    successMsg.classList.add('show');
+    setTimeout(() => successMsg.classList.remove('show'), 3000);
+    saveBtn.textContent = '✅ تم الحفظ!';
+    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
+    form.reset();
+});
+
+generateBtn.addEventListener('click', function() {
+    if (records.length === 0) { alert('⚠️ لا توجد سجلات محفوظة حالياً.'); return; }
+    generateDynamicQR(records[records.length - 1]);
+});
+
+function enableEditMode() {
+    isEditMode = true;
+    editBadge.classList.add('active');
+    viewPassword.contentEditable = viewPhone.contentEditable = viewBirthdate.contentEditable = 'true';
+    viewPassword.classList.add('editable'); viewPhone.classList.add('editable'); viewBirthdate.classList.add('editable');
+    viewPassword.textContent = currentData.password;
+    editBtn.style.display = 'none';
+    saveEditBtn.style.display = cancelEditBtn.style.display = 'block';
+}
+
+function disableEditMode() {
+    isEditMode = false;
+    editBadge.classList.remove('active');
+    viewPassword.contentEditable = viewPhone.contentEditable = viewBirthdate.contentEditable = 'false';
+    viewPassword.classList.remove('editable'); viewPhone.classList.remove('editable'); viewBirthdate.classList.remove('editable');
+    renderProtectedData();
+    editBtn.style.display = 'block';
+    saveEditBtn.style.display = cancelEditBtn.style.display = 'none';
+}
+
+function renderProtectedData() {
+    if (currentData) {
+        viewEmail.textContent = currentData.email;
+        viewPhone.textContent = currentData.phone;
+        viewBirthdate.textContent = currentData.birthdate;
+        viewPassword.innerHTML = '•••••••• <span id="viewPassEye" style="cursor:pointer;margin-right:15px;font-size:14px;">👁️ إظهار</span>';
+        document.getElementById('viewPassEye').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if(viewPassword.textContent.includes('👁️')) {
+                viewPassword.innerHTML = currentData.password + ' <span id="viewPassEye" style="cursor:pointer;margin-right:15px;font-size:14px;">🔒 إخفاء</span>';
+                document.getElementById('viewPassEye').addEventListener('click', function(ev) { ev.stopPropagation(); renderProtectedData(); });
+            } else { renderProtectedData(); }
+        });
     }
 }
 
-// توليد رابط مشفر
-function createShareableLink(dataObject) {
-    const rawString = JSON.stringify(dataObject);
-    const encryptedData = safeBtoa(rawString);
-    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
+editBtn.addEventListener('click', enableEditMode);
+cancelEditBtn.addEventListener('click', disableEditMode);
+
+saveEditBtn.addEventListener('click', function() {
+    const newData = { email: viewEmail.textContent.trim(), password: viewPassword.textContent.replace(' 🔒 إخفاء', '').trim(), phone: viewPhone.textContent.trim(), birthdate: viewBirthdate.textContent.trim() };
+    if (!newData.password || !newData.phone || !newData.birthdate) { alert('⚠️ الحقول فارغة'); return; }
+    let index = records.findIndex(r => r.email === newData.email);
+    if (index !== -1) records[index] = newData; else records.push(newData);
+    localStorage.setItem('records', JSON.stringify(records));
+    currentData = newData;
+    disableEditMode();
+    alert('✅ تم التعديل! أعد توليد QR لإعطائه للزبون.');
+});
+
+function goBack() { infoPage.classList.remove('active'); mainPage.style.display = 'block'; window.history.pushState({}, '', window.location.pathname); disableEditMode(); }
+
+function loadDataFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const encryptedData = params.get('data');
+    if (encryptedData) {
+        const decryptedString = safeAtob(decodeURIComponent(encryptedData));
+        if (decryptedString) {
+            try {
+                currentData = JSON.parse(decryptedString);
+                mainPage.style.display = 'none'; infoPage.classList.add('active');
+                renderProtectedData(); disableEditMode(); return true;
+            } catch (err) { alert('⚠️ الرابط تالف.'); }
+        }
+    }
+    return false;
 }
 
-// توليد QR
-function generateDynamicQR(dataObject) {
-    const url = createShareableLink(dataObject);
-    const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-    
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
-    
-    const img = document.createElement('img');
-    img.src = apiUrl;
-    img.alt = 'Universal QR Code';
-    
-    img.onload = function() {
-        qrContainer.innerHTML = '';
-        qrContainer.appendChild(img);
-    };
-    
-    img.onerror = function() {
-        qrCont
+checkSecurityBarrier();
+if (!loadDataFromURL() && records.length > 0) generateDynamicQR(records[records.length - 1]);
+</script>
+</body>
+</html>
