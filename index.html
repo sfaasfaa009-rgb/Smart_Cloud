@@ -68,6 +68,7 @@
             margin: 20px 0;
             font-family: 'Courier New', monospace;
             text-align: center;
+            user-select: all;
         }
 
         .lock-screen .info-text {
@@ -405,7 +406,7 @@
         <div class="lock-icon">🔒</div>
         <h2>التطبيق مقفل</h2>
         
-        <div class="random-number-box" id="randomNumberDisplay">0000</div>
+        <div class="random-number-box" id="randomNumberDisplay">----</div>
         
         <p class="info-text">
             📌 <strong>للحصول على رمز الدخول:</strong><br>
@@ -502,11 +503,11 @@
 </div>
 
 <script>
-// ======== الإعدادات ========
-const SECRET_KEY = 2026;
-const LOCK_DURATION_DAYS = 30;
+// ======== الإعدادات الأساسية ========
+const SECRET_KEY = 2026; // الرقم السري الذي تجمع به
+const LOCK_DURATION_DAYS = 30; // مدة القفل 30 يوم
 
-// ======== دوال القفل ========
+// ======== دوال نظام الحماية ========
 function generateRandom4Digit() {
     return Math.floor(1000 + Math.random() * 9000);
 }
@@ -514,12 +515,26 @@ function generateRandom4Digit() {
 function createNewLock() {
     const randomNum = generateRandom4Digit();
     const expiryTime = new Date().getTime() + (LOCK_DURATION_DAYS * 24 * 60 * 60 * 1000);
+    
     localStorage.setItem('lockData', JSON.stringify({
         randomNumber: randomNum,
         expiryTime: expiryTime,
         isLocked: true
     }));
+    
     return randomNum;
+}
+
+function showLockScreen(randomNum) {
+    document.getElementById('randomNumberDisplay').textContent = randomNum;
+    document.getElementById('lockScreen').classList.remove('hidden');
+    document.getElementById('mainPage').classList.remove('active');
+}
+
+function showApp(daysLeft) {
+    document.getElementById('daysLeftTop').textContent = daysLeft;
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('mainPage').classList.add('active');
 }
 
 // ======== العناصر ========
@@ -534,8 +549,8 @@ const saveBtn = document.getElementById('saveBtn');
 const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
 
+// عناصر صفحة العرض
 const mainPage = document.getElementById('mainPage');
-const lockScreen = document.getElementById('lockScreen');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
@@ -550,7 +565,7 @@ let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
 
-// ======== إظهار/إخفاء كلمة المرور ========
+// ======== إخفاء وإظهار الباسورد في الرئيسية ========
 toggleMainPassword.addEventListener('click', function() {
     if(password.type === 'password') {
         password.type = 'text';
@@ -561,7 +576,7 @@ toggleMainPassword.addEventListener('click', function() {
     }
 });
 
-// ======== تشفير Base64 ========
+// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
 function safeBtoa(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
@@ -574,14 +589,14 @@ function safeAtob(str) {
     }
 }
 
-// ======== رابط البيانات ========
+// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
 function createShareableLink(dataObject) {
     const rawString = JSON.stringify(dataObject);
     const encryptedData = safeBtoa(rawString);
     return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
 }
 
-// ======== توليد QR ========
+// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
 function generateDynamicQR(dataObject) {
     const url = createShareableLink(dataObject);
     const encodedUrl = encodeURIComponent(url);
@@ -603,7 +618,7 @@ function generateDynamicQR(dataObject) {
     };
 }
 
-// ======== حفظ الاستمارة ========
+// ======== حفظ الاستمارة الرئيسية ========
 form.addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -614,10 +629,12 @@ form.addEventListener('submit', function(e) {
         birthdate: birthdate.value
     };
     
+    // تحديث السجلات محلياً في جهازك
     records = records.filter(r => r.email !== data.email);
     records.push(data);
     localStorage.setItem('records', JSON.stringify(records));
     
+    // توليد كود الـ QR شامل البيانات ليتمكن أي جهاز من قراءته مباشرة
     generateDynamicQR(data);
     
     successMsg.classList.add('show');
@@ -629,7 +646,7 @@ form.addEventListener('submit', function(e) {
     form.reset();
 });
 
-// ======== زر عرض QR ========
+// ======== زر توليد QR من السجلات المخزنة ========
 generateBtn.addEventListener('click', function() {
     if (records.length === 0) {
         alert('⚠️ لا توجد سجلات محفوظة حالياً في هذا الجهاز.');
@@ -638,38 +655,11 @@ generateBtn.addEventListener('click', function() {
     generateDynamicQR(records[records.length - 1]);
 });
 
-// ======== وضع التعديل ========
+// ======== تفعيل وضع التعديل ========
 function enableEditMode() {
     isEditMode = true;
     editBadge.classList.add('active');
     
     viewPassword.contentEditable = 'true';
     viewPhone.contentEditable = 'true';
-    viewBirthdate.contentEditable = 'true';
-    
-    viewPassword.classList.add('editable');
-    viewPhone.classList.add('editable');
-    viewBirthdate.classList.add('editable');
-    
-    viewPassword.textContent = currentData.password;
-    
-    editBtn.style.display = 'none';
-    saveEditBtn.style.display = 'block';
-    cancelEditBtn.style.display = 'block';
-}
-
-function disableEditMode() {
-    isEditMode = false;
-    editBadge.classList.remove('active');
-    
-    viewPassword.contentEditable = 'false';
-    viewPhone.contentEditable = 'false';
-    viewBirthdate.contentEditable = 'false';
-    
-    viewPassword.classList.remove('editable');
-    viewPhone.classList.remove('editable');
-    viewBirthdate.classList.remove('editable');
-    
-    renderProtectedData();
-    
-    editBtn.style.display = 
+    vie
