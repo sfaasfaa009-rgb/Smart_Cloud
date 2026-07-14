@@ -68,7 +68,6 @@
             margin: 20px 0;
             font-family: 'Courier New', monospace;
             text-align: center;
-            user-select: all;
         }
 
         .lock-screen .info-text {
@@ -406,7 +405,7 @@
         <div class="lock-icon">🔒</div>
         <h2>التطبيق مقفل</h2>
         
-        <div class="random-number-box" id="randomNumberDisplay">----</div>
+        <div class="random-number-box" id="randomNumberDisplay">0000</div>
         
         <p class="info-text">
             📌 <strong>للحصول على رمز الدخول:</strong><br>
@@ -503,11 +502,11 @@
 </div>
 
 <script>
-// ======== الإعدادات الأساسية ========
+// ======== الإعدادات ========
 const SECRET_KEY = 2026;
 const LOCK_DURATION_DAYS = 30;
 
-// ======== دوال نظام الحماية ========
+// ======== دوال القفل ========
 function generateRandom4Digit() {
     return Math.floor(1000 + Math.random() * 9000);
 }
@@ -515,49 +514,15 @@ function generateRandom4Digit() {
 function createNewLock() {
     const randomNum = generateRandom4Digit();
     const expiryTime = new Date().getTime() + (LOCK_DURATION_DAYS * 24 * 60 * 60 * 1000);
-    
     localStorage.setItem('lockData', JSON.stringify({
         randomNumber: randomNum,
         expiryTime: expiryTime,
         isLocked: true
     }));
-    
     return randomNum;
 }
 
-function checkLockAndShowUI() {
-    const lockData = JSON.parse(localStorage.getItem('lockData'));
-    const now = new Date().getTime();
-    
-    if (!lockData || now >= lockData.expiryTime) {
-        // إنشاء قفل جديد
-        const randomNum = createNewLock();
-        document.getElementById('randomNumberDisplay').textContent = randomNum;
-        document.getElementById('lockScreen').classList.remove('hidden');
-        document.getElementById('mainPage').classList.remove('active');
-        document.getElementById('mainPage').style.display = 'none';
-        return 'locked';
-    }
-    
-    if (lockData.isLocked) {
-        // ما زال مقفولاً
-        document.getElementById('randomNumberDisplay').textContent = lockData.randomNumber;
-        document.getElementById('lockScreen').classList.remove('hidden');
-        document.getElementById('mainPage').classList.remove('active');
-        document.getElementById('mainPage').style.display = 'none';
-        return 'locked';
-    }
-    
-    // مفتوح وصالح
-    const daysLeft = Math.ceil((lockData.expiryTime - now) / (1000 * 24 * 60 * 60));
-    document.getElementById('daysLeftTop').textContent = daysLeft;
-    document.getElementById('lockScreen').classList.add('hidden');
-    document.getElementById('mainPage').classList.add('active');
-    document.getElementById('mainPage').style.display = 'block';
-    return 'unlocked';
-}
-
-// ======== عناصر الصفحة ========
+// ======== العناصر ========
 const form = document.getElementById('infoForm');
 const email = document.getElementById('email');
 const password = document.getElementById('password');
@@ -570,6 +535,7 @@ const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
 
 const mainPage = document.getElementById('mainPage');
+const lockScreen = document.getElementById('lockScreen');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
@@ -583,33 +549,6 @@ const editBadge = document.getElementById('editBadge');
 let records = JSON.parse(localStorage.getItem('records')) || [];
 let currentData = null;
 let isEditMode = false;
-
-// ======== زر فتح القفل ========
-document.getElementById('unlockBtn').addEventListener('click', function() {
-    const lockData = JSON.parse(localStorage.getItem('lockData'));
-    const userCode = parseInt(document.getElementById('unlockCode').value.trim());
-    const correctCode = lockData.randomNumber + SECRET_KEY;
-    
-    if (userCode === correctCode && !isNaN(userCode)) {
-        lockData.isLocked = false;
-        localStorage.setItem('lockData', JSON.stringify(lockData));
-        
-        document.getElementById('lockScreen').classList.add('hidden');
-        document.getElementById('mainPage').classList.add('active');
-        document.getElementById('mainPage').style.display = 'block';
-        document.getElementById('daysLeftTop').textContent = LOCK_DURATION_DAYS;
-        document.getElementById('errorMsg').classList.remove('show');
-        document.getElementById('unlockCode').value = '';
-        
-        if (records.length > 0) {
-            generateDynamicQR(records[records.length - 1]);
-        }
-    } else {
-        document.getElementById('errorMsg').classList.add('show');
-        document.getElementById('unlockCode').value = '';
-        setTimeout(() => document.getElementById('errorMsg').classList.remove('show'), 4000);
-    }
-});
 
 // ======== إظهار/إخفاء كلمة المرور ========
 toggleMainPassword.addEventListener('click', function() {
@@ -643,4 +582,94 @@ function createShareableLink(dataObject) {
 }
 
 // ======== توليد QR ========
-function generateDynamicQR(dataObject) 
+function generateDynamicQR(dataObject) {
+    const url = createShareableLink(dataObject);
+    const encodedUrl = encodeURIComponent(url);
+    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
+    
+    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
+    
+    const img = document.createElement('img');
+    img.src = apiUrl;
+    img.alt = 'Universal QR Code';
+    
+    img.onload = function() {
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(img);
+    };
+    
+    img.onerror = function() {
+        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
+    };
+}
+
+// ======== حفظ الاستمارة ========
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const data = {
+        email: email.value.trim(),
+        password: password.value,
+        phone: phone.value.trim(),
+        birthdate: birthdate.value
+    };
+    
+    records = records.filter(r => r.email !== data.email);
+    records.push(data);
+    localStorage.setItem('records', JSON.stringify(records));
+    
+    generateDynamicQR(data);
+    
+    successMsg.classList.add('show');
+    setTimeout(() => successMsg.classList.remove('show'), 3000);
+    
+    saveBtn.textContent = '✅ تم الحفظ!';
+    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
+    
+    form.reset();
+});
+
+// ======== زر عرض QR ========
+generateBtn.addEventListener('click', function() {
+    if (records.length === 0) {
+        alert('⚠️ لا توجد سجلات محفوظة حالياً في هذا الجهاز.');
+        return;
+    }
+    generateDynamicQR(records[records.length - 1]);
+});
+
+// ======== وضع التعديل ========
+function enableEditMode() {
+    isEditMode = true;
+    editBadge.classList.add('active');
+    
+    viewPassword.contentEditable = 'true';
+    viewPhone.contentEditable = 'true';
+    viewBirthdate.contentEditable = 'true';
+    
+    viewPassword.classList.add('editable');
+    viewPhone.classList.add('editable');
+    viewBirthdate.classList.add('editable');
+    
+    viewPassword.textContent = currentData.password;
+    
+    editBtn.style.display = 'none';
+    saveEditBtn.style.display = 'block';
+    cancelEditBtn.style.display = 'block';
+}
+
+function disableEditMode() {
+    isEditMode = false;
+    editBadge.classList.remove('active');
+    
+    viewPassword.contentEditable = 'false';
+    viewPhone.contentEditable = 'false';
+    viewBirthdate.contentEditable = 'false';
+    
+    viewPassword.classList.remove('editable');
+    viewPhone.classList.remove('editable');
+    viewBirthdate.classList.remove('editable');
+    
+    renderProtectedData();
+    
+    editBtn.style.display = 
