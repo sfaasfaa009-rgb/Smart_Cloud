@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدونة المعلومات</title>
     <style>
+        /* ====== نفس الستايل السابق مع إضافات ====== */
         * {
             margin: 0;
             padding: 0;
@@ -37,118 +38,106 @@
             font-size: 28px;
         }
 
-        /* ======== شاشة القفل ======== */
+        /* ====== شاشة القفل ====== */
         .lock-screen {
             display: block;
             text-align: center;
+            padding: 20px 0;
         }
 
-        .lock-screen.hidden {
-            display: none;
+        .lock-screen .lock-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
         }
 
-        .lock-icon {
-            font-size: 70px;
-            margin: 20px 0;
-        }
-
-        .lock-screen h2 {
-            color: #e53e3e;
-            margin-bottom: 20px;
-        }
-
-        .random-number-box {
-            background: #1a202c;
-            color: #48bb78;
+        .lock-screen .device-code {
             font-size: 48px;
             font-weight: 900;
-            letter-spacing: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            user-select: all;
-        }
-
-        .lock-screen .info-text {
-            color: #4a5568;
+            color: #667eea;
+            background: #ebf4ff;
+            padding: 15px 30px;
+            border-radius: 16px;
+            display: inline-block;
             margin: 15px 0;
-            line-height: 1.8;
-            font-size: 15px;
+            letter-spacing: 8px;
+            border: 3px dashed #667eea;
         }
 
-        .lock-screen .field {
+        .lock-screen .instruction {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.8;
+            margin: 15px 0;
+        }
+
+        .lock-screen .instruction strong {
+            color: #e53e3e;
+            font-size: 18px;
+        }
+
+        .lock-screen .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             margin: 20px 0;
         }
 
-        .lock-screen .field input {
-            width: 100%;
+        .lock-screen .input-group input {
             padding: 14px 18px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
-            font-size: 22px;
+            font-size: 20px;
             text-align: center;
-            letter-spacing: 8px;
-            font-weight: 700;
+            letter-spacing: 4px;
             background: #f7fafc;
             transition: 0.3s;
+            direction: ltr;
         }
 
-        .lock-screen .field input:focus {
+        .lock-screen .input-group input:focus {
             border-color: #667eea;
             outline: none;
             background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        .lock-screen button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: 0.3s;
-        }
-
-        .lock-screen button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .error-msg {
+        .lock-screen .input-group .error-msg {
             color: #e53e3e;
             font-weight: 600;
-            margin-top: 10px;
-            display: none;
+            font-size: 14px;
+            min-height: 24px;
         }
 
-        .error-msg.show {
-            display: block;
-        }
-
-        .days-left {
-            background: #c6f6d5;
-            color: #22543d;
-            padding: 8px 15px;
-            border-radius: 20px;
+        .lock-screen .input-group .success-msg {
+            color: #38a169;
             font-weight: 600;
-            font-size: 13px;
-            display: inline-block;
-            margin-top: 10px;
+            font-size: 14px;
+            min-height: 24px;
         }
 
-        /* ======== الصفحة الرئيسية ======== */
-        .main-page {
+        .btn-lock {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            padding: 16px;
+            font-size: 20px;
+        }
+
+        .btn-lock:hover {
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-lock:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ====== باقي الستايل ====== */
+        .main-content {
             display: none;
         }
 
-        .main-page.active {
+        .main-content.active {
             display: block;
         }
 
@@ -393,7 +382,7 @@
             .info-card { padding: 20px; }
             .action-buttons { flex-direction: column; }
             .action-buttons button { min-width: auto; }
-            .random-number-box { font-size: 36px; letter-spacing: 8px; }
+            .lock-screen .device-code { font-size: 32px; padding: 12px 20px; }
         }
     </style>
 </head>
@@ -404,33 +393,32 @@
     <!-- ======== شاشة القفل ======== -->
     <div class="lock-screen" id="lockScreen">
         <div class="lock-icon">🔒</div>
-        <h2>التطبيق مقفل</h2>
+        <h1>تطبيق محمي</h1>
         
-        <div class="random-number-box" id="randomNumberDisplay">----</div>
-        
-        <p class="info-text">
-            📌 <strong>للحصول على رمز الدخول:</strong><br>
-            ١. أرسل الرقم الظاهر أعلاه إلى مدير النظام<br>
-            ٢. سيتم تزويدك برمز الدخول<br>
-            ٣. الرمز صالح لمدة 30 يومًا
-        </p>
-        
-        <div class="field">
-            <label>🔑 أدخل رمز الدخول</label>
-            <input type="text" id="unlockCode" placeholder="----" maxlength="10" inputmode="numeric" pattern="[0-9]*">
+        <div class="instruction">
+            <p>📱 <strong>رقم جهازك الفريد:</strong></p>
         </div>
         
-        <button id="unlockBtn">🔓 فتح التطبيق</button>
-        <div class="error-msg" id="errorMsg">❌ رمز الدخول غير صحيح، تأكد من الرقم وحاول مجددًا</div>
+        <div class="device-code" id="deviceCode">----</div>
+        
+        <div class="instruction">
+            <p>➕ <strong>اجمع هذا الرقم مع 2026</strong></p>
+            <p style="font-size:14px; color:#718096;">مثال: 4815 + 2026 = 6841</p>
+            <p style="font-size:14px; color:#718096; margin-top:5px;">🔑 الناتج هو رمز الدخول الخاص بك</p>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="lockCodeInput" placeholder="أدخل رمز الدخول" maxlength="10" inputmode="numeric" dir="ltr">
+            <div id="lockError" class="error-msg"></div>
+            <div id="lockSuccess" class="success-msg"></div>
+            <button class="btn-lock" id="unlockBtn">🔓 فتح التطبيق</button>
+        </div>
     </div>
 
-    <!-- ======== الصفحة الرئيسية ======== -->
-    <div class="main-page" id="mainPage">
+    <!-- ======== المحتوى الرئيسي ======== -->
+    <div class="main-content" id="mainContent">
+
         <h1>📝 مدونة المعلومات</h1>
-        
-        <div style="text-align:center; margin-bottom:20px;">
-            <span class="days-left">⏳ متبقي <span id="daysLeftTop">0</span> يوم حتى انتهاء الصلاحية</span>
-        </div>
         
         <form id="infoForm">
             <div class="field">
@@ -503,39 +491,137 @@
 </div>
 
 <script>
-// ======== الإعدادات الأساسية ========
-const SECRET_KEY = 2026; // الرقم السري الذي تجمع به
-const LOCK_DURATION_DAYS = 30; // مدة القفل 30 يوم
+// ============================================================
+// 1. نظام الحماية - شاشة القفل
+// ============================================================
 
-// ======== دوال نظام الحماية ========
-function generateRandom4Digit() {
-    return Math.floor(1000 + Math.random() * 9000);
+// ---- توليد رقم عشوائي فريد مكون من 4 أرقام مختلفة ----
+function generateUniqueDeviceCode() {
+    let digits = [];
+    while (digits.length < 4) {
+        let d = Math.floor(Math.random() * 10);
+        if (!digits.includes(d)) {
+            digits.push(d);
+        }
+    }
+    return digits.join('');
 }
 
-function createNewLock() {
-    const randomNum = generateRandom4Digit();
-    const expiryTime = new Date().getTime() + (LOCK_DURATION_DAYS * 24 * 60 * 60 * 1000);
+// ---- الحصول على أو توليد رقم الجهاز ----
+function getDeviceCode() {
+    let stored = localStorage.getItem('deviceCode');
+    if (stored) {
+        return stored;
+    }
+    let newCode = generateUniqueDeviceCode();
+    localStorage.setItem('deviceCode', newCode);
+    return newCode;
+}
+
+// ---- حساب رمز الدخول = رقم الجهاز + 2026 ----
+function calculateAccessCode(deviceCode) {
+    return String(Number(deviceCode) + 2026);
+}
+
+// ---- التحقق من صلاحية 30 يوم ----
+function isLockExpired() {
+    let activationTime = localStorage.getItem('activationTime');
+    if (!activationTime) return true;
     
-    localStorage.setItem('lockData', JSON.stringify({
-        randomNumber: randomNum,
-        expiryTime: expiryTime,
-        isLocked: true
-    }));
+    let now = Date.now();
+    let diffDays = (now - Number(activationTime)) / (1000 * 60 * 60 * 24);
+    return diffDays >= 30;
+}
+
+// ---- التحقق من وجود تفعيل سابق ----
+function isAlreadyActivated() {
+    return localStorage.getItem('activationTime') !== null;
+}
+
+// ---- فتح التطبيق بعد التفعيل ----
+function unlockApp() {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainContent').classList.add('active');
+}
+
+// ---- معالجة زر فتح التطبيق ----
+document.getElementById('unlockBtn').addEventListener('click', function() {
+    let inputCode = document.getElementById('lockCodeInput').value.trim();
+    let errorDiv = document.getElementById('lockError');
+    let successDiv = document.getElementById('lockSuccess');
     
-    return randomNum;
+    // مسح الرسائل السابقة
+    errorDiv.textContent = '';
+    successDiv.textContent = '';
+    
+    // التحقق من الإدخال
+    if (!inputCode) {
+        errorDiv.textContent = '⚠️ الرجاء إدخال رمز الدخول';
+        return;
+    }
+    
+    let deviceCode = getDeviceCode();
+    let correctCode = calculateAccessCode(deviceCode);
+    
+    // التحقق من انتهاء الصلاحية
+    if (isLockExpired() && isAlreadyActivated()) {
+        errorDiv.textContent = '⛔ انتهت صلاحية الرمز (30 يوم). الرمز الجديد: ' + correctCode;
+        return;
+    }
+    
+    // مقارنة الرمز
+    if (inputCode === correctCode) {
+        // حفظ وقت التفعيل
+        localStorage.setItem('activationTime', String(Date.now()));
+        successDiv.textContent = '✅ تم فتح التطبيق بنجاح!';
+        setTimeout(function() {
+            unlockApp();
+        }, 500);
+    } else {
+        errorDiv.textContent = '❌ رمز غير صحيح. حاول مرة أخرى';
+        document.getElementById('lockCodeInput').value = '';
+        document.getElementById('lockCodeInput').focus();
+    }
+});
+
+// ---- إظهار رقم الجهاز عند تحميل الصفحة ----
+document.getElementById('deviceCode').textContent = getDeviceCode();
+
+// ---- التحقق من التفعيل عند بدء التشغيل ----
+function checkActivationOnStart() {
+    // في حالة التطوير (DEBUG) يمكن تخطي القفل
+    // if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    //     unlockApp();
+    //     return;
+    // }
+    
+    // التحقق من التفعيل والصلاحية
+    if (isAlreadyActivated() && !isLockExpired()) {
+        unlockApp();
+    }
 }
 
-function showLockScreen(randomNum) {
-    document.getElementById('randomNumberDisplay').textContent = randomNum;
-    document.getElementById('lockScreen').classList.remove('hidden');
-    document.getElementById('mainPage').classList.remove('active');
-}
+// ---- تشغيل التحقق ----
+checkActivationOnStart();
 
-function showApp(daysLeft) {
-    document.getElementById('daysLeftTop').textContent = daysLeft;
-    document.getElementById('lockScreen').classList.add('hidden');
-    document.getElementById('mainPage').classList.add('active');
-}
+// ---- إدخال Enter لفتح التطبيق ----
+document.getElementById('lockCodeInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('unlockBtn').click();
+    }
+});
+
+// ---- توجيه المستخدم للتركيز على حقل الإدخال ----
+window.addEventListener('load', function() {
+    if (document.getElementById('lockScreen').style.display !== 'none') {
+        document.getElementById('lockCodeInput').focus();
+    }
+});
+
+
+// ============================================================
+// 2. باقي الكود (مدونة المعلومات)
+// ============================================================
 
 // ======== العناصر ========
 const form = document.getElementById('infoForm');
@@ -550,7 +636,7 @@ const successMsg = document.getElementById('successMsg');
 const toggleMainPassword = document.getElementById('toggleMainPassword');
 
 // عناصر صفحة العرض
-const mainPage = document.getElementById('mainPage');
+const mainPage = document.getElementById('mainContent');
 const infoPage = document.getElementById('infoPage');
 const viewEmail = document.getElementById('viewEmail');
 const viewPassword = document.getElementById('viewPassword');
@@ -571,95 +657,4 @@ toggleMainPassword.addEventListener('click', function() {
         password.type = 'text';
         this.textContent = '🔒';
     } else {
-        password.type = 'password';
-        this.textContent = '👁️';
-    }
-});
-
-// ======== تشفير وفك تشفير النصوص الآمن لـ Base64 ========
-function safeBtoa(str) {
-    return btoa(unescape(encodeURIComponent(str)));
-}
-
-function safeAtob(str) {
-    try {
-        return decodeURIComponent(escape(atob(str)));
-    } catch(e) {
-        return null;
-    }
-}
-
-// ======== توليد رابط يحتوي على كافة البيانات مشفرة ========
-function createShareableLink(dataObject) {
-    const rawString = JSON.stringify(dataObject);
-    const encryptedData = safeBtoa(rawString);
-    return window.location.origin + window.location.pathname + '?data=' + encodeURIComponent(encryptedData);
-}
-
-// ======== توليد الـ QR بالبيانات المشفرة ليعمل على أي جهاز ========
-function generateDynamicQR(dataObject) {
-    const url = createShareableLink(dataObject);
-    const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-    
-    qrContainer.innerHTML = `<p class="loading">⏳ جاري عرض رمز QR السحابي الشامل...</p>`;
-    
-    const img = document.createElement('img');
-    img.src = apiUrl;
-    img.alt = 'Universal QR Code';
-    
-    img.onload = function() {
-        qrContainer.innerHTML = '';
-        qrContainer.appendChild(img);
-    };
-    
-    img.onerror = function() {
-        qrContainer.innerHTML = '<p style="color:#e53e3e;">⚠️ حدث خطأ في الشبكة</p>';
-    };
-}
-
-// ======== حفظ الاستمارة الرئيسية ========
-form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const data = {
-        email: email.value.trim(),
-        password: password.value,
-        phone: phone.value.trim(),
-        birthdate: birthdate.value
-    };
-    
-    // تحديث السجلات محلياً في جهازك
-    records = records.filter(r => r.email !== data.email);
-    records.push(data);
-    localStorage.setItem('records', JSON.stringify(records));
-    
-    // توليد كود الـ QR شامل البيانات ليتمكن أي جهاز من قراءته مباشرة
-    generateDynamicQR(data);
-    
-    successMsg.classList.add('show');
-    setTimeout(() => successMsg.classList.remove('show'), 3000);
-    
-    saveBtn.textContent = '✅ تم الحفظ!';
-    setTimeout(() => saveBtn.textContent = '💾 حفظ المعلومات', 2000);
-    
-    form.reset();
-});
-
-// ======== زر توليد QR من السجلات المخزنة ========
-generateBtn.addEventListener('click', function() {
-    if (records.length === 0) {
-        alert('⚠️ لا توجد سجلات محفوظة حالياً في هذا الجهاز.');
-        return;
-    }
-    generateDynamicQR(records[records.length - 1]);
-});
-
-// ======== تفعيل وضع التعديل ========
-function enableEditMode() {
-    isEditMode = true;
-    editBadge.classList.add('active');
-    
-    viewPassword.contentEditable = 'true';
-    viewPhone.contentEditable = 'true';
-    vie
+        password.type = 
